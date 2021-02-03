@@ -1,0 +1,37 @@
+{
+  "name": "back-syswa-gestion",
+  "version": "2.0.0",
+  "description": "actualizacion del back de syswa gestion",
+  "main": "server.js",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.15",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.2",
+    "nodemailer": "^6.4.17",
+    "nodemon": "^2.0.7",
+    "pdf-creator-node": "^1.4.2",
+    "socket.io": "^3.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlos349/syswaGestion.git"
+  },
+  "keywords": [
+    "CRM"
+  ],
+  "author": "syswa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/carlos349/syswaGestion/issues"
+  },
+  "homepage": "https://github.com/carlos349/syswaGestion#readme"
+}
