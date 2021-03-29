@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { Scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const notificationScheme = new Scheme({
+const notificationSchema = new Schema({
     branch: {
         type: String
     },
@@ -26,4 +26,4 @@ const notificationScheme = new Scheme({
     }
 })
 
-module.exports = notificationScheme
+module.exports = notificationSchema

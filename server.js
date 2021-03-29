@@ -29,7 +29,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // verify()
 //Routes
 
-// app.use('/users', require('./routes/Users.js'))
+app.use('/users', require('./routes/Users.js'))
 // app.use('/ventas', require('./routes/Venta.js'))
 // app.use('/manicuristas', require('./routes/Manicuristas.js'))
 // app.use('/servicios', require('./routes/Servicios.js'))

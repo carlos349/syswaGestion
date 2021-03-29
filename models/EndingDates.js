@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { Scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const endingdateScheme = new Scheme({
+const endingdateSchema = new Schema({
     services: {
         type: Array
     },
@@ -35,4 +35,4 @@ const endingdateScheme = new Scheme({
     }
 })
 
-module.exports = endingdateScheme
+module.exports = endingdateSchema

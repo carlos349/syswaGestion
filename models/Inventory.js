@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { Scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const inventoryScheme = new Scheme({
+const inventorySchema = new Schema({
     purchaseHistory: {
         type: Array
     },
@@ -38,4 +38,4 @@ const inventoryScheme = new Scheme({
     }
 })
 
-module.exports = inventoryScheme
+module.exports = inventorySchema

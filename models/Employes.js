@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { Scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const employeScheme = new Scheme({
+const employeSchema = new Schema({
     days: {
         type: Array
     },
@@ -35,4 +35,4 @@ const employeScheme = new Scheme({
     }
 })
 
-module.exports = employeScheme
+module.exports = employeSchema

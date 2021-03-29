@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { Scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const clientScheme = new Scheme({
+const clientSchema = new Schema({
     historical: {
         type: Array
     },
@@ -46,4 +46,4 @@ const clientScheme = new Scheme({
     }
 })
 
-module.exports = clientScheme
+module.exports = clientSchema

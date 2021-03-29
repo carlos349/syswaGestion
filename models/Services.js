@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { Scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const serviceScheme = new Scheme({
+const serviceSchema = new Schema({
     branch: {
         type: String
     },
@@ -34,4 +34,4 @@ const serviceScheme = new Scheme({
     }
 })
 
-module.exports = serviceScheme
+module.exports = serviceSchema

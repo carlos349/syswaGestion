@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const userScheme = new Scheme ({
+const userSchema = new Schema ({
     access: {
         type: Array
     },
@@ -39,4 +39,4 @@ const userScheme = new Scheme ({
     }
 })
 
-module.exports = userScheme
+module.exports = userSchema

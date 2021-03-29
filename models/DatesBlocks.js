@@ -1,7 +1,7 @@
-const moongose = require(moongose)
-const { Scheme } = moongose
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
-const datesBlockScheme = new Scheme({
+const datesBlockSchema = new Schema({
     dateData: {
         type: Object
     },
@@ -13,4 +13,4 @@ const datesBlockScheme = new Scheme({
     }
 })
 
-module.exports = datesBlockScheme
+module.exports = datesBlockSchema
