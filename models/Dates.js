@@ -47,6 +47,9 @@ const dateSchema = new Schema({
     imgDesign: {
         type: Array
     },
+    origin: {
+        type: String
+    },
     createdAt: {
         type: Date,
         default: Date.now

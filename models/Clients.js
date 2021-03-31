@@ -11,6 +11,9 @@ const clientSchema = new Schema({
     lastName: {
         type: String
     },
+    block: {
+        type: Boolean
+    },
     email: {
         type: String
     },

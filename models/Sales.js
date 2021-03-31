@@ -14,6 +14,9 @@ const saleSchema = new Schema({
     client: {
         type: Object
     },
+    payType: {
+        type: String
+    },
     commission: {
         type: Number
     },
