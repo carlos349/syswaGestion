@@ -2,7 +2,7 @@ const express = require('express')
 const protectRoute = express.Router();
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose')
-const config = require('../private/key-jwt');
+const key = require('../private/key-jwt');
 const userSchema = require('../models/Users')
 
 protectRoute.use((req, res, next) => {
@@ -16,7 +16,7 @@ protectRoute.use((req, res, next) => {
 	if (!token) {
 		return res.status(401).json({auth: false, message: 'no token provided'})
 	}
-    jwt.verify(token, config.key, (err, decoded) => {
+    jwt.verify(token, key, (err, decoded) => {
         if (err) {
             return res.status(401).json({auth: false, message: 'token expired'})
         }else{
@@ -27,11 +27,18 @@ protectRoute.use((req, res, next) => {
                 }else{
                     const payload = {
                         _id: verify._id,
-                        name: verify.name,
-                        user: verify.user,
-                        LastAccess: verify.LastAccess
+						first_name: verify.first_name,
+						last_name: verify.last_name,
+                        branch: verify.branch,
+						email: verify.email,
+						about: verify.about,
+						status: verify.status,
+						access: verify.access,
+						userImage: verify.userImage,
+						LastAccess: verify.LastAccess,
+						linkLender: verify.linkLender
                     }
-                    let tokenReload = jwt.sign(payload, config.key, {
+                    let tokenReload = jwt.sign(payload, key, {
                         expiresIn: 60 * 60 * 24
                     })
                     req.requestToken = tokenReload
