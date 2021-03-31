@@ -9,11 +9,64 @@ const email = require('../modelsMail/Mails')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const uploadS3 = require('../common-midleware/index')
+const key = require('../private/key-jwt');
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 users.use(cors())
 
-//here is come all users
+//generador de super usuario - super user generator
+users.get('/createSuperuser', async (req, res, next) => {
+	const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const User = conn.model('users', userSchema)
+
+	const access = [
+		{
+			ruta: 'usuarios',
+			validaciones: ['editar', 'registrar']
+		}
+	]
+	const userData = {
+		first_name: 'admin',
+		last_name: 'admin',
+		email: 'admin@gmail.com',
+        branch:'xx',
+		password: credentials,
+		status: 1,
+		access: access,
+		linkLender: '',
+		userImage: '',
+		LastAccess: new Date(),
+		date: new Date()
+	}
+	User.findOne({
+		email: req.body.email
+	})
+	.then(user => {
+		if(!user){
+			bcrypt.hash(userData.password, 10, (err, hash) => {
+				userData.password = hash
+				User.create(userData)
+				.then(user => {
+					res.json({status: user._id})
+				})
+				.catch(err => {
+					res.send('error: ' + err)
+				})
+			})
+		}else{
+			res.json({error: 'User already exist'})
+		}
+	})
+	.catch(err => {
+		res.send('error: ' + err)
+	})
+})
+
+//output - data and token
 users.get('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -34,7 +87,8 @@ users.get('/', protectRoute, async (req, res) => {
     }
 })
 
-//
+//input - pasar id . params id
+//output - data and token
 users.get('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -54,52 +108,8 @@ users.get('/:id', protectRoute, async (req, res) => {
     }
 })
 
-users.post('/register', protectRoute, (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
-
-    const today = new Date()
-    const userData = {
-		first_name: req.body.first_name,
-		last_name: req.body.last_name,
-        branch: req.body.branch,
-		email: req.body.email.toLowerCase(),
-		password: req.body.password,
-		about: '',
-		status: 2,
-		access: [],
-		linkLender: '',
-		userImage: '',
-		LastAccess: today,
-		createdAt: today
-	}
-
-    User.findOne({
-        email: userData.email
-    })
-    .then(findUser => {
-        if (!findUser) {
-            bcrypt.hash(req.body.password, 10, (err, hash) => {
-                userData.pasword = hash
-                User.create(userData)
-                .then(userCreated => {
-                    res.json({status: 'ok', data: userCreated, token: req.requestToken})
-                }).catch(err => { 
-                    res.send(err)
-                })
-            })
-        }else{
-            res.json({status: 'user already exist'})
-        }
-    }).catch(err => {
-        req.send(err)
-    })
-})
-
+//input - email
+//output - ok, y envia un correo al usuario con una nueva contraseña provisional . ok, and mail for user with a new provisional password
 users.post('/sendNewPass', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -144,6 +154,8 @@ users.post('/sendNewPass', async (req, res) => {
 	}
 })
 
+//input pasar id y formulario con first_name, last_name, email, about, image . params id, and form with first_name, last_name, email, about, image
+//output ok, token
 users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, res, next) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -158,7 +170,7 @@ users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, 
 	const mail = req.body.email
 	const about = req.body.about
 	if(req.file){
-		const images = req.file.filename
+		const images = req.file.location
         try {
             const change = await User.findByIdAndUpdate(id, {
                 $set: {
@@ -169,7 +181,7 @@ users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, 
                     userImage: images
                 }
             })
-            res.json({status: change, image: images, token: req.requestToken})
+            res.json({status: 'ok', image: images, token: req.requestToken})
         }catch(err){
             res.send(err)
         }
@@ -183,10 +195,267 @@ users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, 
                     about: about
                 }
             })
-            res.json({status: change, image: '', token: req.requestToken})
+            res.json({status: 'ok', image: '', token: req.requestToken})
         }catch(err){
             res.send(err)
         }
 	}
 })
+
+//input - formulario con first_name, last_name, branch, email, password, image . form with first_name, last_name, branch, email, password, image
+//output - ok, data and token
+users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const User = conn.model('users', userSchema)
+    
+    const today = new Date()
+    var userData = {}
+    if(req.file){
+        userData = {
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            branch: req.body.branch,
+            email: req.body.email.toLowerCase(),
+            password: req.body.password,
+            about: '',
+            status: 2,
+            access: [],
+            linkLender: '',
+            userImage: req.file.location,
+            LastAccess: today,
+            createdAt: today
+        }
+    }else{
+        userData = {
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            branch: req.body.branch,
+            email: req.body.email.toLowerCase(),
+            password: req.body.password,
+            about: '',
+            status: 2,
+            access: [],
+            linkLender: '',
+            userImage: '',
+            LastAccess: today,
+            createdAt: today
+        }
+    }
+    
+    User.findOne({
+        email: userData.email
+    })
+    .then(findUser => {
+        if (!findUser) {
+            bcrypt.hash(req.body.password, 10, (err, hash) => {
+                userData.pasword = hash
+                User.create(userData)
+                .then(userCreated => {
+                    res.json({status: 'ok', data: userCreated, token: req.requestToken})
+                }).catch(err => { 
+                    res.send(err)
+                })
+            })
+        }else{
+            res.json({status: 'user already exist'})
+        }
+    }).catch(err => {
+        req.send(err)
+    })
+})
+
+//input - formulario con email, password . form with email and password
+//output - status, token and access
+users.post('/login', (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const User = conn.model('users', userSchema)
+    console.log(req.body.email)
+	const today = new Date()
+	User.findOne({
+		email: req.body.email.toLowerCase()
+	})
+	.then(user => {
+		if(user){
+			if(bcrypt.compareSync(req.body.password, user.password)){
+				User.findByIdAndUpdate(user._id, {
+					$set: {
+						LastAccess: today
+					}
+				})
+				.then(access => {
+					const payload = {
+						_id: user._id,
+						first_name: user.first_name,
+						last_name: user.last_name,
+                        branch: user.branch,
+						email: user.email,
+						about: user.about,
+						status: user.status,
+						access: user.access,
+						userImage: user.userImage,
+						LastAccess: user.LastAccess,
+						linkLender: user.linkLender
+					}
+					let token = jwt.sign(payload, key, {
+						expiresIn: 60 * 60 * 24
+					})
+					res.json({token: token, status: user.status, access: user.access})
+				})
+			}else{
+				res.json({error: 'pass incorrecto'})
+			}
+		}else{
+			res.json({error: 'User does not exist'})
+		}
+	})
+	.catch(err => {
+		res.send(err)
+	})
+})
+
+//input - params id . pasar id
+// output - status and token
+users.delete('/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const User = conn.model('users', userSchema)
+
+    try{
+        const deleteUser = await User.findByIdAndRemove(req.params.id)
+        if (deleteUser) {
+            res.json({status: 'ok', token: req.requestToken})
+        }else{
+            res.json({status: 'users does exist'})
+        }
+    }catch(err) {
+        res.send(err)
+    }
+})
+
+//input - params id and form status, employe . pasar id y formulario con status y employe
+//output - status, data, and token
+users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const User = conn.model('users', userSchema)
+
+	const status = req.body.status
+	const employe = req.body.employe
+	if(status == 3){
+        try{
+            const update = await User.findByIdAndUpdate(req.params.id, { $set: {status: status, linkLender: employe}})
+            if (update) {
+                res.json({status: 'ok', data: update, token: req.requestToken})
+            }
+        }catch(err){
+            res.send(err)
+        }	
+	}else{
+        try{
+            const update = await User.findByIdAndUpdate(req.params.id, { $set: {status: status, linkLender: ''}})
+            if (update) {
+                res.json({status: 'ok', data: update, token: req.requestToken})
+            }
+        }catch(err){
+            res.send(err)
+        }
+	}
+})
+
+//input - params id, form access . pasar id y formulario con access
+//output - status and token
+users.put('/editAccess/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const User = conn.model('users', userSchema)
+	const access = req.body.access
+	try {
+		const modifyAccess = await User.findByIdAndUpdate(req.params.id, {
+			$set: {access: access}
+		})
+		if (modifyAccess) {
+			const user = await User.findOne({ email: modifyAccess.email })
+			if (user) {
+				const payload = {
+					_id: user._id,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    branch: user.branch,
+                    email: user.email,
+                    about: user.about,
+                    status: user.status,
+                    access: user.access,
+                    userImage: user.userImage,
+                    LastAccess: user.LastAccess,
+                    linkLender: user.linkLender
+				}
+				let token = jwt.sign(payload, key, {
+					expiresIn: 60 * 60 * 24
+				})
+				res.json({status: 'ok', token: token})
+			}
+		}
+	}catch(err) {
+		res.json({status: 'bad'})
+	}
+})
+
+//input - params id, form newpass and lastpass . pasas id, formulario con newpass y lastpass
+//output - status and token
+users.put('/changePass/:id', protectRoute, async (req, res, next) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const User = conn.model('users', userSchema)
+
+	const id = req.params.id
+	const newPass = req.body.newPass
+	const lastPass = req.body.lastPass
+    try{
+        const compare = await User.findById(id)
+        if (!compare) {
+            res.status(404).send('User does exist')
+        }else{
+            if (bcrypt.compareSync(lastPass, compare.password)) {s
+                const hash = await bcrypt.hash(newPass, 10)
+                if (!hash) {
+                    res.status(404).send('Error en encriptado')
+                }
+                const change = await User.findByIdAndUpdate(id, {
+                    $set: {
+                        password: hash
+                    }
+                })
+                if (!change) {
+                    res.status(404).send('User not found')
+                }
+                res.json({status:'ok', token: req.requestToken})
+            }else{
+                res.json({status:'incorrect pass', token: req.requestToken})
+            }
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 module.exports = users
