@@ -8,7 +8,7 @@ const saleSchema = new Schema({
     services: {
         type: Array
     },
-    lender: {
+    employe: {
         type: Object
     },
     client: {
