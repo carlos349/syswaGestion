@@ -30,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 //Routes
 
 app.use('/users', require('./routes/Users.js'))
+app.use('/employes', require('./routes/Employes.js'))
 // app.use('/ventas', require('./routes/Venta.js'))
 // app.use('/manicuristas', require('./routes/Manicuristas.js'))
 // app.use('/servicios', require('./routes/Servicios.js'))

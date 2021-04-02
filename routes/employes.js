@@ -143,7 +143,7 @@ employes.get('/bonusbyemploye/:id', protectRoute, async (req, res) => {
 
 //Api que registra un nuevo empleado. (Ingreso: branch, firstName, lastName, document, days) -- Api that create a new employe. (Input: branch, firstName, lastName, document, days)
 
-employes.post('/', protectRoute, async (req, res) => {
+employes.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -315,7 +315,7 @@ employes.put('/', protectRoute, async (req,res) => {
 
 //Api que cierra a un empleado (Ingreso: ObjectId del empleado) -- Api that close an employe (Input: employe´s ObjectId)
 
-employes.put('/closeemploye', protectRoute, async (req, res) {
+employes.put('/closeemploye', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
