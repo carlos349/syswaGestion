@@ -5,7 +5,7 @@ const serviceSchema = new Schema({
     branch: {
         type: String
     },
-    lenders: {
+    employes: {
         type: Array
     },
     products: {
