@@ -30,14 +30,14 @@ app.use(bodyParser.urlencoded({ extended: false }))
 //Routes
 
 app.use('/users', require('./routes/Users.js'))
-// app.use('/ventas', require('./routes/Venta.js'))
+app.use('/sales', require('./routes/Sales.js'))
 // app.use('/manicuristas', require('./routes/Manicuristas.js'))
 app.use('/services', require('./routes/Services.js'))
 // app.use('/metrics', require('./routes/Metrics.js'))
-// app.use('/citas', require('./routes/Citas.js'))
+app.use('/dates', require('./routes/Dates.js'))
 // app.use('/expenses', require('./routes/Expenses.js'))
 // app.use('/inventario', require('./routes/Inventario.js'))
-// app.use('/clients', require('./routes/Clients.js'))
+app.use('/clients', require('./routes/Clients.js'))
 // app.use('/pedidos', require('./routes/Pedidos.js'))
 // app.use('/notifications', require('./routes/Notifications.js'))
 
