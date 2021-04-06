@@ -19,6 +19,10 @@ const providerSchema = new Schema({
     },
     locations: {
         type: String
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 })
 
