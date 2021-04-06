@@ -341,3 +341,5 @@ employes.put('/closeemploye', protectRoute, async (req, res) => {
 //Fin de la api. (Retorna datos del empleado) -- Api end (output employe's data)
 
 //------------------------------------------------------------------------------------
+
+module.exports = employes
