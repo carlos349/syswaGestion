@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const employeSchema = require('../models/Employes')
 const expenseSchema = require('../models/Expenses')
+const saleSchema = require('../models/Sales')
 const cors = require('cors')
 
 employes.use(cors())
@@ -72,9 +73,9 @@ employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
 
     const Sale = conn.model('sales', saleSchema)
     try{
-        const findSalesById = await Sale.find({'employe.id':req.params.id})
+        const findSalesById = await Sale.find({'employe.id': req.params.id})
         if (findSalesById){
-            res.json({status:'ok', data: findSalesById, token: req.requestToken})
+            res.json({status: 'ok', data: findSalesById, token: req.requestToken})
         }else{
             res.json({status: 'sales not found'})
         }
@@ -100,7 +101,7 @@ employes.get('/advancementsbyemploye/:id', protectRoute, async (req, res) => {
     try{
         const findAdvancementById = await Employe.findById(req.params.id)
         if(findAdvancementById){
-            res.json({status: 'ok', data: findAdvancementById.advancement, token:requestToken})
+            res.json({status: 'ok', data: findAdvancementById.advancement, token:req.requestToken})
         }else{
             res.json({status:'advancement not found'})
         } 
@@ -127,7 +128,7 @@ employes.get('/bonusbyemploye/:id', protectRoute, async (req, res) => {
     try{
         const findBonusById = await Employe.findById(req.params.id)
         if(findBonusById){
-            res.json({status: 'ok', data: findBonusById.bonus, token:requestToken})
+            res.json({status: 'ok', data: findBonusById.bonus, token:req.requestToken})
         }else{
             res.json({status:'bonus not found'})
         } 
@@ -154,7 +155,7 @@ employes.post('/', async (req, res) => {
 
     Employe.find({document:req.body.document})
     .then(findEmploye => {
-        if (findEmploye) {
+        if (findEmploye.length > 0) {
             res.json({status: 'employe already exist'})
         }else{
             Employe.find()
@@ -178,16 +179,16 @@ employes.post('/', async (req, res) => {
                 }
                 Employe.create(dataEmploye)
                 .then(employeCreated => {
-                    res.json({status: 'ok', data: employeCreated, token: requestToken})
+                    res.json({status: 'employe created', data: employeCreated, token: req.requestToken})
                 }).catch(err => {
-                    req.send(err)
+                    res.send(err)
                 })
             }).catch(err => {
-                req.send(err)
+                res.send(err)
             })
         }
     }).catch(err => {
-        req.send(err)
+        res.send(err)
     })
     
 })
@@ -211,14 +212,14 @@ employes.post('/registerexpenseforemploye', protectRoute, async (req, res) => {
     const type = req.body.type ? 'Bonus' : 'Advancement'
     const advancement = {
         branch: req.body.branch,
-        detai: req.body.detail,
+        detail: req.body.detail,
         amount: req.body.amount,
         employe: {
             id: req.body.id,
             firstName: req.body.firstName,
             document: req.body.document,
-            type: type
         },
+        type: type
     }
 
     Expense.create(advancement)
@@ -226,14 +227,14 @@ employes.post('/registerexpenseforemploye', protectRoute, async (req, res) => {
         if (req.body.type) {
             Employe.findByIdAndUpdate(req.body.id, { $inc: { bonus: req.body.amount }})
             .then(employeUpdated => {
-                res.json({status:'bonus updated', data: createdExpense, token: requestToken})
+                res.json({status:'bonus updated', data: createdExpense, token: req.requestToken})
             }).catch(err => {
                 res.send(err)
             })
         }else{
             Employe.findByIdAndUpdate(req.body.id, { $inc: { advancement: req.body.amount }})
             .then(employeUpdated => {
-                res.json({status:'advancement updated', data: createdExpense, token: requestToken})
+                res.json({status:'advancement updated', data: createdExpense, token: req.requestToken})
             }).catch(err => {
                 res.send(err)
             })
@@ -261,7 +262,7 @@ employes.delete('/:id', protectRoute, async (req, res) => {
     try{
         const deleteEmploye = await Employe.findOneAndRemove(req.params.id)
         if (deleteEmploye) {
-            res.json({status: 'employe deleted', data:deleteEmploye, token: requestToken })
+            res.json({status: 'employe deleted', data:deleteEmploye, token: req.requestToken })
         }else{
             res.json({status: 'employe not found'})
         }
@@ -285,28 +286,34 @@ employes.put('/', protectRoute, async (req,res) => {
 
     const Employe = conn.model('employes', employeSchema)
 
-    Employe.find({document:req.body.document})
-    .then(employeFind => {
-        if (employeFind) {
-            res.json({status: 'document already in use'})
-        }else{
-            Employe.findByIdAndUpdate(req.body.id, {
-                $set: {
-                    days: req.body.days,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    document: req.body.document
-                }
-            })
-            .then(employeEdited => {
-                res.json({status: 'employe edited', data: employeEdited, token: requestToken})
-            }).catch(err => {
-                res.send(err)
-            })
-        }
+    Employe.findById(req.body.id)
+    .then(found => {
+        Employe.find({document:req.body.document})
+        .then(employeFind => {
+            if (found.document != req.body.document && employeFind.length > 0) {
+                res.json({status: 'document already in use'})
+            }else{
+                Employe.findByIdAndUpdate(req.body.id, {
+                    $set: {
+                        days: req.body.days,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        document: req.body.document
+                    }
+                })
+                .then(employeEdited => {
+                    res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
+                }).catch(err => {
+                    res.send(err)
+                })
+            }
+        }).catch(err => {
+            res.send(err)
+        })
     }).catch(err => {
         res.send(err)
     })
+    
 })
 
 //Fin de la api. (Retorna datos del empleado) -- Api end (output employe's data)
@@ -324,15 +331,15 @@ employes.put('/closeemploye', protectRoute, async (req, res) => {
 
     const Employe = conn.model('employes', employeSchema)
 
-    Employe.findByIdAndUpdate(req.params.id, {
+    Employe.findByIdAndUpdate(req.body.id, {
         $set: {
-            comision:0,
+            commission:0,
             advancement:0,
             bonus:0
         }
     })
     .then(employeClosed => {
-        res.json({status: 'employe closed', data: employeClosed, token: requestToken})
+        res.json({status: 'employe closed', data: employeClosed, token: req.requestToken})
     }).catch(err => {
         res.send(err)
     })
@@ -341,3 +348,5 @@ employes.put('/closeemploye', protectRoute, async (req, res) => {
 //Fin de la api. (Retorna datos del empleado) -- Api end (output employe's data)
 
 //------------------------------------------------------------------------------------
+
+module.exports = employes

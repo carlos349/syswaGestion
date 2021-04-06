@@ -2,19 +2,31 @@ const mongoose = require('mongoose')
 const { Schema } =  mongoose
 
 const historyInventorySchema = new Schema({
-   user: {
+   id: {
        type: String
-   },
-   totalProduct: {
-       type: Number
    },
    branch: {
        type: String
+   }, 
+   user: {
+       type: Object
    },
-   products: {
-       type: Array
+   product: {
+       type: String
    },
-   createdAt: {
+   entry: {
+       type: Number
+   },
+   measure: {
+       type: String
+   },
+   price: {
+       type: Number
+   },
+   provider: {
+       type: String
+   },
+   date: {
        type: Date,
        default: Date.now
    }
