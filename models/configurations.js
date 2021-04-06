@@ -2,6 +2,9 @@ const mongoose = require('mongoose')
 const { Schema } = mongoose
 
 const configurationSchema = new Schema({
+    branch: {
+        type: String
+    },
     blockHour: {
         type: Object
     },
@@ -22,6 +25,9 @@ const configurationSchema = new Schema({
     },
     onlineDates: {
         type: Boolean
+    },
+    typesPay: {
+        type: Array
     },
     datesPolitics: {
         type: Object

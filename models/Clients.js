@@ -26,8 +26,14 @@ const clientSchema = new Schema({
     instagram: {
         type: String
     },
+    codeRescue: {
+        type: String
+    },
     attends: {
         type: Number
+    },
+    idRecommender: {
+        type: String
     },
     recommender: {
         type: String

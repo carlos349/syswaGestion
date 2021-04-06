@@ -8,26 +8,14 @@ const daySaleSchema = new Schema({
     services: {
         type: Array
     },
-    lender: {
+    employe: {
         type: Object
     },
     commission: {
         type: Number
     },
-    cash: {
-        type: Number
-    },
-    debit: {
-        type: Number
-    },
-    credit: {
-        type: Number
-    },
-    transfer: {
-        type: Number
-    },
-    others: {
-        type: Number
+    typesPay: {
+        type: Array
     },
     purcharseOrder: {
         type: Number
@@ -40,6 +28,9 @@ const daySaleSchema = new Schema({
     },
     total: {
         type: Number
+    },
+    idTableSales: {
+        type: String
     },
     createdAt: {
         type: Date,

@@ -20,20 +20,11 @@ const saleSchema = new Schema({
     commission: {
         type: Number
     },
-    cash: {
+    localGain: {
         type: Number
     },
-    debit: {
-        type: Number
-    },
-    credit: {
-        type: Number
-    },
-    transfer: {
-        type: Number
-    },
-    others: {
-        type: Number
+    typesPay: {
+        type: Array
     },
     purchaseOrder: {
         type: Number
