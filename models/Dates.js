@@ -21,10 +21,7 @@ const dateSchema = new Schema({
         type: Object
     },
     employe: {
-        type: String
-    },
-    class: {
-        type: String
+        type: Object
     },
     process: {
         type: Boolean
