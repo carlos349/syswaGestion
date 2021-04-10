@@ -5,7 +5,7 @@ const datesBlockSchema = new Schema({
     dateData: {
         type: Object
     },
-    lenderBlocks: {
+    employeBlocks: {
         type: Array
     },
     firstBlock: {

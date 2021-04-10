@@ -1,11 +1,10 @@
 const express = require('express')
 const dates = express.Router()
 const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const key = require('../private/key-jwt');
 const protectRoute = require('../securityToken/verifyToken')
 const dateSchema = require('../models/Dates')
+const datesBlockSchema = require('../models/DatesBlocks')
+const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
@@ -41,7 +40,7 @@ dates.get('/', protectRoute, async (req, res) => {
 
 //Api que busca las citas de un prestador (Ingreso: ObjectId del empleado) -- Api that search dates by an employe (Input: Employe's ObjectId)
 
-dates.get('(getdatesbyemploye/:id', protectRoute, async (req, res) => {
+dates.get('/getdatesbyemploye/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -77,17 +76,19 @@ dates.post('/', async (req, res) => {
     const Date = conn.model('dates', dateSchema)
 
     try{
-        const inspector = await Date.find({$and:[
-            {
-                'client.id': req.body.client.id,
-                'employe.id': req.body.employe.id,
-                createdAt: req.body.date,
-                branch: req.body.branch,
-                start: req.body.start,
-                end: req.body.end
-            }
-        ]})
-        if (inspector.length > 0 ) {
+        const inspector = await Date.findOne({
+            $and:[
+                {
+                    'client.id': req.body.client.id,
+                    'employe.id': req.body.employe.id,
+                    createdAt: req.body.date,
+                    branch: req.body.branch,
+                    start: req.body.start,
+                    end: req.body.end
+                }
+            ]
+        })
+        if (inspector) {
             res.json({status:'date repeated'})
         }else{
             const dateData = {
@@ -123,7 +124,7 @@ dates.post('/', async (req, res) => {
 
 //Api que elimina una cita (Ingreso: ObejctId de la cita) -- Api that delete a date (Input: Date´s ObjectId)
 
-dates.delete('/:id', async (req, res) => {
+dates.delete('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -133,9 +134,9 @@ dates.delete('/:id', async (req, res) => {
     const Date = conn.model('dates', dateSchema)
 
     try{
-        const deleteDate = await Date.delete(req.params.id)
+        const deleteDate = await Date.findByIdAndRemove(req.params.id)
         if (deleteDate) {
-            res.json({status:'deleted'})
+            res.json({status:'deleted', token: req.requestToken})
         }
     }catch(err){
         res.send(err)
@@ -143,5 +144,288 @@ dates.delete('/:id', async (req, res) => {
 })
 
 //Fin de la api (Retorna: Respuesta simple) -- Api end (Return: Simple response)
+
+// -----------------------------------------------------------------------------
+
+//Api que busca y crea los bloques de horario de un empleado (Ingreso: date, restHour, timeDate, branch, employe) -- api that find and create an employe´s time block (Input: date, restHour, timeDate, branch, employe)
+
+dates.post('/blockHours', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    
+    const DateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
+    const dateDaily = req.body.date
+    const Day = new Date(dateDaily).getDay()
+
+    const restHour = req.body.restHour
+    const hoursDate = req.body.timeDate
+    try {
+        const findDay = await DateBlock.findOne({
+            $and: [
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': dateDaily}
+            ]
+        })
+        if (findDay) {
+            var ifEmploye = false
+            var blocks = []
+            for (let i = 0; i < findDay.employeBlocks.length; i++) {
+                const element = findDay.employeBlocks[i];
+                if (element.employe == req.body.employe) {
+                    ifEmploye = true
+                    blocks = element.block
+                    break
+                }
+            }
+            if (ifEmploye) {
+                for (let e = 0; e < blocks.length; e++) {
+                    const element = blocks[e];
+                    if (element.validator == false && blocks[e-1].validator == true && e > 0) {
+                        for (let u = 0; u < hoursDate / 15; u++) {
+                            if (blocks[e - u]) {
+                                blocks[e - u].validator = 'unavailable'
+                            }
+                        }
+                    }
+                    if (blocks.length - 1 == e) {
+                        for (let u = 0; u < hoursDate / 15; u++) {
+                            blocks[e - u].validator = 'unavailable'
+                        }
+                    }
+                }
+                res.json({status: 'ok', data: blocks})
+            }else{
+                try {
+                    const findConfiguration = await Configuration.findOne({
+                        branch: req.body.branch
+                    })
+                    const getDay = findConfiguration.blockHour.filter(day => day.day == Day)
+                    var initialBlock = []
+                    var splitHour = getDay.start.split(':')[0]
+                    var splitMinutes = getDay.start.split(':')[1]
+                    for (let i = 0; i < getDay.time / 15; i++) {
+                        if (i == 0) {
+                            initialBlock.push({
+                                hour: getDay.start,
+                                validator: true
+                            })
+                            splitMinutes = parseFloat(splitMinutes + 15)
+                            splitHour = splitMinutes == 60 ? splitHour++ : splitHour
+                            splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                        }else{
+                            initialBlock.push({
+                                hour: splitHour+':'+splitMinutes,
+                                validator: true
+                            })
+                            splitMinutes = parseFloat(splitMinutes + 15)
+                            splitHour = splitMinutes == 60 ? splitHour++ : splitHour
+                            splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                        }
+                    }
+                    for (let e = 0; e < initialBlock.length; e++) {
+                        const element = initialBlock[e];
+                        if (element.hour == restHour.start) {
+                            for (let u = 0; u < restHour.time / 15 - 1; u++) {
+                                initialBlock[e+u].validator = false
+                            }
+                        }
+                    }
+                    try {
+                        const findDay = await DateBlock.findByIdAndUpdate(findDay._id, {
+                            $push: {
+                                employeBlocks: {
+                                    employe: req.body.employe,
+                                    block: initialBlock
+                                }
+                            }
+                        })
+                        for (let e = 0; e < initialBlock.length; e++) {
+                            const element = initialBlock[e];
+                            if (element.validator == false && initialBlock[e-1].validator == true && e > 0) {
+                                for (let u = 0; u < hoursDate / 15; u++) {
+                                    if (initialBlock[e - u]) {
+                                        initialBlock[e - u].validator = 'unavailable'
+                                    }
+                                }
+                            }
+                            if (initialBlock.length - 1 == e) {
+                                for (let u = 0; u < hoursDate / 15; u++) {
+                                    initialBlock[e - u].validator = 'unavailable'
+                                }
+                            }
+                        }
+                        res.json({status: 'ok', data: initialBlock})
+                    }catch(err){res.send(err)}
+                }catch(err){res.send(err)}
+            }
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
+// -----------------------------------------------------------------------------
+
+//Api que busca y crea los bloques de horarios (Ingreso: date, timeDate, branch, employes, employesServices) -- api that find and create first time blocks (Input: date, timeDate, branch, employes, employesServices)
+
+dates.post('/blocksHoursFirst', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    
+    const DateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
+    const dateDaily = req.body.date
+    const Day = new Date(dateDaily).getDay()
+    const hoursDate = req.body.timeDate
+    const employes = req.body.employes
+    const employesServices = req.body.employesServices
+    try {
+        const findDate = await DateBlock.findOne({
+            $and: [ 
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': dateDaily}
+            ]
+        })
+        if (findDate) {
+            const blocksFirst = findDate.firstBlock
+            for (let i = 0; i < employesServices.length; i++) {
+                const element = employesServices[i];
+                for (let u = 0; u < blocksFirst.length; u++) {
+                    const elementTwo = blocksFirst[u];
+                    for (let o = 0; o < elementTwo.employes.length; o++) {
+                        const elementThree = array[o];
+                        if (element.id == elementThree.id) {
+                            elementThree.valid = true
+                        }
+                    }
+                }
+            }
+            for (let e = 0; e < blocksFirst.length; e++) {
+                const element = blocksFirst[e];
+                if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
+                    for (let u = 0; u < hoursDate / 15; u++) {
+                        if (blocksFirst[e - u]) {
+                            blocksFirst[e - u].validator = 'unavailable'
+                        }
+                    }
+                }
+                if (blocksFirst.length - 1 == e) {
+                    for (let u = 0; u < hoursDate / 15; u++) {
+                        blocksFirst[e - u].validator = 'unavailable'
+                    }
+                }
+            }
+            res.json({status: 'ok', data: blocksFirst})
+        }else{
+            try {
+                const findConfiguration = await Configuration.findOne({branch: req.body.branch})
+                const getDay = findConfiguration.blockHour.filter(day => day.day == Day)
+                var blocksFirst = []
+                var splitHour = getDay.start.split(':')[0]
+                var splitMinutes = getDay.start.split(':')[1]
+                for (let i = 0; i < getDay.time / 15; i++) {
+                    for (let i = 0; i < getDay.time / 15; i++) {
+                        if (i == 0) {
+                            blocksFirst.push({
+                                hour: getDay.start,
+                                validator: true,
+                                employes: []
+                            })
+                            splitMinutes = parseFloat(splitMinutes + 15)
+                            splitHour = splitMinutes == 60 ? splitHour++ : splitHour
+                            splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                        }else{
+                            blocksFirst.push({
+                                hour: splitHour+':'+splitMinutes,
+                                validator: true,
+                                employes: []
+                            })
+                            splitMinutes = parseFloat(splitMinutes + 15)
+                            splitHour = splitMinutes == 60 ? splitHour++ : splitHour
+                            splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                        }
+                    }
+                }
+                for (let i = 0; i < employes.length; i++) {
+                    const element = employes[i];
+                    const restInit = element.restTime.split('/')[0]
+                    const restEnd = element.restTime.split('/')[1]
+                    var inspector = false
+                    for (let u = 0; u < blocksFirst.length; u++) {
+                        const elementTwo = blocksFirst[u];
+                        if (restInit > elementTwo.hour) {
+                            inspector = true
+                        }else if (restEnd == elementTwo.hour) {
+                            inspector = false
+                        }
+                        if(!inspector){
+                            elementTwo.employes.push({name: element.name, id: element.id, position: i, valid: false})
+                        }
+                    }
+                }
+                for (let i = 0; i < blocksFirst.length; i++) {
+                    const element = blocksFirst[i];
+                    if (element.employes.length == 0) {
+                        element.validator = false
+                    }
+                }
+                const dataConfiguration = {
+                    dateData: {
+                        branch: req.body.branch,
+                        date: req.body.date
+                    },
+                    employeBlocks: [],
+                    firstBlock: blocksFirst
+                }
+                try {
+                    const createBlockDate = await DateBlock.create(dataConfiguration)
+                    if (createBlockDate) {
+                        for (let i = 0; i < employesServices.length; i++) {
+                            const element = employesServices[i];
+                            for (let u = 0; u < blocksFirst.length; u++) {
+                                const elementTwo = blocksFirst[u];
+                                for (let o = 0; o < elementTwo.employes.length; o++) {
+                                    const elementThree = array[o];
+                                    if (element.id == elementThree.id) {
+                                        elementThree.valid = true
+                                    }
+                                }
+                            }
+                        }
+                        for (let e = 0; e < blocksFirst.length; e++) {
+                            const element = blocksFirst[e];
+                            if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
+                                for (let u = 0; u < hoursDate / 15; u++) {
+                                    if (blocksFirst[e - u]) {
+                                        blocksFirst[e - u].validator = 'unavailable'
+                                    }
+                                }
+                            }
+                            if (blocksFirst.length - 1 == e) {
+                                for (let u = 0; u < hoursDate / 15; u++) {
+                                    blocksFirst[e - u].validator = 'unavailable'
+                                }
+                            }
+                        }
+                        res.json({status: 'ok', data: blocksFirst})
+                    }
+                }catch(err){res.send(err)}
+            }catch(err){res.send(err)}
+        }
+    }catch(err){res.send(err)}
+})
+
+//Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
+// -----------------------------------------------------------------------------
 
 module.exports = dates
