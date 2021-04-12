@@ -7,6 +7,25 @@ const cors = require('cors')
 
 configurations.use(cors())
 
+configurations.get('/', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    try {
+        const getConfigurations = await Configuration.find()
+        if (getConfigurations.length > 0) {
+            res.json({status: 'ok', data: getConfigurations, token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 configurations.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -26,7 +45,7 @@ configurations.get('/:branch', protectRoute, async (req, res) => {
     }
 })
 
-configurations.post('/sameConfiguration', protectRoute, async (req, res) => {
+configurations.post('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -110,7 +129,7 @@ configurations.post('/addBlackList/:id', protectRoute, async (req, res) => {
 })
 
 
-configurations.post('/deleteBlackList/:id', protectRoute, async (req, res) => {
+configurations.post('/removeBlackList/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,

@@ -428,4 +428,150 @@ dates.post('/blocksHoursFirst', protectRoute, async (req, res) => {
 
 // -----------------------------------------------------------------------------
 
+//Api que busca y crea los bloques de horarios (Ingreso: date, timeDate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timeDate, hour, branch, employe)
+
+dates.post('/selectDatesBlocksFirst', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    
+    const DateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    const dateDaily = req.body.date
+    const Day = new Date(dateDaily).getDay()
+    const hoursDate = req.body.timeDate
+    const hourSelect = req.body.hour
+    const employe = req.body.employe
+    const block = req.body.block
+    try {
+        const findDate = await DateBlock.findOne({
+            $and: [ 
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': dateDaily}
+            ]
+        })
+        if (findDate) {
+            if (!req.body.ifFirstClick) {
+                for (let i = 0; i < block.length; i++) {
+                    const element = block[i];
+                    if (element.validator == 'select') {
+                        element.validator = true
+                        block[i].employes.unshift(employe)
+                    }
+                }
+            }
+            for (let i = 0; i < block.length; i++) {
+                const element = block[i];
+                if (element.hour == hourSelect) {
+                    for (let u = 1; u < hoursDate / 15 - 2; u++) {
+                        for (let e = 0; e < block[i + u].employes.length; e++) {
+                            if (block[i + u].employes[e].id == employe) {
+                                block[i + u].employes.splice(e, 1)
+                            }
+                        }
+                        if (block[i + u].employes.length == 0) {
+                            block[i + u].validator = false
+                        }
+                    }
+                }
+            }
+            try {
+                const editBlock = await DateBlock.findByIdAndUpdate(findDate._id, {
+                    $set: {
+                        firstBlock: block
+                    }
+                })
+                for (let i = 0; i < block.length; i++) {
+                    const element = block[i];
+                    if (element.hour == hourSelect) {
+                        for (let u = 0; u < hoursDate / 15; u++) {
+                            block[i + u].validator = 'select'
+                        }
+                    }
+                }
+                res.json({status: 'ok', data: block})
+            }catch(err){res.send(err)}
+        }
+    }catch(err){res.send(err)}
+})
+
+//Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
+// -----------------------------------------------------------------------------
+
+//Api que busca y crea los bloques de horarios (Ingreso: date, timeDate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timeDate, hour, branch, employe)
+
+dates.post('/selectDatesBlocksFirst', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    
+    const DateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    const dateDaily = req.body.date
+    const Day = new Date(dateDaily).getDay()
+    const hoursDate = req.body.timeDate
+    const hourSelect = req.body.hour
+    const employe = req.body.employe
+    const block = req.body.block
+
+    try{
+        const findDate = await DateBlock.findOne({
+            $and: [ 
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': dateDaily}
+            ]
+        })
+        if (findDate) {
+            const findEmploye = findDate.employeBlocks.find(element => element.employe == employe)
+            const findIndex = findDate.employeBlocks.findIndex(findEmploye)
+            if (!req.body.ifFirstClick) {
+                for (let i = 0; i < block.length; i++) {
+                    const element = block[i];
+                    if (element.validator == 'select') {
+                        element.validator = true
+                    }
+                }
+            }
+            for (let i = 0; i < block.length; i++) {
+                const element = block[i];
+                if (element.hour == hourSelect) {
+                    for (let u = 1; u < hoursDate / 15 - 2; u++) {
+                        block[i + u].validator = false
+                    }
+                }
+            }
+            try{
+                const blockEdit = await DateBlock.findByIdAndUpdate(findDate._id, {
+                    $splice: [
+                        employeBlocks, 
+                        findIndex, 
+                        1
+                    ],
+                    $push: {
+                        employeBlocks: findEmploye
+                    }
+                })
+                for (let i = 0; i < block.length; i++) {
+                    const element = block[i];
+                    if (element.hour == hourSelect) {
+                        for (let u = 0; u < hoursDate / 15; u++) {
+                            block[i + u].validator = 'select'
+                        }
+                    }
+                }
+                res.json({status: 'ok', data: block})
+            }catch(err){res.send(err)}
+        }
+    }catch(err){res.send(err)}
+})
+
+//Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
 module.exports = dates
