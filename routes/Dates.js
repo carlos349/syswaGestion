@@ -574,4 +574,93 @@ dates.post('/selectDatesBlocksFirst', async (req, res) => {
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
 
+//-----------------------------------------------------------------------------
+
+//Api que verifica si no se esta repitiendo una cita () -- Api that verify if a date is not repiting (Input: )
+
+dates.post('/verifyDate', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Date = conn.model('dates', dateSchema)
+
+    const dataDate = req.body.dataDate
+    const date = req.body.date
+    const dateNow = new Date(date+' 1:00')
+    const formatDate = dateNow.getFullYear() +"-"+(dateNow.getMonth() + 1)+"-"+dateNow.getDate()
+    dateNow.setDate(dateNow.getDate() + 1)
+    const formatDateTwo = dateNow.getFullYear() +"-"+(dateNow.getMonth() + 1)+"-"+dateNow.getDate()
+    try{
+        const findDate = await Citas.find({$and:[{date: {$gte: formatDate, $lte: formatDateTwo}}]}).sort({sort:1})
+        if (findDate.length > 0) {
+            for (let i = 0; i < dataDate.serviceSelectds.length; i++) {
+                var validFinally = false
+                const element = dataDate.serviceSelectds[i];
+                const datesData = []
+                for (let o = 0; o < dates.length; o++) {
+                    const filter = dates[o];
+                    if (filter.employe == element.realEmploye) {
+                        datesData.push(filter)
+                    }
+                }
+                for (let r = 0; r < datesData.length; r++) {
+                    const elementTwo = datesData[r];
+                    var splitOne = elementTwo.start.split(':')
+                    var splitTwo = elementTwo.end.split(':')
+                    var SumHours  = ((parseFloat(splitTwo[0]) - parseFloat(splitOne[0])) * 60)
+                    var SumMinutes = parseFloat(splitTwo[1]) - parseFloat(splitOne[1])
+                    var TotalMinutes = SumHours + SumMinutes
+                    const totalFor = TotalMinutes / 15
+                    var input, output
+                    var minutes = parseInt(splitOne[1])
+                    var hours = parseInt(splitOne[0])
+                    var blockDate = []
+                    for (let index = 0; index <= totalFor - 1; index++) {
+                        if (minutes == 0) {
+                            minutes = "00"
+                        }
+                        output = hours+":"+minutes
+                        if(index > 0){
+                            blockDate.push(output)
+                        }
+                        minutes = parseInt(minutes) + 15
+                        if (minutes == 60) {
+                            hours++
+                            minutes = "00"
+                        }
+                    }
+                    var valid = false
+                    for (let j = 0; j < element.blocks.length; j++) {
+                        const elementBlocks = element.blocks[j];
+                        if (elementBlocks.validator == 'select') {
+                            for (let l = 0; l < blockDate.length; l++) {
+                                const elementBlockDate = blockDate[l];
+                                if (elementBlockDate == elementBlocks.Horario) {
+                                    valid = true
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    if (valid) {
+                        validFinally = true
+                        break
+                    }
+                }
+                if (validFinally) {
+                    break
+                }
+            }
+            res.json({status: validFinally})
+        }else{
+            res.json({status: false})
+        }
+    }catch(err){res.send(err)}
+})
+
+//Fin de la api (Retorna: status)  -- Api end (Return: status)
+
 module.exports = dates
