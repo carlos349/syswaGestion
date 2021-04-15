@@ -3,7 +3,7 @@ const users = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const userSchema = require('../models/Users')
-const credentials = require('../private/private-credentials')
+const credentialSchema = require('../models/userCrendentials')
 const bcrypt = require('bcrypt')
 const email = require('../modelsMail/Mails')
 const cors = require('cors')
@@ -15,55 +15,63 @@ const Mails = new email(mailCredentials)
 users.use(cors())
 
 //generador de super usuario - super user generator
-users.get('/createSuperuser', async (req, res, next) => {
+users.post('/createUserCertificate', async (req, res, next) => {
 	const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
     const User = conn.model('users', userSchema)
-
-	const access = [
-		{
-			ruta: 'usuarios',
-			validaciones: ['editar', 'registrar']
-		}
-	]
-	const userData = {
-		first_name: 'admin',
-		last_name: 'admin',
-		email: 'admin@gmail.com',
-        branch:'xx',
-		password: credentials,
-		status: 1,
-		access: access,
-		linkLender: '',
-		userImage: '',
-		LastAccess: new Date(),
-		date: new Date()
-	}
-	User.findOne({
-		email: req.body.email
-	})
-	.then(user => {
-		if(!user){
-			bcrypt.hash(userData.password, 10, (err, hash) => {
-				userData.password = hash
-				User.create(userData)
-				.then(user => {
-					res.json({status: user._id})
-				})
-				.catch(err => {
-					res.send('error: ' + err)
-				})
-			})
-		}else{
-			res.json({error: 'User already exist'})
-		}
-	})
-	.catch(err => {
-		res.send('error: ' + err)
-	})
+    const UserCredential = conn.model('credentials', credentialSchema)
+    try {
+        const getCredentials = await UserCredential.findOne({credential: req.body.secretKey})
+        if (getCredentials){
+            const access = [
+                {
+                    ruta: 'usuarios',
+                    validaciones: ['editar', 'registrar']
+                }
+            ]
+            const userData = {
+                first_name: req.body.first_name,
+                last_name: req.body.last_name,
+                email: req.body.email,
+                branch: req.body.branch,
+                password: '',
+                status: 1,
+                access: access,
+                linkLender: '',
+                userImage: '',
+                LastAccess: new Date(),
+                date: new Date()
+            }
+            User.findOne({
+                email: req.body.email
+            })
+            .then(user => {
+                if(!user){
+                    bcrypt.hash(req.body.password, 10, (err, hash) => {
+                        userData.password = hash
+                        User.create(userData)
+                        .then(user => {
+                            res.json({status: 'ok'})
+                        })
+                        .catch(err => {
+                            res.send('error: ' + err)
+                        })
+                    })
+                }else{
+                    res.json({error: 'User already exist'})
+                }
+            })
+            .catch(err => {
+                res.send('error: ' + err)
+            })
+        }else{
+            res.json({status: 'ok', data: 'incorrect credentials'})
+        }
+    }catch(err){res.send(err)}
+    
 })
 
 //output - data and token

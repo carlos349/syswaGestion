@@ -23,11 +23,14 @@ const configurationSchema = new Schema({
     businessLocation: {
         type: String
     },
-    onlineDates: {
-        type: Boolean
+    additionalFeatures: {
+        type: Object
     },
     typesPay: {
         type: Array
+    },
+    currency: {
+        type: String
     },
     datesPolitics: {
         type: Object
