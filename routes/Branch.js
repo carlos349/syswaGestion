@@ -78,6 +78,8 @@ branches.post('/createBranchCertificate', async (req, res) => {
                     }catch(err){res.send(err)}
                 }
             }catch(err){res.send(err)}
+        }else{
+            res.json({data:req.body.secretKey})
         }
     }catch(err){res.send(err)}
 })

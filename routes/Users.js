@@ -291,6 +291,7 @@ users.post('/login', (req, res) => {
 		email: req.body.email.toLowerCase()
 	})
 	.then(user => {
+        console.log(user)
 		if(user){
 			if(bcrypt.compareSync(req.body.password, user.password)){
 				User.findByIdAndUpdate(user._id, {
