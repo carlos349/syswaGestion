@@ -8,28 +8,7 @@ const categorySchema = require('../models/Categories')
 services.use(cors())
 
 //output - status, data and token
-services.get('/', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
-    
-    try{
-        const getServices = await Service.find()
-        if (getServices.length > 0) {
-            res.json({status: 'ok', data: getServices, token: req.requestToken})
-        }else{
-            res.json({status: 'services not found'})
-        }
-    }catch(err) {
-        res.send(err)
-    }
-})
-
-//output - status, data and token
-services.get('/getCategory', protectRoute, async (req, res) => {
+services.get('/getCategories', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -39,8 +18,30 @@ services.get('/getCategory', protectRoute, async (req, res) => {
 
     try{
         const getCategories = await Category.find()
+        console.log(getCategories)
         if (getCategories.length > 0) {
             res.json({status: 'ok', data: getCategories, token: req.requestToken})
+        }else{
+            res.json({status: 'categories not found'})
+        }
+    }catch(err) {
+        res.send(err)
+    }
+})
+
+//output - status, data and token
+services.get('/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Service = conn.model('services', serviceSchema)
+    
+    try{
+        const getServices = await Service.find({branch: req.params.branch})
+        if (getServices.length > 0) {
+            res.json({status: 'ok', data: getServices, token: req.requestToken})
         }else{
             res.json({status: 'services not found'})
         }
@@ -149,11 +150,15 @@ services.post('/newCategory', protectRoute, async (req, res) => {
     }
     try{
         const findCategory = await Category.findOne({
-            name: req.body.name
+            $and: [
+                {name: req.body.name},
+                {branch: req.body.branch}
+            ]
         })
+        console.log(findCategory)
         if (!findCategory) {
             const createCategory = await Category.create(dataCategory)
-            res.json({status: 'category created', data: createCategory, token: req.requestToken})
+            res.json({status: 'ok', data: createCategory, token: req.requestToken})
         }else{
             res.json({status: 'category already exist'})
         }
