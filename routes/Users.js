@@ -28,8 +28,111 @@ users.post('/createUserCertificate', async (req, res, next) => {
         if (getCredentials){
             const access = [
                 {
-                    ruta: 'usuarios',
-                    validaciones: ['editar', 'registrar']
+                        "ruta" : "usuarios",
+                        "validaciones" : [
+                                "editar",
+                                "registrar",
+                                "eliminar"
+                        ]
+                },
+                {
+                        "ruta" : "procesar",
+                        "validaciones" : [
+                                "editar",
+                                "nuevo_cliente",
+                                "nuevo_servicio",
+                                "descuento"
+                        ]
+                },
+                {
+                        "ruta" : "metricas",
+                        "validaciones" : [
+                                "filtrar"
+                        ]
+                },
+                {
+                        "ruta" : "ventas",
+                        "validaciones" : [
+                                "filtrar",
+                                "anular",
+                                "detalle"
+                        ]
+                },
+                {
+                        "ruta" : "servicios",
+                        "validaciones" : [
+                                "editar",
+                                "ingresar",
+                                "activaciones"
+                        ]
+                },
+                {
+                        "ruta" : "empleados",
+                        "validaciones" : [
+                                "registrar",
+                                "detalle",
+                                "editar",
+                                "reportes",
+                                "cerrar ventas",
+                                "eliminar",
+                                "adelantos",
+                                "correos"
+                        ]
+                },
+                {
+                        "ruta" : "clientes",
+                        "validaciones" : [
+                                "filtrar",
+                                "registrar",
+                                "editar",
+                                "detalle",
+                                "eliminar",
+                                "correos"
+                        ]
+                },
+                {
+                        "ruta" : "inventario",
+                        "validaciones" : [
+                                "filtrar",
+                                "registrar",
+                                "editar",
+                                "detalle",
+                                "eliminar"
+                        ]
+                },
+                {
+                        "ruta" : "gastos",
+                        "validaciones" : [
+                                "registrar"
+                        ]
+                },
+                {
+                        "ruta" : "agendamiento",
+                        "validaciones" : [
+                                "filtrar",
+                                "agendar",
+                                "todas",
+                                "editar",
+                                "eliminar",
+                                "cerrar",
+                                "finalizar",
+                                "procesar"
+                        ]
+                },
+                {
+                        "ruta" : "caja",
+                        "validaciones" : [ ]
+                },
+                {
+                        "ruta" : "pedidos",
+                        "validaciones" : [
+                                "filtrar",
+                                "registrar",
+                                "editar",
+                                "detalle",
+                                "eliminar",
+                                "correos"
+                        ]
                 }
             ]
             const userData = {
@@ -228,7 +331,7 @@ users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) =
             last_name: req.body.last_name,
             branch: req.body.branch,
             email: req.body.email.toLowerCase(),
-            password: req.body.password,
+            password: '',
             about: '',
             status: 2,
             access: [],
@@ -243,7 +346,7 @@ users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) =
             last_name: req.body.last_name,
             branch: req.body.branch,
             email: req.body.email.toLowerCase(),
-            password: req.body.password,
+            password: '',
             about: '',
             status: 2,
             access: [],
@@ -260,7 +363,7 @@ users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) =
     .then(findUser => {
         if (!findUser) {
             bcrypt.hash(req.body.password, 10, (err, hash) => {
-                userData.pasword = hash
+                userData.password = hash
                 User.create(userData)
                 .then(userCreated => {
                     res.json({status: 'ok', data: userCreated, token: req.requestToken})
