@@ -200,7 +200,8 @@ employes.post('/', async (req, res) => {
                     class: ''
                 }
                 if (findAll) {
-                    dataEmploye.class = 'class' + parseFloat(findAll.length) + parseFloat(1)
+                    var count = findAll.length
+                    dataEmploye.class = 'class' + count++
                 }
                 Employe.create(dataEmploye)
                 .then(employeCreated => {
