@@ -8,7 +8,7 @@ const categorySchema = require('../models/Categories')
 services.use(cors())
 
 //output - status, data and token
-services.get('/getCategories', protectRoute, async (req, res) => {
+services.get('/getCategories/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -17,8 +17,7 @@ services.get('/getCategories', protectRoute, async (req, res) => {
     const Category = conn.model('categories', categorySchema)
 
     try{
-        const getCategories = await Category.find()
-        console.log(getCategories)
+        const getCategories = await Category.find({branch: req.params.branch})
         if (getCategories.length > 0) {
             res.json({status: 'ok', data: getCategories, token: req.requestToken})
         }else{
@@ -124,7 +123,7 @@ services.post('/', protectRoute, async (req,res) => {
         if (!findService) {
             const createService = await Service.create(dataServices)
             if (createService) {
-                res.json({status: "service created", token: req.requestToken})
+                res.json({status: "ok", token: req.requestToken})
             }
         }else{
             res.json({status: "repeat service"})
@@ -174,21 +173,21 @@ services.put('/:id', protectRoute, async (req, res) => {
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useFindAndModify: false
     })
-    const Service = conn.model('services', categorySchema)
+    const Service = conn.model('services', serviceSchema)
+    console.log(parseInt(req.body.price))
     
     try{
         const editService = await Service.findByIdAndUpdate(req.params.id, {
             $set: {
                 branch: req.body.branch,
-                employes: req.body.employes,
-                products: req.body.products,
                 name: req.body.name,
                 duration: req.body.duration,
                 price: req.body.price,
                 commission: req.body.commission,
                 discount: req.body.discount,
-                category: req.body.category,
+                category: req.body.category
             }
         })
         if (editService) {
@@ -209,11 +208,11 @@ services.put('/changeActive/:id', protectRoute, async (req, res) => {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
-    const Service = conn.model('services', categorySchema)
+    const Service = conn.model('services', serviceSchema)
 
     try{
         const findService = await Service.findById(req.params.id)
-        if (findService.active) {
+        if (findService.active == true) {
             const changeActive = await Service.findByIdAndUpdate(req.params.id, {
                 $set: {
                     active: false
@@ -223,7 +222,7 @@ services.put('/changeActive/:id', protectRoute, async (req, res) => {
         }else{
             const changeActive = await Service.findByIdAndUpdate(req.params.id, {
                 $set: {
-                    active: false
+                    active: true
                 }
             })
             res.json({status: 'ok', data: true, token: req.requestToken})
