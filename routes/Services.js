@@ -115,10 +115,12 @@ services.post('/', protectRoute, async (req,res) => {
         category: req.body.category,
         active: true
     }
-    console.log(dataServices)
     try{
         const findService = await Service.findOne({
-            name: dataServices.name
+            $and: [
+                {name: dataServices.name},
+                {branch: dataServices.branch}
+            ]
         })
         if (!findService) {
             const createService = await Service.create(dataServices)
