@@ -115,60 +115,6 @@ employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
 
 //----------------------------------------------------------------------------------
 
-//Api que busca el avance (numérico) de un empleado específico por su id. (Ingreso: ObjectId) -- Api that search the advancement (numeric) from an especific employe by id. ( Input: ObjectId)
-
-employes.get('/advancementsbyemploye/:id', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-
-    const Employe = conn.model('employes', employeSchema)
-    try{
-        const findAdvancementById = await Employe.findById(req.params.id)
-        if(findAdvancementById){
-            res.json({status: 'ok', data: findAdvancementById.advancement, token:req.requestToken})
-        }else{
-            res.json({status:'advancement not found'})
-        } 
-    }catch(err){
-        res.send(err)
-    }
-    
-})
-
-//Fin de la api. (Retorna avance del empleado) -- Api end (output employe's advancement)
-
-//----------------------------------------------------------------------------------
-
-//Api que busca el bono (numérico) de un empleado específico por su id. (Ingreso: ObjectId) -- Api that search the bonus (numeric) from an especific employe by id. ( Input: ObjectId)
-
-employes.get('/bonusbyemploye/:id', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-
-    const Employe = conn.model('employes', employeSchema)
-    try{
-        const findBonusById = await Employe.findById(req.params.id)
-        if(findBonusById){
-            res.json({status: 'ok', data: findBonusById.bonus, token:req.requestToken})
-        }else{
-            res.json({status:'bonus not found'})
-        } 
-    }catch(err){
-        res.send(err)
-    }
-    
-})
-
-//Fin de la api. (Retorna bono del empleado) -- Api end (output employe's bonus)
-
-//------------------------------------------------------------------------------------
-
 //Api que registra un nuevo empleado. (Ingreso: branch, firstName, lastName, document, days) -- Api that create a new employe. (Input: branch, firstName, lastName, document, days)
 
 employes.post('/', async (req, res) => {

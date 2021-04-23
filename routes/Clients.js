@@ -287,7 +287,7 @@ clients.post('/', protectRoute, async (req, res) => {
     })
     const Client = conn.model('clients', clientSchema)
 
-    var finalRecommender = req.body.recomendador == null ? 'Ninguno' : req.body.recomendador
+    var finalRecommender = req.body.recommender == null ? 'Ninguno' : req.body.recommender
     const today = new Date()
     var birthday = req.body.birthday != '' ? new Date(req.body.birthday) : ''
 
@@ -302,8 +302,8 @@ clients.post('/', protectRoute, async (req, res) => {
         codeRescue: '',
         instagram: req.body.instagram,
         attends: 0,
-        idRecommender: finalRecommender,
-        recommender: req.body.idRecommender, 
+        idRecommender: req.body.idRecommender,
+        recommender: finalRecommender, 
         recommendations: 0,
         lastAttend: today,
         createdAt: today,
