@@ -40,7 +40,7 @@ clients.get('/', protectRoute, async (req, res) => {
 
 //input - params id, pasar id
 //output - status, data and token
-clients.get('/findone/:id', protectRoute, async (req, res) => {
+clients.get('/findOne/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -50,7 +50,7 @@ clients.get('/findone/:id', protectRoute, async (req, res) => {
     const Client = conn.model('clients', clientSchema)
 
     try {
-        const getClient = await Client.findById(req.params.id)
+        const getClient = await Client.findOne({_id: req.params.id})
         if (getClient) {
             res.json({status: 'ok', data: getClient, token: req.requestToken})
         }else{
@@ -594,7 +594,7 @@ clients.delete('/:id', protectRoute, async (req, res) => {
 
 //input - params id, form with firstName, lastName, email, phone, instagram . pasar id, formulario con  firstName, lastName, email, phone, instagram
 //output - status and token
-clients.put('/:id', async (req, res) => {
+clients.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -619,7 +619,7 @@ clients.put('/:id', async (req, res) => {
                     }
                 })
                 if (updateClient) {
-                    res.json({status: 'update client'})
+                    res.json({status: 'update client', token: req.requestToken})
                 }
             }catch(err) {
                 res.send(err)
@@ -639,20 +639,7 @@ clients.put('/:id', async (req, res) => {
                     if (updateClient) {
                         try{
                             const clientNew = await Client.findById(updateClient._id)
-                            const payload = {
-                                _id: clientNew._id,
-                                firstName: clientNew.firstName,
-                                lastName: clientNew.lastName,
-                                mail: clientNew.email,
-                                phone: clientNew.phone,
-                                birthday: clientNew.birthday,
-                                userImage: clientNew.userImage,
-                                historical: clientNew.historical
-                            }
-                            let token = jwt.sign(payload, key, {
-                                expiresIn: 60 * 60 * 24
-                            })
-                            res.json({status: 'client update', token: token})
+                            res.json({status: 'update client', token: req.requestToken})
                         }catch(err){
                             res.send(err)
                         }

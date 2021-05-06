@@ -2,7 +2,7 @@ const express = require('express')
 const sales = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
-const saleSchema = require('../models/Dates')
+const saleSchema = require('../models/Sales')
 const closureSchema = require('../models/Closures')
 const cashfundSchema = require('../models/CashFunds')
 const daySaleSchema = require('../models/DaySales')
@@ -15,12 +15,13 @@ const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const cors = require('cors')
+const { CredentialProviderChain } = require('aws-sdk')
 
 sales.use(cors())
 
 // input - null
 // output - status, data, token
-sales.get('/', protectRoute, async (req, res) => {
+sales.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -29,7 +30,7 @@ sales.get('/', protectRoute, async (req, res) => {
 
     const Sale = conn.model('sales', saleSchema)
     try {
-        const getSales = await Sale.find().limit()
+        const getSales = await Sale.find({branch: req.params.branch})
         if (getSales.length > 0) {
             res.json({status: 'ok', data: getSales, token: req.requestToken})
         }else{
@@ -61,62 +62,31 @@ sales.get('/getSale/:id', protectRoute, async (req, res) => {
     }
 })
 
-sales.get('/findSalesByDate/:dates', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Sale = conn.model('sales', saleSchema)
+// input - params id, pasar id
+//  output - status, data and token
+sales.get('/getClosing/:id', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+  const Closure = conn.model('closures', closureSchema)
 
-    const dates = req.params.dates
-    const splitDates = dates.split(':')
-    const since = splitDates[0]
-    const until = new Date(splitDates[1] + ' 10:00') 
-    until.setDate(until.getDate() + 1)
-    const goodUntil =  (until.getMonth() + 1)+"-"+until.getDate()+"-"+until.getFullYear()
-    
-    try {
-      const Sales = await Sale.find({createdAt: { $gte: since, $lte: goodUntil }})
-      if (Sales.length == 0) {
-            res.json({status: 'sales does exist'})
+  try{ 
+      const findSale = await Closure.findById(req.params.id)
+      if (findSale) {
+          res.json({status: 'ok', data: findSale, token: req.requestToken})
       }else{
-            res.json({status: 'ok', data: Sales, token: req.requestToken})
+          res.json({status: 'sale does exist', token: req.requestToken})
       }
-    } catch(err) {
-        res.send(err)
-    }
-})
-
-//input - params id . pasar id
-//output - status, data and token
-sales.get('/findSalesByDay/:dates', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Sale = conn.model('sales', saleSchema)
-
-    const dates = req.params.dates
-    const splitDates = dates.split(':')
-    const since = splitDates[0]
-    const until = splitDates[1] 
-    try {
-      const Sales = await Sale.find({createdAt: { $gte: since, $lte: until }})
-      if (Sales.length == 0) {
-        res.json({status: 'sales does exist'})
-      }else{
-        res.json({status: 'ok', data: Sales, token: req.requestToken})
-      }
-    } catch(err) {
+  }catch(err){
       res.send(err)
-    }
+  }
 })
 
 //input - null
 //output - status, data and token
-sales.get('/Closing', protectRoute, async (req, res) => {
+sales.get('/Closing/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -125,7 +95,7 @@ sales.get('/Closing', protectRoute, async (req, res) => {
     const Closure = conn.model('closures', closureSchema)
 
     try {
-        const findClosures = await Closure.find({createdAt: -1})
+        const findClosures = await Closure.find({branch: req.params.branch}).sort({createdAt: -1})
         if (findClosures.length > 0) {
             res.json({status: 'ok', data: findClosures, token: req.requestToken})
         }else{
@@ -138,7 +108,7 @@ sales.get('/Closing', protectRoute, async (req, res) => {
 
 //input - form with branch
 //output - status, data and token
-sales.get('/getClosingDay', async(req, res) => {
+sales.get('/getClosingDay/:branch', protectRoute, async(req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -148,26 +118,34 @@ sales.get('/getClosingDay', async(req, res) => {
     const Configuration = conn.model('configurations', configurationSchema)
 
     try {
-        const getConfiguration = await Configuration.findOne({branch: req.body.branch})
+        const getConfiguration = await Configuration.findOne({branch: req.params.branch})
         if (getConfiguration) {
             const data = getConfiguration.typesPay
             var totalTypePay = []
+            var TypesPay = []
             for (let index = 0; index < data.length; index++) {
                 const element = data[index];
                 totalTypePay.push({
-                    name: element,
+                    type: element,
                     total: 0
                 })
+                TypesPay.push({
+                  type: element,
+                  total: 0
+              })
             }
             try {
-                const getDaySales = await DaySale.find()
+                const getDaySales = await DaySale.find({branch: req.params.branch})
                 if (getDaySales.length > 0) {
-                    for (let i = 0; i < getDaySales.length; i++) {
-                        const element = getDaySales[i];
-                        for (let index = 0; index < totalTypePay.length; index++) {
-                            const elementTwo = totalTypePay[index];
-                            if (element.typesPay.name == elementTwo.name) {
-                                elementTwo.total = elementTwo.total + element.total
+                    for (let i = 0; i < totalTypePay.length; i++) {
+                        const element = totalTypePay[i];
+                        for (let index = 0; index < getDaySales.length; index++) {
+                            const elementTwo = getDaySales[index];
+                            for (let e = 0; e < elementTwo.typesPay.length; e++) {
+                                const elementThree = elementTwo.typesPay[e];
+                                if (element.type == elementThree.type) {
+                                  element.total = element.total + elementThree.total
+                                }
                             }
                         }
                     }
@@ -176,10 +154,10 @@ sales.get('/getClosingDay', async(req, res) => {
                         total = total + element.total
                     });
                     totalTypePay.push({
-                        name: 'Total',
+                        type: 'Total',
                         total: total
                     })
-                    res.json({status: 'ok', data: totalTypePay, token: req.requestToken})
+                    res.json({status: 'ok', data: {totals: totalTypePay, types: TypesPay}, token: req.requestToken})
                 }else{
                     res.json({status: 'bad'})
                 }
@@ -226,6 +204,69 @@ sales.get('/dataChecker', protectRoute, async (req, res) => {
     }
 })
 
+sales.post('/findSalesByDate', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+  const Sale = conn.model('sales', saleSchema)
+
+  const dates = req.body.dates
+  const splitDates = dates.split(':')
+  const since = splitDates[0]
+  const until = new Date(splitDates[1] + ' 10:00') 
+  until.setDate(until.getDate() + 1)
+  const goodUntil =  (until.getMonth() + 1)+"-"+until.getDate()+"-"+until.getFullYear()
+  
+  try {
+      const Sales = await Sale.find({
+        $and: [
+          {createdAt: { $gte: since, $lte: goodUntil }},
+          {branch: req.body.branch}
+        ]
+      })
+      if (Sales.length == 0) {
+          res.json({status: 'sales does exist'})
+      }else{
+          res.json({status: 'ok', data: Sales, token: req.requestToken})
+      }
+  }catch(err) {
+      res.send(err)
+  }
+})
+
+//input - params id . pasar id
+//output - status, data and token
+sales.post('/findSalesByDay', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+  const Sale = conn.model('sales', saleSchema)
+
+  const dates = req.body.dates
+  const splitDates = dates.split(':')
+  const since = splitDates[0]
+  const until = splitDates[1] 
+  try {
+    const Sales = await Sale.find({
+        $and: [
+            {createdAt: { $gte: since, $lte: until }},
+            {branch: req.body.branch}
+        ]
+    })
+    if (Sales.length == 0) {
+        res.json({status: 'sales does exist'})
+    }else{
+        res.json({status: 'ok', data: Sales, token: req.requestToken})
+    }
+  } catch(err) {
+      res.send(err)
+  }
+})
+
 // input - form with rangeExcel, lenderSelect, clientSelect
 // output - status, dataTable and token
 sales.post('/generateDataExcel', protectRoute, async (req, res) => {
@@ -263,7 +304,7 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
         try {
             const sales = await Sale.find({
                 $and: [
-                  {fecha: {$gte: data.firstDate, $lte: data.lastDate}},
+                  {createdAt: {$gte: data.firstDate, $lte: data.lastDate}},
                   {status:true}
                 ]
             })
@@ -282,10 +323,12 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
                 var typesPay = ''
                 for (let ind = 0; ind < element.typesPay.length; ind++) {
                     const elementTwo = element.typesPay[ind];
-                    typesPay = typesPay + elementTwo.name + ':' + elementTwo.total + ' , '
+                    if (elementTwo.total > 0) {
+                      typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
+                    }
                 }
-                const formatDate = element.fecha.getDate()+"-"+(element.fecha.getMonth() + 1)+"-"+element.fecha.getFullYear()
-                dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Prestador: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comision: element.commission, typesPay})
+                const formatDate = element.createdAt.getDate()+"-"+(element.createdAt.getMonth() + 1)+"-"+element.createdAt.getFullYear()
+                dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Empleado: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comisión: element.commission, typesPay})
               }
               res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
             }else{
@@ -299,7 +342,7 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
             try {
                 const sales = await Sale.find({
                     $and: [
-                        {fecha: {$gte: data.firstDate, $lte: data.lastDate}},
+                        {createdAt: {$gte: data.firstDate, $lte: data.lastDate}},
                         {'employe.name': { $regex: data.lenderSelect, $options: 'i'}},
                         {status:true}
                     ]
@@ -319,10 +362,12 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
                         var typesPay = ''
                         for (let ind = 0; ind < element.typesPay.length; ind++) {
                             const elementTwo = element.typesPay[ind];
-                            typesPay = typesPay + elementTwo.name + ':' + elementTwo.total + ' , '
+                            if (elementTwo.total > 0) {
+                              typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
+                            }
                         }
-                        const formatDate = element.fecha.getDate()+"-"+(element.fecha.getMonth() + 1)+"-"+element.fecha.getFullYear()
-                        dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Prestador: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comision: element.commission, typesPay})
+                        const formatDate = element.createdAt.getDate()+"-"+(element.createdAt.getMonth() + 1)+"-"+element.createdAt.getFullYear()
+                        dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Empleado: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comision: element.commission, typesPay})
                     }
                     res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
                 }else{
@@ -335,8 +380,8 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
         try {
             const sales = await Sale.find({
                 $and: [
-                    {fecha: {$gte: data.firstDate, $lte: data.lastDate}},
-                    {'client.name': { $regex: data.clientSelect, $options: 'i'}},
+                    {createdAt: {$gte: data.firstDate, $lte: data.lastDate}},
+                    {'client.email': data.clientSelect },
                     {status:true}
                 ]
             })
@@ -355,10 +400,12 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
                     var typesPay = ''
                     for (let ind = 0; ind < element.typesPay.length; ind++) {
                         const elementTwo = element.typesPay[ind];
-                        typesPay = typesPay + elementTwo.name + ':' + elementTwo.total + ' , '
+                        if (elementTwo.total > 0) {
+                          typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
+                        }
                     }
-                    const formatDate = element.fecha.getDate()+"-"+(element.fecha.getMonth() + 1)+"-"+element.fecha.getFullYear()
-                    dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Prestador: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comision: element.commission, typesPay})
+                    const formatDate = element.createdAt.getDate()+"-"+(element.createdAt.getMonth() + 1)+"-"+element.createdAt.getFullYear()
+                    dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Empleado: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comision: element.commission, typesPay})
                 }
                 res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
             }else{
@@ -368,6 +415,26 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
             res.send(err)
         }
       }
+    }
+})
+
+sales.get('/getFund/:branch', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const CashFund = conn.model('cashfunds', cashfundSchema)
+
+    try {
+      const getFund = await CashFund.findOne({branch: req.params.branch})
+      if (getFund) {
+        res.json({status: 'ok', data: getFund, token: req.requestToken})
+      }else{
+        res.json({status: 'bad', token: req.requestToken})
+      }
+    }catch(err){
+      res.send(err)
     }
 })
 
@@ -382,22 +449,74 @@ sales.post('/closeDay/:name', protectRoute, async (req, res) => {
     const CashFund = conn.model('cashfunds', cashfundSchema)
     const DaySale = conn.model('daySales', daySaleSchema)
     const Closure = conn.model('closures', closureSchema)
+    
+    const manual = []
+    const system = []
 
+    manual.push({
+      type: 'Fondo de caja',
+      total: req.body.entryFund
+    })
+    manual.push({
+      type: 'Efectivo',
+      total: req.body.cash
+    })
+    manual.push({
+      type: 'Egreso de caja',
+      total: req.body.egressManual
+    })
+    manual.push({
+      type: 'Total efectivo',
+      total: req.body.entryFund + req.body.cash - req.body.egressManual
+    })
+    system.push({
+      type: 'Fondo de caja',
+      total: req.body.entryFund
+    })
+    system.push({
+      type: 'Efectivo',
+      total: req.body.system[0].total
+    })
+    system.push({
+      type: 'Egreso de caja',
+      total: req.body.egressManual
+    })
+    system.push({
+      type: 'Total efectivo',
+      total: req.body.entryFund + req.body.system[0].total - req.body.egressManual
+    })
+    for(typesManual of req.body.manual){
+      if (typesManual.type != 'Efectivo') {
+        manual.push({
+          type: typesManual.type,
+          total: typesManual.total
+        })
+      }
+    }
+    for(typesSystem of req.body.system){
+      if (typesSystem.type != 'Efectivo') {
+        system.push({
+          type: typesSystem.type,
+          total: typesSystem.total
+        })
+      }
+    }
     const CloseDay = {
         branch: req.body.branch,
-        manual: req.body.manual,
-        system: req.body.system,
+        manual: manual,
+        system: system,
         closerName: req.params.name,
         createdAt: new Date()
     }
+
     try {
         const closed = await Closure.create(CloseDay)
         if (closed) {
             try {
-                const removeSales = await DaySale.deleteMany({})
+                const removeSales = await DaySale.deleteMany({branch: req.body.branch})
                 if (removeSales) {
                     try {
-                        const reloadFunds = await CashFund.findOne({branch: req.body.branch}, {
+                        const reloadFunds = await CashFund.findOneAndUpdate({branch: req.body.branch}, {
                             $set: {
                                 userRegister: '',
                                 amount: 0, 
@@ -565,7 +684,7 @@ sales.post('/process', protectRoute, (req, res) => {
           commissionDiscount = parseFloat(services[index].price) * parseFloat('0.'+discount)
         }
       }
-      comisionPerAmount = commissionDiscount * parseFloat('0.'+req.body.services[index].comision)
+      comisionPerAmount = commissionDiscount * parseFloat('0.'+services[index].commission)
       comisionTotal = comisionTotal + comisionPerAmount
     }
   
@@ -586,8 +705,8 @@ sales.post('/process', protectRoute, (req, res) => {
         employe: req.body.employe,
         client: req.body.client,
         payType: req.body.payType,
-        commission: commission,
-        localGain: totalGain,
+        commission: parseFloat(commission),
+        localGain: parseFloat(totalGain),
         typesPay: req.body.typesPay,
         purchaseOrder: req.body.purchaseOrder,
         discount: req.body.discount,
@@ -597,12 +716,12 @@ sales.post('/process', protectRoute, (req, res) => {
         total: total,
         createdAt: today,
     }
-    
+    console.log(sale)
     const daySale = {
         branch: req.body.branch,
         services: req.body.services,
         employe: req.body.employe,
-        commission: req.body.commission,
+        commission: parseFloat(commission),
         typesPay: req.body.typesPay,
         purcharseOrder: req.body.purcharseOrder,
         discount: req.body.discount,
@@ -612,8 +731,9 @@ sales.post('/process', protectRoute, (req, res) => {
         createdAt: today
     }
 
-    CashFund.find()
+    CashFund.find({branch: req.body.branch})
     .then(have => {
+      console.log(have)
       if (have.length > 0) {
         if (have[0].validator) {
           Sale.find({branch: req.body.branch})
@@ -624,6 +744,7 @@ sales.post('/process', protectRoute, (req, res) => {
                 sale.count = parseFloat(Count[0].count) + 1
                 Sale.create(sale)
                 .then(sales => {
+                  console.log(sales)
                   daySale.idTableSales = sales._id
                   Employe.findByIdAndUpdate(req.body.employe.id,{
                     $inc: {commission: sales.commission}
@@ -717,6 +838,7 @@ sales.post('/process', protectRoute, (req, res) => {
               sale.count = 1
               Sale.create(sale)
               .then(sales => {
+                console.log(sales)
                 daySale.idTableSales = sales._id
                 Employe.findByIdAndUpdate(req.body.employe.id,{
                   $inc: {commission: sales.commission}
@@ -773,7 +895,7 @@ sales.post('/process', protectRoute, (req, res) => {
             amount: 0,
             amountEgress: 0,
             quantity: 0,
-            validator: false
+            validator: true
         }).then(createCash => {
           res.json({status: 'no-cash'})
         })
@@ -808,13 +930,13 @@ sales.post('/registerFund', protectRoute, async (req, res) => {
     }else{
       const createData = await CashFund.create({
           branch: req.body.branch,
-            userRegister: req.body.userRegister,
-            amount: req.body.amount,
-            amountEgress: 0,
-            quantity: 0,
-            validator: true
+          userRegister: req.body.userRegister,
+          amount: req.body.amount,
+          amountEgress: 0,
+          quantity: 0,
+          validator: true
       })
-      res.json({status: 'bad'})
+      res.json({status: 'ok'})
     }
 })
 
@@ -831,19 +953,28 @@ sales.put('/:id', protectRoute, async (req, res, next) => {
     const Employe = conn.model('employes', employeSchema)
 
     const id = req.params.id
-    const dataComision = req.body.employeComision
-    const cancelSale = await Sale.findByIdAndUpdate(id, {
-      $set: { status: false}
-    })
-    if (cancelSale) {
-      const removeSale = await DaySale.findOneAndRemove({idTableSales: id})
-      for (let index = 0; index < dataComision.length; index++) {
-        var commissionNega = '-'+dataComision[index].commission
-        var removeComision = await Employe.findByIdAndUpdate(dataComision[index].employe,{$inc: {commission: parseFloat(commissionNega)}})
+    const dataComision = '-'+req.body.commission
+    try {
+      const cancelSale = await Sale.findByIdAndUpdate(id, {
+        $set: { status: false}
+      })
+      if (cancelSale) {
+        try {
+          const removeSale = await DaySale.findOneAndRemove({idTableSales: id})
+          try {
+            const removeComision = await Employe.findByIdAndUpdate(req.body.employeId, {
+              $inc: {
+                commission: parseFloat(dataComision)
+              }
+            })
+            res.json({status: 'ok', token: req.requestToken})
+          }catch(err){res.send(err)}
+          
+          res.status(200).json({status: 'ok', token: req.requestToken})
+        }catch(err){res.send(err)}
       }
-      res.status(200).json({status: 'ok', token: req.requestToken})
-    }
-    res.json({status: 'bad'})
+      res.json({status: 'bad'})
+    }catch(err){res.send(err)}
 })
 
 // input - params id, form with manual
@@ -863,7 +994,7 @@ sales.put('/editclosedmanualamounts/:id', protectRoute, async (req,res) => {
                 manual: data
             }
         })
-        res.json({status: 'closure edit', token: req.requestToken})
+        res.json({status: 'ok', token: req.requestToken})
     }catch(err){
         res.send(err)
     }
