@@ -5,6 +5,9 @@ const branchSchema = new Schema({
     name: {
         type: String
     },
+    productsCount: {
+        type: Number
+    },
     createdAt: {
         type: Date,
         default: Date.now

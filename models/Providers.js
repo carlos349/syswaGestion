@@ -17,7 +17,7 @@ const providerSchema = new Schema({
     contactPlus: {
         type: String
     },
-    locations: {
+    location: {
         type: String
     },
     createdAt: {

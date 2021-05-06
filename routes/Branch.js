@@ -36,6 +36,7 @@ branches.post('/', protectRoute, async (req, res) => {
     const Branch = conn.model('branches', branchSchema)
     const dataBranch = {
         name: req.body.branch,
+        productsCount: 0,
         createdAt: new Date()
     }
     try {

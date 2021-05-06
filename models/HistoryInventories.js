@@ -7,6 +7,9 @@ const historyInventorySchema = new Schema({
    },
    branch: {
        type: String
+   },
+   branchName: {
+       type:String
    }, 
    user: {
        type: Object
@@ -21,7 +24,7 @@ const historyInventorySchema = new Schema({
        type: String
    },
    price: {
-       type: Number
+       type: String
    },
    provider: {
        type: String

@@ -8,6 +8,9 @@ const inventorySchema = new Schema({
     branch: {
         type: String
     },
+    storeId: {
+        type: String
+    },
     product: {
         type: String
     },

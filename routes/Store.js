@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const inventorySchema = require('../models/Inventory')
 const storeSchema = require('../models/Store')
+const branchSchema = require('../models/Branch')
 const providerSchema = require('../models/Providers')
 const historyInventorySchema = require('../models/HistoryInventories')
 const historyClosedInventorySchema = require('../models/HistoryClosedInventories')
@@ -25,6 +26,33 @@ stores.get('/getstore', protectRoute, async (req, res) => {
     try{
         const getStore = await Store.find()
         if (getStore.length > 0 ) {
+            res.json({status: 'ok', data: getStore, token: req.requestToken})
+        }else{
+            res.json({status: 'nothing found'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//Final de la api. (Retorna: Datos de productos) -- Api end. (Return: Products´ data)
+
+//--------------------------------------------------------------------------------------
+
+//Api que busca los datos de lun producto de la bodega (Ingreso: ObjectId del producto) -- Api that search a product's data of the store (Input: poduct's ObjectId)
+
+stores.get('/getstorebyid/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Store = conn.model('stores', storeSchema)
+
+    try{
+        const getStore = await Store.findById(req.params.id)
+        if (getStore) {
             res.json({status: 'ok', data: getStore, token: req.requestToken})
         }else{
             res.json({status: 'nothing found'})
@@ -94,7 +122,7 @@ stores.get('/getproviders', protectRoute, async (req, res) => {
 
 //Api que busca el historial de la bodega. (Ingreso: Null) -- Api that search store´s history. (Input: Null)
 
-stores.get('getstorehistory', protectRoute, async (req, res) => {
+stores.get('/getstorehistory', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -146,6 +174,60 @@ stores.get('/gethistorybybranch/:branch', protectRoute, async (req, res) => {
 
 //--------------------------------------------------------------------------------------
 
+//Api que busca el historial por sucursal (Input: branch) -- Api that search history by branch (Input: branch)
+
+stores.get('/gethistoryclosedbybranch/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HistoryClosed = conn.model('historyClosedInventories', historyClosedInventorySchema)
+
+    try{
+        const historyByBranch = await HistoryClosed.find({branch: req.params.branch})
+        if (historyByBranch.length > 0) {
+            res.json({status: 'ok', data: historyByBranch, token: req.requestToken})
+        }else{
+            res.json({status: 'history not found'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//Final de la api. (Retorna: Datos del historial de la sucursal) -- Api end. (Return: branch history´s data)
+
+//--------------------------------------------------------------------------------------
+
+//Api que busca el historial por sucursal (Input: branch) -- Api that search history by branch (Input: branch)
+
+stores.get('/getstoreclosed', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HistoryClosed = conn.model('historyClosedInventories', historyClosedInventorySchema)
+
+    try{
+        const historyByBranch = await HistoryClosed.find({branch: 'store'})
+        if (historyByBranch.length > 0) {
+            res.json({status: 'ok', data: historyByBranch, token: req.requestToken})
+        }else{
+            res.json({status: 'history not found'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//Final de la api. (Retorna: Datos del historial de la sucursal) -- Api end. (Return: branch history´s data)
+
+//--------------------------------------------------------------------------------------
+
 //Api que edita un producto de la bodega (Input: ObjectId del producto ,product, measure, price) -- Api that edit a product in the store (Input: product´s ObjectId, product, measure, price)
 
 stores.put('/:id', protectRoute, async (req, res) => {
@@ -156,6 +238,7 @@ stores.put('/:id', protectRoute, async (req, res) => {
     })
 
     const Store = conn.model('stores', storeSchema)
+    const Inventory = conn.model('inventories', inventorySchema)
 
     Store.findById(req.params.id)
     .then(found => {
@@ -173,7 +256,18 @@ stores.put('/:id', protectRoute, async (req, res) => {
                     }
                 })
                 .then(storeEdited => {
-                    res.json({status: 'store edited', data: storeEdited, token: req.requestToken})
+                    Inventory.updateMany( {storeId: req.params.id}, {
+                        $set: {
+                            product: req.body.product,
+                            measure: req.body.measure,
+                            price: req.body.price 
+                        }  
+                    })
+                    .then(finalRes => {
+                        res.json({status: 'store edited', data: storeEdited, token: req.requestToken})
+                    }).catch(err => {
+                        res.send(err)
+                    })
                 }).catch(err => {
                     res.send(err)
                 })
@@ -249,17 +343,19 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
 
     const historical = {
         id: req.params.id,
+        branchName: 'Bodega',
         user: {
-            id: req.body.idUser,
-            name: req.body.nameUser,
-            document: req.body.documentUser
+            id: req.body.history.idUser,
+            firstName: req.body.history.firstNameUser,
+            lastName: req.body.history.lastNameUser,
+            email: req.body.history.emailUser
         },
-        product: req.body.product,
-        entry: req.body.entry,
-        measure: req.body.measure,
-        price: req.body.price,
-        provider: req.body.provider,
-        date: req.body.date
+        product: req.body.history.product,
+        entry: req.body.history.entry,
+        measure: req.body.history.measure,
+        price: req.body.history.price,
+        provider: req.body.history.provider,
+        date: req.body.history.date
     }
 
     try{
@@ -268,10 +364,16 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
             $push: {purchaseHistory: historical} 
         })
         if (add) {
-            const addHistory = await History.create(hitorical)
-            if (addHistory) {
-                res.json({status: 'added', data: add, token: req.requestToken })
-            }
+            try{
+                console.log("entro")
+                const addHistory = await History.create(historical)
+                console.log(addHistory)
+                if (addHistory) {
+                    res.json({status: 'added', data: addHistory, token: req.requestToken })
+                }  
+            }catch(err){
+                res.send(err)
+            }  
         } 
     }catch(err){
         res.send(err)
@@ -284,7 +386,7 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
 
 //Api que registra un producto en una sucursal (Ingreso: ObjectId de la sucursal, product, measure, price) -- Api that register a product to a branch (Input: branch´s ObjectId, product, measure, price)
 
-stores.put('/registertobranch/:id', protectRoute, async (req,res) => {
+stores.post('/registertobranch', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -292,15 +394,17 @@ stores.put('/registertobranch/:id', protectRoute, async (req,res) => {
     })
 
     const Inventory = conn.model('inventories', inventorySchema)
+    const Branch = conn.model('branches', branchSchema)
 
     try{
-        const inspector = await Inventory.find({$and:[{branch:req.params.id}, {product: req.body.product}]})
+        const inspector = await Inventory.find({$and:[{branch:req.body.branch}, {product: req.body.product}]})
         if (inspector.length > 0) {
             res.json({status: 'product already exist'})
         }else{
             const dataProduct = {
                 addingHistory:[],
                 branch: req.body.branch,
+                storeId: req.body.storeId,
                 product: req.body.product,
                 measure: req.body.measure,
                 price: req.body.price,
@@ -309,10 +413,22 @@ stores.put('/registertobranch/:id', protectRoute, async (req,res) => {
                 consume: 0,
                 alertTotal: 0
             }
-
-            const register = await Inventory.create(dataProduct)
-            if (register) {
-                res.json({status: 'product registered', data: register, token: req.requestToken})
+            try{
+               const register = await Inventory.create(dataProduct)
+                if (register) {
+                    try{
+                        const addCount = await Branch.findByIdAndUpdate(req.body.branch, {
+                            $inc:{productsCount:1}
+                        })
+                        if (addCount) {
+                            res.json({status: 'product registered', data: register, token: req.requestToken})
+                        }
+                    }catch(err){
+                        res.send(err)
+                    }  
+                } 
+            }catch(err){
+                res.send(err)
             }
         }
     }catch(err){
@@ -326,46 +442,57 @@ stores.put('/registertobranch/:id', protectRoute, async (req,res) => {
 
 //Api que registra cantidades a un producto de una sucursal (Ingreso: ObjectId de la sucursal, product´s ObjectId, user´s ObjectId, nameUser, documentUser, product, entry) -- Api that register quantity to a product by branh (Input: branch´s ObjectId, product´s ObjectId, user´s ObjectId, nameUser, documentUser, product, entry, measure)
 
-stores.put('/addtobranch/:id', protectRoute, async (req, res) => {
+stores.post('/addtobranch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+        useUnifiedTopology: true,    })
 
     const Inventory = conn.model('inventories', inventorySchema)
     const History = conn.model('historyInventories', historyInventorySchema)
     const Store = conn.model('stores', storeSchema)
 
     const historical = {
-        id: req.body.productId,
-        branch: req.params.id,
+        id: req.body.storeId,
+        branch: req.body.branch,
+        branchName: req.body.branchName,
         user: {
             id: req.body.idUser,
-            name: req.body.nameUser,
-            document: req.body.documentUser
+            firstName: req.body.firstNameUser,
+            lastName: req.body.lastNameUser,
+            email: req.body.emailUser
         },
+        price: 'Abastecimiento',
+        provider: 'Bodega',
         product: req.body.product,
         entry: req.body.entry,
         measure: req.body.measure,
         date: new Date()
     }
-
+    console.log(historical)
     try{
-        const add = await Inventory.findOneAndUpdate({$and:[{branch:req.params.id}, {product: req.body.product}]}, {
+        const add = await Inventory.findByIdAndUpdate(req.body.id, {
             $inc: {entry: req.body.entry},
             $push: {addingHistory: historical} 
         })
         if (add) {
-            const storeBalance = await Store.findByIdAndUpdate(req.body.productId, {
-                $inc:{consume: req.body.entry}
-            })
-            if (storeBalance) {
-                const addHistory = await History.create(hitorical)
-                if (addHistory) {
-                    res.json({status: 'added', data: add, token: req.requestToken })
-                }
-            } 
+            try{
+                const storeBalance = await Store.findByIdAndUpdate(req.body.storeId, {
+                    $inc:{consume: req.body.entry}
+                })
+                if (storeBalance) {
+                    try{
+                        const addHistory = await History.create(historical)
+                        if (addHistory) {
+                            res.json({status: 'added', token: req.requestToken })
+                        }
+                    }catch(err){
+                        res.send(err)
+                    } 
+                } 
+            }catch(err){
+                res.send(err)
+            }  
         } 
     }catch(err){
         res.send(err)
@@ -378,7 +505,7 @@ stores.put('/addtobranch/:id', protectRoute, async (req, res) => {
 
 //Api que realiza un reporte de cierre de la bodega (Ingreso: user´s ObjectId, nameUser, documentUser, products[{ObjectId del producto, count, difference (default : ''), ideal, measure}]) -- Api that make a closed report of the store (Input: user´s ObjectId, nameUser, documentUser, products[{ Product´s ObjectId, count, difference (default : ''), ideal, measure}])
 
-stores.put('/closestore', protectRoute, async (req, res) => {
+stores.post('/closestore', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -406,7 +533,7 @@ stores.put('/closestore', protectRoute, async (req, res) => {
         if (difference > 0) {
             products[i].difference = "+" + difference + " " + products[i].measure
         }
-        if (diferencia < 0) {
+        if (difference < 0) {
             products[i].difference = difference + " " + products[i].measure
         }
     }
@@ -414,9 +541,11 @@ stores.put('/closestore', protectRoute, async (req, res) => {
     const historical = {
         user: {
             id: req.body.idUser,
-            name: req.body.nameUser,
-            document: req.body.documentUser
+            firstName: req.body.firstNameUser,
+            lastName: req.body.lastNameUser,
+            email: req.body.emailUser
         },
+        branch: 'store',
         totalProduct:products.length,
         products:products,
         createdAt: new Date()
@@ -438,7 +567,7 @@ stores.put('/closestore', protectRoute, async (req, res) => {
 
 //Api que realiza un reporte de cierre del inventario de una sucursal (Ingreso: user´s ObjectId, nameUser, documentUser, products[{ObjectId del producto, count, difference (default : ''), ideal, measure}]) -- Api that make a closed report of the branch´s inventory (Input: user´s ObjectId, nameUser, documentUser, products[{ Product´s ObjectId, count, difference (default : ''), ideal, measure}])
 
-stores.put('/closeinventorybybranch/:branch', protectRoute, async (req, res) => {
+stores.post('/closeinventorybybranch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -466,7 +595,7 @@ stores.put('/closeinventorybybranch/:branch', protectRoute, async (req, res) => 
         if (difference > 0) {
             products[i].difference = "+" + difference + " " + products[i].measure
         }
-        if (diferencia < 0) {
+        if (difference < 0) {
             products[i].difference = difference + " " + products[i].measure
         }
     }
@@ -474,10 +603,11 @@ stores.put('/closeinventorybybranch/:branch', protectRoute, async (req, res) => 
     const historical = {
         user: {
             id: req.body.idUser,
-            name: req.body.nameUser,
-            document: req.body.documentUser
+            firstName: req.body.firstNameUser,
+            lastName: req.body.lastNameUser,
+            email: req.body.emailUser
         },
-        branch: req.params.branch,
+        branch: req.body.branch,
         totalProduct:products.length,
         products:products,
         createdAt: new Date()
@@ -562,23 +692,27 @@ stores.post('/', protectRoute, async (req,res) => {
 
     try{
         const inspector = await Store.find({product: req.body.product})
-        if (found.length > 0) {
+        if (inspector.length > 0) {
             res.json({status: 'product already exist'})
         }else{
+            
             const dataProduct = {
                 purchaseHistory:[],
                 product: req.body.product,
                 measure: req.body.measure,
+                alertTotal: req.body.alertTotal,
                 price: req.body.price,
                 quantity: 0,
                 entry: 0,
-                consume: 0,
-                alertTotal: 0
+                consume: 0
             }
-
-            const register = await Store.create(dataProduct)
-            if (register) {
-                res.json({status: 'product registered', data: register, token: req.requestToken})
+            try{
+               const register = await Store.create(dataProduct)
+                if (register) {
+                    res.json({status: 'product registered', data: register, token: req.requestToken})
+                } 
+            }catch(err){
+                res.send(err)
             }
         }
     }catch(err){
@@ -638,11 +772,19 @@ stores.delete('/deletestoreproduct/:id', protectRoute, async (req, res) => {
     })
 
     const Store = conn.model('stores', storeSchema)
+    const Inventory = conn.model('inventories', inventorySchema)
 
     try{
-        const deleteProduct = await Store.delete(req.params.id)
+        const deleteProduct = await Store.findByIdAndRemove(req.params.id)
         if (deleteProduct) {
-            res.json({status: 'product deleted', data: deleteProduct, token: req.requestToken})
+            try{
+                const deleteFromBranches = await Inventory.deleteMany({storeId:req.params.id})
+                if (deleteFromBranches) {
+                    res.json({status: 'product deleted', data: deleteProduct, token: req.requestToken})
+                }
+            }catch(err){
+                res.send(err)
+            }
         }
     }catch(err){
         res.send(err)
@@ -663,11 +805,33 @@ stores.delete('/deleteinventoryproduct/:id', protectRoute, async (req, res) => {
     })
 
     const Inventory = conn.model('inventories', inventorySchema)
+    const Store = conn.model('stores', storeSchema)
+    const Branch = conn.model('branches', branchSchema)
 
-    try{
-        const deleteProduct = await Inventory.delete(req.params.id)
+    try {
+        const deleteProduct = await Inventory.findByIdAndRemove(req.params.id)
         if (deleteProduct) {
-            res.json({status: 'product deleted', data: deleteProduct, token: req.requestToken})
+            var total = (deleteProduct.quantity + deleteProduct.entry) - deleteProduct.consume
+            const branch = deleteProduct.branch
+            try {
+                const storeBalance = await Store.findByIdAndUpdate(deleteProduct.storeId, {
+                    $inc:{entry: total}
+                })
+                if (storeBalance) {
+                    try{
+                        const addCount = await Branch.findByIdAndUpdate(branch, {
+                            $inc:{productsCount:-1}
+                        })
+                        if (addCount) {
+                            res.json({status: 'product deleted', token: req.requestToken})
+                        }
+                    }catch(err){
+                        res.send(err)
+                    }
+                }
+            }catch(err){
+                res.send(err)
+            }  
         }
     }catch(err){
         res.send(err)
@@ -690,7 +854,7 @@ stores.delete('/deleteprovider/:id', protectRoute, async (req, res) => {
     const Provider = conn.model('providers', providerSchema)
 
     try{
-        const deleteProduct = await Inventory.delete(req.params.id)
+        const deleteProduct = await Provider.findByIdAndRemove(req.params.id)
         if (deleteProduct) {
             res.json({status: 'provider deleted', data: deleteProduct, token: req.requestToken})
         }

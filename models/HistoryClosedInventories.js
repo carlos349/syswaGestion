@@ -3,7 +3,7 @@ const { Schema } =  mongoose
 
 const historyClosedInventorySchema = new Schema({
    user: {
-       type: String
+       type: Object
    },
    totalProduct: {
        type: Number
