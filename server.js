@@ -9,13 +9,6 @@ const port = require('./private/port.js')
 // const database = require('./private/database.js')
 // const verify = require('./accessFunctions/verify.js')
 
-//Websockets
-io.on('connection', socket  => {
-  socket.on('sendNotification', data => {
-	  io.emit('notify', data);
-  })
-});
-
 // settings
 app.set('port', process.env.PORT || port)
 app.set('trust proxy', true);
@@ -27,6 +20,14 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 // verify()
+
+//Websockets
+io.on('connection', socket  => {
+  socket.on('sendNotification', data => {
+	  io.emit('notify', data);
+  })
+});
+
 //Routes
 
 app.use('/users', require('./routes/Users.js'))

@@ -6,10 +6,10 @@ const closureSchema = new Schema({
         type: String
     },
     manual: {
-        type: Object
+        type: Array
     },
     system: {
-        type: Object
+        type: Array
     },
     closerName: {
         type: String

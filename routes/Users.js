@@ -547,7 +547,7 @@ users.put('/changePass/:id', protectRoute, async (req, res, next) => {
         if (!compare) {
             res.status(404).send('User does exist')
         }else{
-            if (bcrypt.compareSync(lastPass, compare.password)) {s
+            if (bcrypt.compareSync(lastPass, compare.password)) {
                 const hash = await bcrypt.hash(newPass, 10)
                 if (!hash) {
                     res.status(404).send('Error en encriptado')
