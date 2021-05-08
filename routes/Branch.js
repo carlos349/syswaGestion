@@ -7,7 +7,7 @@ const branchSchema = require('../models/Branch')
 const credentialSchema = require('../models/userCrendentials')
 branches.use(cors())
 
-branches.get('/', async (req, res) => {
+branches.get('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -19,7 +19,7 @@ branches.get('/', async (req, res) => {
     try {
         const getBranches = await Branch.find()
         if (getBranches.length > 0) {
-            res.json({status: 'ok', data: getBranches})
+            res.json({status: 'ok', data: getBranches, token: req.requestToken})
         }else{
             res.json({status:'bad'})
         }
@@ -66,6 +66,7 @@ branches.post('/createBranchCertificate', async (req, res) => {
         if (getCredentials){
             const dataBranch = {
                 name: req.body.branch,
+                productsCount: 0,
                 createdAt: new Date()
             }
             try {
@@ -74,7 +75,7 @@ branches.post('/createBranchCertificate', async (req, res) => {
                     try {
                         const createBranch = await Branch.create(dataBranch)
                         if (createBranch) {
-                            res.json({status: 'ok', data: createBranch, token: req.requestToken})
+                            res.json({status: 'ok', data: createBranch})
                         }
                     }catch(err){res.send(err)}
                 }
