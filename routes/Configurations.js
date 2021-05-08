@@ -62,12 +62,6 @@ configurations.post('/', protectRoute, async (req, res) => {
         businessPhone: req.body.businessPhone,
         businessType: req.body.businessType,
         businessLocation: req.body.businessLocation,
-        additionalFeatures: {
-            onlineDates: true,
-            microservices: false,
-            editDates: false,
-            deleteDates: true
-        },
         typesPay: req.body.typesPay,
         currency: req.body.currency,
         datesPolitics: {
@@ -75,7 +69,11 @@ configurations.post('/', protectRoute, async (req, res) => {
             minTypeDate: 3,
             limitTimeDate: 3,
             minEditDate: 3,
-            editQuantity: 2
+            editQuantity: 2,
+            onlineDates: true,
+            microServices: false,
+            editDates: false,
+            deleteDates: true
         }
     }
     try {
@@ -108,12 +106,6 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                 businessPhone: req.body.businessPhone,
                 businessType: req.body.businessType,
                 businessLocation: req.body.businessLocation,
-                additionalFeatures: {
-                    onlineDates: true,
-                    microservices: false,
-                    editDates: false,
-                    deleteDates: true
-                },
                 typesPay: req.body.typesPay,
                 currency: req.body.currency,
                 datesPolitics: {
@@ -121,7 +113,11 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                     minTypeDate: 3,
                     limitTimeDate: 3,
                     minEditDate: 3,
-                    editQuantity: 2
+                    editQuantity: 2,
+                    onlineDates: true,
+                    microServices: false,
+                    editDates: false,
+                    deleteDates: true
                 }
             }
             try {
@@ -147,11 +143,12 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
 
     const dataConfiguration = {
         blockHour: req.body.blockHour,
+        blackList: req.body.blackList,
         businessName:  req.body.businessName,
         businessPhone: req.body.businessPhone,
         businessType: req.body.businessType,
         businessLocation: req.body.businessLocation,
-        onlineDates: req.body.onlineDates,
+        currency: req.body.currency,
         typesPay: req.body.typesPay,
         datesPolitics: req.body.datesPolitics
     }
