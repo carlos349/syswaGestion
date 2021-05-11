@@ -34,6 +34,9 @@ const configurationSchema = new Schema({
     },
     datesPolitics: {
         type: Object
+    },
+    accessProfiles: {
+        type: Array
     }
 })
 
