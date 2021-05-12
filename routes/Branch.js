@@ -26,6 +26,21 @@ branches.get('/', protectRoute, async (req, res) => {
     }catch(err){res.send(err)}
 })
 
+branches.get('/count', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Branch = conn.model('branches', branchSchema)
+
+    try {
+        const getCount = await Branch.find().count()
+        res.json({status: 'ok', data: getCount})
+    }catch(err){res.send(err)}
+})
+
 branches.post('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
