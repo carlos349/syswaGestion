@@ -24,7 +24,7 @@ const userSchema = new Schema ({
         type: String
     },
     status: {
-        type: Number
+        type: String
     },
     linkLender: {
         type: String

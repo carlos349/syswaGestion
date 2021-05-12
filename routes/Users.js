@@ -467,25 +467,21 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
 
 	const status = req.body.status
 	const employe = req.body.employe
-	if(status == 3){
-        try{
-            const update = await User.findByIdAndUpdate(req.params.id, { $set: {status: status, linkLender: employe}})
-            if (update) {
-                res.json({status: 'ok', data: update, token: req.requestToken})
+    const routes = req.body.routes
+    try{
+        const update = await User.findByIdAndUpdate(req.params.id, { 
+            $set: {
+                status: status, 
+                access: routes,
+                linkLender: employe
             }
-        }catch(err){
-            res.send(err)
-        }	
-	}else{
-        try{
-            const update = await User.findByIdAndUpdate(req.params.id, { $set: {status: status, linkLender: ''}})
-            if (update) {
-                res.json({status: 'ok', data: update, token: req.requestToken})
-            }
-        }catch(err){
-            res.send(err)
+        })
+        if (update) {
+            res.json({status: 'ok', data: update, token: req.requestToken})
         }
-	}
+    }catch(err){
+        res.send(err)
+    }	
 })
 
 //input - params id, form access . pasar id y formulario con access

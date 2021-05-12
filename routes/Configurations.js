@@ -3,6 +3,7 @@ const configurations = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const configurationSchema = require('../models/Configurations')
+const profilesSchema = require('../models/accessProfile')
 const credentialSchema = require('../models/userCrendentials')
 const cors = require('cors')
 
@@ -21,6 +22,36 @@ configurations.get('/', protectRoute, async (req, res) => {
         const getConfigurations = await Configuration.find()
         if (getConfigurations.length > 0) {
             res.json({status: 'ok', data: getConfigurations, token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+configurations.get('/getProfiles', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Profiles = conn.model('accessprofiles', profilesSchema)
+
+    try {
+        const getProfiles = await Profiles.find()
+        if (getProfiles.length == 0) {
+            try {
+                const createProfile = await Profiles.create({
+                    profile: [],
+                    createdAt: new Date()
+                })
+                res.json({status: 'ok', data: createProfile, token: req.requestToken})
+            }
+            catch(err){
+                res.send(err)
+            }
+        }else{
+            res.json({status: 'ok', data: getProfiles, token: req.requestToken})
         }
     }catch(err){
         res.send(err)
@@ -74,8 +105,7 @@ configurations.post('/', protectRoute, async (req, res) => {
             microServices: false,
             editDates: false,
             deleteDates: true
-        },
-        accessProfiles:[]
+        }
     }
     try {
         const getConfigurations = await Configuration.findOne({branch: req.params.branch})
@@ -119,8 +149,7 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                     microServices: false,
                     editDates: false,
                     deleteDates: true
-                },
-                accessProfiles: req.body.accessProfiles
+                }
             }
             try {
                 const getConfigurations = await Configuration.findOne({branch: req.body.branch})
@@ -152,8 +181,7 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
         businessLocation: req.body.businessLocation,
         currency: req.body.currency,
         typesPay: req.body.typesPay,
-        datesPolitics: req.body.datesPolitics,
-        accessProfiles: req.body.accessProfiles
+        datesPolitics: req.body.datesPolitics
     }
     try {
         const createConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
@@ -212,6 +240,27 @@ configurations.post('/removeBlackList/:id', protectRoute, async (req, res) => {
     }catch(err){
         res.send(err)
     }
+})
+
+configurations.put('/editProfiles/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Profiles = conn.model('accessprofiles', profilesSchema)
+
+    try {
+        const editProfile = await Profiles.findByIdAndUpdate(req.params.id, {
+            $set : {
+                profiles: req.body.profiles
+            }
+        })
+        if (editProfile) {
+            res.json({status: 'ok', token: req.requestToken})
+        }
+    }catch(err){res.send(err)}
 })
 
 configurations.delete('/:branch', protectRoute, async (req, res) => {
