@@ -23,9 +23,6 @@ const configurationSchema = new Schema({
     businessLocation: {
         type: String
     },
-    additionalFeatures: {
-        type: Object
-    },
     typesPay: {
         type: Array
     },
@@ -34,6 +31,9 @@ const configurationSchema = new Schema({
     },
     datesPolitics: {
         type: Object
+    },
+    microServices: {
+        type: Array
     }
 })
 
