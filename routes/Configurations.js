@@ -105,7 +105,8 @@ configurations.post('/', protectRoute, async (req, res) => {
             microServices: false,
             editDates: false,
             deleteDates: true
-        }
+        },
+        microService:[]
     }
     try {
         const getConfigurations = await Configuration.findOne({branch: req.params.branch})
@@ -149,7 +150,8 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                     microServices: false,
                     editDates: false,
                     deleteDates: true
-                }
+                },
+                microService:[]
             }
             try {
                 const getConfigurations = await Configuration.findOne({branch: req.body.branch})
@@ -181,7 +183,8 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
         businessLocation: req.body.businessLocation,
         currency: req.body.currency,
         typesPay: req.body.typesPay,
-        datesPolitics: req.body.datesPolitics
+        datesPolitics: req.body.datesPolitics,
+        microServices: req.body.microServices
     }
     try {
         const createConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
