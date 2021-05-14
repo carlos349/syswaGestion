@@ -29,7 +29,49 @@ services.get('/getCategories/:branch', protectRoute, async (req, res) => {
 })
 
 //output - status, data and token
+services.get('/getCategoriesForClients/:branch', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Category = conn.model('categories', categorySchema)
+
+    try{
+        const getCategories = await Category.find({branch: req.params.branch})
+        if (getCategories.length > 0) {
+            res.json({status: 'ok', data: getCategories, token: req.requestToken})
+        }else{
+            res.json({status: 'categories not found'})
+        }
+    }catch(err) {
+        res.send(err)
+    }
+})
+
+//output - status, data and token
 services.get('/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Service = conn.model('services', serviceSchema)
+    
+    try{
+        const getServices = await Service.find({branch: req.params.branch})
+        if (getServices.length > 0) {
+            res.json({status: 'ok', data: getServices, token: req.requestToken})
+        }else{
+            res.json({status: 'services not found'})
+        }
+    }catch(err) {
+        res.send(err)
+    }
+})
+
+//output - status, data and token
+services.get('/servicesForClients/:branch', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,

@@ -59,7 +59,29 @@ clients.get('/findOne/:id', protectRoute, async (req, res) => {
     }catch(err){
         res.send(err)
     }
+})
 
+//input - params id, pasar id
+//output - status, data and token
+clients.get('/findOneWithoutToken/:email', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Client = conn.model('clients', clientSchema)
+
+    try {
+        const getClient = await Client.findOne({email: req.params.email}, {password: 0})
+        if (getClient) {
+            res.json({status: 'ok', data: getClient, token: req.requestToken})
+        }else{
+            res.json({status: 'user does exist', data: getClient, token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
 })
 
 //input - none - nada

@@ -89,6 +89,33 @@ employes.get('/employesbybranch/:branch', protectRoute, async (req, res) =>{
 
 //----------------------------------------------------------------------------------
 
+// Api que busca empleados por branch. (Ingreso:Branch´s ObjectId) -- Api that search employes by branch. (Input: Branch´s ObjectId)
+
+employes.get('/employesbybranchForClients/:branch', async (req, res) =>{
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Employe = conn.model('employes', employeSchema)
+    try{
+        const findByBranch = await Employe.find({branch:req.params.branch})
+        if (findByBranch) {
+            res.json({status: 'ok', data: findByBranch, token: req.requestToken})
+        }else{
+            res.json({status: 'employes not found'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+
+})
+
+//Fin de la api. (Retorna datos del empleado) -- Api end (output employe's data)
+
+//----------------------------------------------------------------------------------
+
 // Api que busca las ventas de un empleado específico por su id. (Ingreso: ObjectId) -- Api that search the especific sales from an employe by id. (Input: ObjectId)
 
 employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {

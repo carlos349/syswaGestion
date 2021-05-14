@@ -7,7 +7,7 @@ const branchSchema = require('../models/Branch')
 const credentialSchema = require('../models/userCrendentials')
 branches.use(cors())
 
-branches.get('/', protectRoute, async (req, res) => {
+branches.get('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
