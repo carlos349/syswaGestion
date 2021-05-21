@@ -93,7 +93,7 @@ services.get('/servicesForClients/:branch', async (req, res) => {
 
 //input - params id . pasar id
 //output - status, data and token
-services.get('/getServiceInfo/:id', protectRoute, async (req, res, next) => {
+services.get('/getServiceInfo/:id', async (req, res, next) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -104,7 +104,7 @@ services.get('/getServiceInfo/:id', protectRoute, async (req, res, next) => {
     try {
         const service = await Service.findById(req.params.id)
         if (service) {
-            res.json({status: 'ok', data: service, token: req.requestToken})
+            res.json({status: 'ok', data: service})
         }else{
             res.json({status: 'service does exist'})
         }
@@ -124,7 +124,12 @@ services.post('/servicesByCategory', async (req, res, next) => {
     const Service = conn.model('services', serviceSchema)
     
     try {
-        const services = await Service.find({category: req.body.name})
+        const services = await Service.find({
+            $and: [
+                {category: req.body.name},
+                {branch: req.body.branch}
+            ]
+        })
         if (services.length > 0) {
             res.json({status: 'ok', data: services})
         }else{
@@ -220,7 +225,7 @@ services.put('/:id', protectRoute, async (req, res) => {
         useFindAndModify: false
     })
     const Service = conn.model('services', serviceSchema)
-    console.log(parseInt(req.body.price))
+    console.log(req.body.employes)
     
     try{
         const editService = await Service.findByIdAndUpdate(req.params.id, {
@@ -231,7 +236,8 @@ services.put('/:id', protectRoute, async (req, res) => {
                 price: req.body.price,
                 commission: req.body.commission,
                 discount: req.body.discount,
-                category: req.body.category
+                category: req.body.category,
+                employes: req.body.employes
             }
         })
         if (editService) {
@@ -270,6 +276,46 @@ services.put('/changeActive/:id', protectRoute, async (req, res) => {
                 }
             })
             res.json({status: 'ok', data: true, token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//input - params id . pasar id
+// output - status, data and token
+services.delete('/deleteCategory/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Category = conn.model('categories', categorySchema)
+
+    try{
+        const removeCategory = await Category.findByIdAndRemove(req.params.id)
+        if (removeCategory) {
+            res.json({status: 'ok', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//input - params id . pasar id
+// output - status, data and token
+services.delete('/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Service = conn.model('services', serviceSchema)
+
+    try{
+        const removeCategory = await Service.findByIdAndRemove(req.params.id)
+        if (removeCategory) {
+            res.json({status: 'ok', token: req.requestToken})
         }
     }catch(err){
         res.send(err)

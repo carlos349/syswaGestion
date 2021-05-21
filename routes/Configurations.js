@@ -28,6 +28,36 @@ configurations.get('/', protectRoute, async (req, res) => {
     }
 })
 
+configurations.get('/getMicroservice/:branch', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    try {
+        const getConfigurations = await Configuration.find({
+            $and: [
+                {branch: req.params.branch},
+                {'datesPolitics.microServices': true}
+            ]
+        })
+        if (getConfigurations.length > 0) {
+            if (getConfigurations[0].microServices.length > 0) {
+                res.json({status: 'ok', data: getConfigurations[0].microServices, token: req.requestToken})
+            }else{
+               res.json({status: 'bad', token: req.requestToken})     
+            }
+        }else{
+            res.json({status: 'bad', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 configurations.get('/getProfiles', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
