@@ -550,6 +550,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
                     }
                 }
+                console.log(blocksFirst)
                 for (let i = 0; i < employes.length; i++) {
                     const element = employes[i];
                     const restInit = element.restTime.split('/')[0]
@@ -603,7 +604,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         for (let e = 0; e < blocksFirst.length; e++) {
                             const element = blocksFirst[e];
                             if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
-                                for (let u = 0; u < hoursdate / 15; u++) {
+                                for (let u = 1; u < hoursdate / 15 + 1; u++) {
                                     if (blocksFirst[e - u]) {
                                         blocksFirst[e - u].validator = 'unavailable'
                                     }
