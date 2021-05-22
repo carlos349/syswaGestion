@@ -107,6 +107,65 @@ configurations.get('/:branch', protectRoute, async (req, res) => {
     }
 })
 
+configurations.get('/getHours/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    try {
+        const getConfigurations = await Configuration.findOne({branch: req.params.branch})
+        if (getConfigurations) {
+            var daysHours = []
+            var daysKey = {
+                0: 'Domingo',
+                1: 'Lunes',
+                2: 'Martes',
+                3: 'Miércoles',
+                4: 'Jueves',
+                5: 'Viernes',
+                6: 'Sábado'
+            }
+            for (const key in getConfigurations.blockHour) {
+                const days = getConfigurations.blockHour[key]
+                var splitHour = days.start.split(':')[0]
+                var splitMinutes = days.start.split(':')[1]
+                daysHours.push({
+                    day: daysKey[days.day],
+                    value: days.day,
+                    valid: days.status,
+                    start: 'Desde',
+                    end: 'Hasta',
+                    hour: []
+                })
+                for (let i = 0; i < days.time / 15 + 1; i++) {
+                    if (i == 0) {
+                        daysHours[key].hour.push(days.start)
+                        splitMinutes = parseFloat(splitMinutes) + 15
+                        splitHour = splitMinutes == 60 ? parseFloat(splitHour) + 1 : splitHour
+                        splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                    }else{
+                        daysHours[key].hour.push(splitHour+':'+splitMinutes)
+                        splitMinutes = parseFloat(splitMinutes) + 15
+                        splitHour = splitMinutes == 60 ? parseFloat(splitHour) + 1 : splitHour
+                        splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                    }
+                }
+            }
+            var objectPush = daysHours[0]
+            daysHours.splice(0, 1)
+            daysHours.push(objectPush)
+            console.log(daysHours)
+            res.json({status: 'ok', data: daysHours, token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 configurations.post('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
