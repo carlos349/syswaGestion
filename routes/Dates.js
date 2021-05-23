@@ -499,6 +499,30 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     }
                 }
             }
+            for (let i = 0; i < employesServices.length; i++) {
+                const employeService = employesServices[i];
+                for (let e = 0; e < blocksFirst.length; e++) {
+                    const block = blocksFirst[e];
+                    var valid = false
+                    for (let r = 0; r < block.employes.length; r++) {
+                        const employeBlock = block.employes[r];
+                        if (employeBlock.id  == employeService.id) {
+                            valid = true
+                        }
+                    }
+                    if (valid == false && blocksFirst[e-1]) {
+                        for (let u = 1; u <= hoursdate / 15; u++) {
+                            if (blocksFirst[e - u]) {
+                                for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
+                                    if (blocksFirst[e - u].employes[r].id  == employeService.id) {
+                                        blocksFirst[e - u].employes[r].valid = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             // res.json({status: 'ok', data: blocksFirst})
             for (let e = 0; e < blocksFirst.length; e++) {
                 const element = blocksFirst[e];
@@ -601,6 +625,32 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
+
+                        for (let i = 0; i < employesServices.length; i++) {
+                            const employeService = employesServices[i];
+                            for (let e = 0; e < blocksFirst.length; e++) {
+                                const block = blocksFirst[e];
+                                var valid = false
+                                for (let r = 0; r < block.employes.length; r++) {
+                                    const employeBlock = block.employes[r];
+                                    if (employeBlock.id  == employeService.id) {
+                                        valid = true
+                                    }
+                                }
+                                if (valid == false && blocksFirst[e-1]) {
+                                    for (let u = 1; u <= hoursdate / 15; u++) {
+                                        if (blocksFirst[e - u]) {
+                                            for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
+                                                if (blocksFirst[e - u].employes[r].id  == employeService.id) {
+                                                    blocksFirst[e - u].employes[r].valid = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
                         for (let e = 0; e < blocksFirst.length; e++) {
                             const element = blocksFirst[e];
                             if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
