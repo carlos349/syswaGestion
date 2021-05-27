@@ -362,9 +362,18 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
 dates.post('/editBlocksFirst', async (req, res) => {
     const hoursdate = req.body.timedate
     const blocks = req.body.block
-
+    console.log(req.body.firstBlock)
     if (req.body.firstBlock) {
         const employesServices = req.body.employesServices
+
+        for (const u in blocks) {
+            const elementTwo = blocks[u];
+            for (let o = 0; o < elementTwo.employes.length; o++) {
+                const elementThree = elementTwo.employes[o];
+                elementThree.valid = false
+            }
+        }
+
         for (const i in employesServices) {
             const element = employesServices[i];
             for (const u in blocks) {
@@ -395,12 +404,51 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-    
+
+        for (let i = 0; i < employesServices.length; i++) {
+            const employeService = employesServices[i];
+            for (let e = 0; e < blocks.length; e++) {
+                const block = blocks[e];
+                var valid = false
+                for (let r = 0; r < block.employes.length; r++) {
+                    const employeBlock = block.employes[r];
+                    if (employeBlock.id  == employeService.id) {
+                        valid = true
+                    }
+                }
+                if (valid == false && blocks[e-1]) {
+                    for (let u = 1; u <= hoursdate / 15; u++) {
+                        if (blocks[e - u]) {
+                            for (let r = 0; r < blocks[e - u].employes.length; r++) {
+                                if (blocks[e - u].employes[r].id  == employeService.id) {
+                                    blocks[e - u].employes[r].valid = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // res.json({status: 'ok', data: blocksFirst})
         for (let e = 0; e < blocks.length; e++) {
             const element = blocks[e];
             if (blocks[e-1]) {
+                if (element.validator == true) {
+                    var valid = true
+                    for (let i = 0; i < element.employes.length; i++) {
+                        const elementTwo = element.employes[i];
+                        if (elementTwo.valid == true) {
+                            valid = false
+                            break
+                        }
+                    }
+                    if (valid) {
+                        element.validator = 'unavailable'
+                    }
+                }
                 if (element.validator == false && blocks[e-1].validator == true && e > 0) {
-                    for (let u = 1; u < hoursdate / 15 + 1; u++) {
+                    for (let u = 1; u <= hoursdate / 15; u++) {
                         if (blocks[e - u]) {
                             blocks[e - u].validator = 'unavailable'
                         }
@@ -415,6 +463,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
+    
         res.json({status: 'ok', data: blocks})
     }else{
         const employeSelect = req.body.employeSelect
@@ -423,13 +472,13 @@ dates.post('/editBlocksFirst', async (req, res) => {
             var valid = false
             for (const employe of block.employes) {
                 if (employe.id == employeSelect) {
-                    blockEmploye.push({hour: block.hour, validator: true})
+                    blockEmploye.push({hour: block.hour, validator: true, origin: true})
                     valid = true
                     break
                 }
             }
             if (!valid) {
-                blockEmploye.push({hour: block.hour, validator: false})
+                blockEmploye.push({hour: block.hour, validator: false, origin: true})
             }
         }
 
@@ -440,6 +489,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     for (let u = 1; u < hoursdate / 15 + 1; u++) {
                         if (blockEmploye[e - u]) {
                             blockEmploye[e - u].validator = 'unavailable'
+                            blockEmploye[e - u].origin = 'unavailable'
                         }
                     }
                 }
@@ -447,6 +497,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     for (let u = 0; u < hoursdate / 15; u++) {
                         if (blockEmploye[e - u]) {
                             blockEmploye[e - u].validator = 'unavailable'
+                            blockEmploye[e - u].origin = 'unavailable'
                         }
                     }
                 }
@@ -523,10 +574,24 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     }
                 }
             }
+
             // res.json({status: 'ok', data: blocksFirst})
             for (let e = 0; e < blocksFirst.length; e++) {
                 const element = blocksFirst[e];
                 if (blocksFirst[e-1]) {
+                    if (element.validator == true) {
+                        var valid = true
+                        for (let i = 0; i < element.employes.length; i++) {
+                            const elementTwo = element.employes[i];
+                            if (elementTwo.valid == true) {
+                                valid = false
+                                break
+                            }
+                        }
+                        if (valid) {
+                            element.validator = 'unavailable'
+                        }
+                    }
                     if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
                         for (let u = 1; u <= hoursdate / 15; u++) {
                             if (blocksFirst[e - u]) {
@@ -651,18 +716,36 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         
+                        // res.json({status: 'ok', data: blocksFirst})
                         for (let e = 0; e < blocksFirst.length; e++) {
                             const element = blocksFirst[e];
-                            if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
-                                for (let u = 1; u < hoursdate / 15 + 1; u++) {
-                                    if (blocksFirst[e - u]) {
-                                        blocksFirst[e - u].validator = 'unavailable'
+                            if (blocksFirst[e-1]) {
+                                if (element.validator == true) {
+                                    var valid = true
+                                    for (let i = 0; i < element.employes.length; i++) {
+                                        const elementTwo = element.employes[i];
+                                        if (elementTwo.valid == true) {
+                                            valid = false
+                                            break
+                                        }
+                                    }
+                                    if (valid) {
+                                        element.validator = 'unavailable'
                                     }
                                 }
-                            }
-                            if (blocksFirst.length - 1 == e) {
-                                for (let u = 0; u < hoursdate / 15; u++) {
-                                    blocksFirst[e - u].validator = 'unavailable'
+                                if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
+                                    for (let u = 1; u <= hoursdate / 15; u++) {
+                                        if (blocksFirst[e - u]) {
+                                            blocksFirst[e - u].validator = 'unavailable'
+                                        }
+                                    }
+                                }
+                                if (blocksFirst.length - 1 == e) {
+                                    for (let u = 0; u < hoursdate / 15; u++) {
+                                        if (blocksFirst[e - u]) {
+                                            blocksFirst[e - u].validator = 'unavailable'
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -680,55 +763,110 @@ dates.post('/blocksHoursFirst', async (req, res) => {
 
 //Api que busca y crea los bloques de horarios (Ingreso: date, timedate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timedate, hour, branch, employe)
 
-dates.post('/selectdatesBlocksFirst', async (req, res) => {
+dates.post('/selectDatesBlocks', async (req, res) => {
     const hoursdate = req.body.timedate
     const hourSelect = req.body.hour
     const employe = req.body.employe
-    const block = req.body.block
+    const blocks = req.body.block
 
     if(req.body.firstBlock){
         if (!req.body.ifFirstClick) {
-            for (let i = 0; i < block.length; i++) {
-                const element = block[i];
+            for (let i = 0; i < blocks.length; i++) {
+                const element = blocks[i];
                 if (element.validator == 'select') {
                     element.validator = true
-                    block[i].employes.unshift(employe)
+                    blocks[i].employes.unshift(employe)
                 }
             }
         }
-        for (let i = 0; i < block.length; i++) {
-            const element = block[i];
+
+        for (let i = 0; i < blocks.length; i++) {
+            const element = blocks[i];
             if (element.hour == hourSelect) {
                 for (let u = 0; u < hoursdate / 15; u++) {
-                    for (let e = 0; e < block[i + u].employes.length; e++) {
-                        if (block[i + u].employes[e].id == employe) {
-                            block[i + u].employes.splice(e, 1)
+                    for (let e = 0; e < blocks[i + u].employes.length; e++) {
+                        if (blocks[i + u].employes[e].id == employe) {
+                            blocks[i + u].employes.splice(e, 1)
                         }
                     }
-                    if (block[i + u].employes.length == 0) {
-                        block[i + u].validator = false
+                    if (blocks[i + u].employes.length == 0) {
+                        blocks[i + u].validator = false
                     }
                 }
             }
         }
         
         var end = ''
-        for (let i = 0; i < block.length; i++) {
-            const element = block[i];
+        for (let i = 0; i < blocks.length; i++) {
+            const element = blocks[i];
             if (element.hour == hourSelect) {
                 for (let u = 0; u <= hoursdate / 15; u++) {
-                    block[i + u].validator = 'select'
+                    blocks[i + u].validator = 'select'
                     if (u == hoursdate / 15) {
-                        end = block[i + u].hour
+                        end = blocks[i + u].hour
                     }
                 }
             }
         }
     
-        res.json({status: 'ok', data: block, end: end})
+        res.json({status: 'ok', data: blocks, end: end})
     }else{
-
         //algoritmo para bloques por empleado
+        const blockFirst = req.body.blockFirst
+        if (!req.body.ifFirstClick) {
+            for (let i = 0; i < blocks.length; i++) {
+                const element = blocks[i];
+                if (element.validator == 'select') {
+                    element.validator = element.origin
+                }
+            }
+            for (let i = 0; i < blockFirst.length; i++) {
+                const element = blockFirst[i];
+                if (element.validator == 'select') {
+                    element.validator = true
+                    blockFirst[i].employes.unshift(employe)
+                }
+            }
+        }
+        // console.log(blocks)
+        for (let e = 0; e < blocks.length; e++) {
+            const block = blocks[e]
+            if (block.hour == hourSelect) {
+                for (let i = 0; i <= hoursdate / 15; i++) {
+                    blocks[e+i].validator = 'select'
+                }
+            }
+        }
+
+        for (let i = 0; i < blockFirst.length; i++) {
+            const element = blockFirst[i];
+            if (element.hour == hourSelect) {
+                for (let u = 0; u < hoursdate / 15; u++) {
+                    for (let e = 0; e < blockFirst[i + u].employes.length; e++) {
+                        if (blockFirst[i + u].employes[e].id == employe) {
+                            blockFirst[i + u].employes.splice(e, 1)
+                        }
+                    }
+                    if (blockFirst[i + u].employes.length == 0) {
+                        blockFirst[i + u].validator = false
+                    }
+                }
+            }
+        }
+        
+        var end = ''
+        for (let i = 0; i < blockFirst.length; i++) {
+            const element = blockFirst[i];
+            if (element.hour == hourSelect) {
+                for (let u = 0; u <= hoursdate / 15; u++) {
+                    blockFirst[i + u].validator = 'select'
+                    if (u == hoursdate / 15) {
+                        end = blockFirst[i + u].hour
+                    }
+                }
+            }
+        }
+        res.json({status: 'ok', data: blocks, blockFirst: blockFirst, end: end})
     }
     
 })
@@ -739,74 +877,74 @@ dates.post('/selectdatesBlocksFirst', async (req, res) => {
 
 //Api que busca y crea los bloques de horarios (Ingreso: date, timedate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timedate, hour, branch, employe)
 
-dates.post('/selectdatesBlocks', async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+// dates.post('/selectdatesBlocks', async (req, res) => {
+//     const database = req.headers['x-database-connect'];
+//     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+//         useNewUrlParser: true,
+//         useUnifiedTopology: true,
+//     })
     
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
-    const Configuration = conn.model('configurations', configurationSchema)
+//     const dateBlock = conn.model('datesblocks', datesBlockSchema)
+//     const Configuration = conn.model('configurations', configurationSchema)
 
-    const dateDaily = req.body.date
-    const Day = new Date(dateDaily).getDay()
-    const hoursdate = req.body.timedate
-    const hourSelect = req.body.hour
-    const employe = req.body.employe
-    const block = req.body.block
+//     const dateDaily = req.body.date
+//     const Day = new Date(dateDaily).getDay()
+//     const hoursdate = req.body.timedate
+//     const hourSelect = req.body.hour
+//     const employe = req.body.employe
+//     const block = req.body.block
 
-    try{
-        const finddate = await dateBlock.findOne({
-            $and: [ 
-                {'dateData.branch': req.body.branch},
-                {'dateData.date': dateDaily}
-            ]
-        })
-        if (finddate) {
-            // cambiar employeBlocks a hash table
-            const findEmploye = finddate.employeBlocks.find(element => element.employe == employe)
-            const findIndex = finddate.employeBlocks.findIndex(findEmploye)
-            if (!req.body.ifFirstClick) {
-                for (let i = 0; i < block.length; i++) {
-                    const element = block[i];
-                    if (element.validator == 'select') {
-                        element.validator = true
-                    }
-                }
-            }
-            for (let i = 0; i < block.length; i++) {
-                const element = block[i];
-                if (element.hour == hourSelect) {
-                    for (let u = 1; u < hoursdate / 15 - 2; u++) {
-                        block[i + u].validator = false
-                    }
-                }
-            }
-            try{
-                const blockEdit = await dateBlock.findByIdAndUpdate(finddate._id, {
-                    $splice: [
-                        employeBlocks, 
-                        findIndex, 
-                        1
-                    ],
-                    $push: {
-                        employeBlocks: findEmploye
-                    }
-                })
-                for (let i = 0; i < block.length; i++) {
-                    const element = block[i];
-                    if (element.hour == hourSelect) {
-                        for (let u = 0; u <= hoursdate / 15; u++) {
-                            block[i + u].validator = 'select'
-                        }
-                    }
-                }
-                res.json({status: 'ok', data: block})
-            }catch(err){res.send(err)}
-        }
-    }catch(err){res.send(err)}
-})
+//     try{
+//         const finddate = await dateBlock.findOne({
+//             $and: [ 
+//                 {'dateData.branch': req.body.branch},
+//                 {'dateData.date': dateDaily}
+//             ]
+//         })
+//         if (finddate) {
+//             // cambiar employeBlocks a hash table
+//             const findEmploye = finddate.employeBlocks.find(element => element.employe == employe)
+//             const findIndex = finddate.employeBlocks.findIndex(findEmploye)
+//             if (!req.body.ifFirstClick) {
+//                 for (let i = 0; i < block.length; i++) {
+//                     const element = block[i];
+//                     if (element.validator == 'select') {
+//                         element.validator = true
+//                     }
+//                 }
+//             }
+//             for (let i = 0; i < block.length; i++) {
+//                 const element = block[i];
+//                 if (element.hour == hourSelect) {
+//                     for (let u = 1; u < hoursdate / 15 - 2; u++) {
+//                         block[i + u].validator = false
+//                     }
+//                 }
+//             }
+//             try{
+//                 const blockEdit = await dateBlock.findByIdAndUpdate(finddate._id, {
+//                     $splice: [
+//                         employeBlocks, 
+//                         findIndex, 
+//                         1
+//                     ],
+//                     $push: {
+//                         employeBlocks: findEmploye
+//                     }
+//                 })
+//                 for (let i = 0; i < block.length; i++) {
+//                     const element = block[i];
+//                     if (element.hour == hourSelect) {
+//                         for (let u = 0; u <= hoursdate / 15; u++) {
+//                             block[i + u].validator = 'select'
+//                         }
+//                     }
+//                 }
+//                 res.json({status: 'ok', data: block})
+//             }catch(err){res.send(err)}
+//         }
+//     }catch(err){res.send(err)}
+// })
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
 
@@ -830,14 +968,18 @@ dates.post('/verifydate', async (req, res) => {
     dateNow.setDate(dateNow.getDate() + 1)
     const formatdateTwo = dateNow.getFullYear() +"-"+(dateNow.getMonth() + 1)+"-"+dateNow.getDate()
     try{
-        const finddate = await Citas.find({$and:[{date: {$gte: formatdate, $lte: formatdateTwo}}]}).sort({sort:1})
+        const finddate = await date.find({
+            $and:[
+                {createdAt: {$gte: formatdate, $lte: formatdateTwo}
+            }]
+        }).sort({sort:1})
         if (finddate.length > 0) {
             for (let i = 0; i < datadate.serviceSelectds.length; i++) {
                 var validFinally = false
                 const element = datadate.serviceSelectds[i];
                 const datesData = []
-                for (let o = 0; o < dates.length; o++) {
-                    const filter = dates[o];
+                for (let o = 0; o < finddate.length; o++) {
+                    const filter = finddate[o];
                     if (filter.employe == element.realEmploye) {
                         datesData.push(filter)
                     }
@@ -874,7 +1016,7 @@ dates.post('/verifydate', async (req, res) => {
                         if (elementBlocks.validator == 'select') {
                             for (let l = 0; l < blockdate.length; l++) {
                                 const elementBlockdate = blockdate[l];
-                                if (elementBlockdate == elementBlocks.Horario) {
+                                if (elementBlockdate == elementBlocks.hour) {
                                     valid = true
                                     break
                                 }
@@ -898,5 +1040,79 @@ dates.post('/verifydate', async (req, res) => {
 })
 
 //Fin de la api (Retorna: status)  -- Api end (Return: status)
+
+dates.post('/noOneLender',  (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const dates = conn.model('dates', dateSchema)
+
+    const dataCitas = []
+    const dataDate = req.body.dataDate
+    const client = req.body.client
+    const date = new Date(req.body.date+' 10:00')
+    var ClientAgend = ''
+    
+    var nameFile = ''
+    if (req.body.pdf == 'not') {
+        nameFile = ''
+    }else{
+        nameFile = req.body.pdf
+    }
+    const dateID = new Date()
+    const id = dateID.getTime()
+    for (let index = 0; index < dataDate.serviceSelectds.length; index++) {
+        const element = dataDate.serviceSelectds[index];
+        var data = {
+            branch: req.body.branch,
+            start: element.start,
+            end: element.end,
+            sort: element.sort,
+            date: req.body.date,
+            title: element.realEmploye,
+            content: req.body.client.name,
+            createdAt: date,
+            services: [
+                {
+                    name: element.servicio, 
+                    commission: element.commission, 
+                    price: element.price, 
+                    discount: element.discount
+                }
+            ],
+            client: {
+                id: req.body.client.id,
+                name: req.body.client.name,
+                email: req.body.client.email,
+                phone: req.body.phone,
+            },
+            employe: {
+                id: element.employeId,
+                name: element.realEmploye,
+                class: element.class,
+            },
+            typeCreation: req.body.typeCreation,
+            imgDesign: [],
+            class: element.class,
+            process: true,
+            confirmation: false,
+            imgDesign: [],
+            confirmationId: id,
+            typepay: client.pay,
+            paypdf: nameFile
+        }
+        dataCitas.push(data)
+    }
+    for (let i = 0; i < dataCitas.length; i++) {
+        dates.create(dataCitas[i])
+        .then(citas => { })
+        .catch(err => console.log(err))
+    }
+    
+    res.json({status: 'cita creada', id: id})
+})
 
 module.exports = dates

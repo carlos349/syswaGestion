@@ -17,8 +17,14 @@ const dateSchema = new Schema({
     services: {
         type: Array
     },
+    content: {
+        type: String
+    },
     client: {
         type: Object
+    },
+    class: {
+        type: String
     },
     employe: {
         type: Object
@@ -44,7 +50,7 @@ const dateSchema = new Schema({
     imgDesign: {
         type: Array
     },
-    origin: {
+    date: {
         type: String
     },
     createdAt: {
