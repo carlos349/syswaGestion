@@ -15,7 +15,7 @@ const configurationSchema = new Schema({
         type: String
     },
     businessPhone: {
-        type: String
+        type: Object
     },
     businessType: { 
         type: String

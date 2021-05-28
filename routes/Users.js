@@ -133,6 +133,16 @@ users.post('/createUserCertificate', async (req, res, next) => {
                                 "eliminar",
                                 "correos"
                         ]
+                },
+                {
+                    "ruta" : "sucursales",
+                    "validaciones" : [
+                    ]
+                },
+                {
+                    "ruta" : "bodega",
+                    "validaciones" : [
+                    ]
                 }
             ]
             const userData = {
@@ -141,7 +151,7 @@ users.post('/createUserCertificate', async (req, res, next) => {
                 email: req.body.email,
                 branch: req.body.branch,
                 password: '',
-                status: 1,
+                status: "Gerente",
                 access: access,
                 linkLender: '',
                 userImage: '',
@@ -333,7 +343,7 @@ users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) =
             email: req.body.email.toLowerCase(),
             password: '',
             about: '',
-            status: 2,
+            status: "Debe asignar",
             access: [],
             linkLender: '',
             userImage: req.file.location,
@@ -348,7 +358,7 @@ users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) =
             email: req.body.email.toLowerCase(),
             password: '',
             about: '',
-            status: 2,
+            status: "Debe asignar",
             access: [],
             linkLender: '',
             userImage: '',

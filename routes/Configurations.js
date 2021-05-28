@@ -1,4 +1,4 @@
-//@collapse
+
 const express = require('express')
 const configurations = express.Router()
 const mongoose = require('mongoose')
@@ -25,6 +25,150 @@ configurations.get('/', protectRoute, async (req, res) => {
             res.json({status: 'ok', data: getConfigurations, token: req.requestToken})
         }
     }catch(err){
+        res.send(err)
+    }
+})
+
+configurations.get('/addFirstProfile', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Profiles = conn.model('accessprofiles', profilesSchema)
+
+    try {
+        const createProfile = await Profiles.create({
+            profiles: [
+                {
+                    profile: "Gerente",
+                    routes: [
+                        {
+                            "ruta" : "usuarios",
+                            "validaciones" : [
+                                "editar",
+                                "registrar",
+                                "eliminar"
+                            ]
+                        },
+                        {
+                            "ruta" : "procesar",
+                            "validaciones" : [
+                                "editar",
+                                "nuevo_cliente",
+                                "nuevo_servicio",
+                                "descuento"
+                            ]
+                        },
+                        {
+                            "ruta" : "metricas",
+                            "validaciones" : [
+                                "filtrar"
+                            ]
+                        },
+                        {
+                            "ruta" : "ventas",
+                            "validaciones" : [
+                                "filtrar",
+                                "anular",
+                                "detalle"
+                            ]
+                        },
+                        {
+                            "ruta" : "servicios",
+                            "validaciones" : [
+                                "editar",
+                                "ingresar",
+                                "activaciones"
+                            ]
+                        },
+                        {
+                            "ruta" : "empleados",
+                            "validaciones" : [
+                                "registrar",
+                                "detalle",
+                                "editar",
+                                "reportes",
+                                "cerrar ventas",
+                                "eliminar",
+                                "adelantos",
+                                "correos"
+                            ]
+                        },
+                        {
+                            "ruta" : "clientes",
+                            "validaciones" : [
+                                "filtrar",
+                                "registrar",
+                                "editar",
+                                "detalle",
+                                "eliminar",
+                                "correos"
+                            ]
+                        },
+                        {
+                            "ruta" : "inventario",
+                            "validaciones" : [
+                                "filtrar",
+                                "registrar",
+                                "editar",
+                                "detalle",
+                                "eliminar"
+                            ]
+                        },
+                        {
+                            "ruta" : "gastos",
+                            "validaciones" : [
+                                "registrar"
+                            ]
+                        },
+                        {
+                            "ruta" : "agendamiento",
+                            "validaciones" : [
+                                "filtrar",
+                                "agendar",
+                                "todas",
+                                "editar",
+                                "eliminar",
+                                "cerrar",
+                                "finalizar",
+                                "procesar"
+                            ]
+                        },
+                        {
+                            "ruta" : "caja",
+                            "validaciones" : [ ]
+                        },
+                        {
+                            "ruta" : "pedidos",
+                            "validaciones" : [
+                                "filtrar",
+                                "registrar",
+                                "editar",
+                                "detalle",
+                                "eliminar",
+                                "correos"
+                            ]
+                        },
+                        {
+                            "ruta" : "sucursales",
+                            "validaciones" : [
+                            ]
+                        },
+                        {
+                            "ruta" : "bodega",
+                            "validaciones" : [
+                            ]
+                        }
+                    ]
+                }
+            ],
+            createdAt: new Date()
+        })
+        res.json({status: 'ok', data: createProfile})
+    }
+    catch(err){
         res.send(err)
     }
 })
@@ -70,20 +214,7 @@ configurations.get('/getProfiles', protectRoute, async (req, res) => {
 
     try {
         const getProfiles = await Profiles.find()
-        if (getProfiles.length == 0) {
-            try {
-                const createProfile = await Profiles.create({
-                    profile: [],
-                    createdAt: new Date()
-                })
-                res.json({status: 'ok', data: createProfile, token: req.requestToken})
-            }
-            catch(err){
-                res.send(err)
-            }
-        }else{
-            res.json({status: 'ok', data: getProfiles, token: req.requestToken})
-        }
+        res.json({status: 'ok', data: getProfiles, token: req.requestToken})
     }catch(err){
         res.send(err)
     }
