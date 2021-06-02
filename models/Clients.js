@@ -21,7 +21,7 @@ const clientSchema = new Schema({
         type: String
     },
     phone: {
-        type: String
+        type: Object
     },
     instagram: {
         type: String

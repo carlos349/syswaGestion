@@ -89,9 +89,7 @@ dates.post('/availableslenders', (req, res) => {
             {branch: req.body.branch}
         ]
     }).sort({sort: 1})
-    .then(citas => {
-        console.log(citas)
-        const dates = citas
+    .then(dates => {
         Employe.find({branch: req.body.branch})
         .then(lenders => {
             const Lenders = lenders
@@ -106,8 +104,8 @@ dates.post('/availableslenders', (req, res) => {
                         restTime = elementFour.hours[0]+'/'+elementFour.hours[1]
                     }
                 }
-                    if (valid) {
-                    arrayLenders.push({name: element.firstName +' '+element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime})
+                if (valid) {
+                    arrayLenders.push({name: element.firstName +' '+element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class})
                 }
             }
             
@@ -121,7 +119,6 @@ dates.post('/availableslenders', (req, res) => {
                         }
                     }
                 }
-                console.log(arrayLenders)
                 arrayLenders.sort((a, b) => {
                     return a.comission - b.comission;
                 });
@@ -609,7 +606,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 }
             }
 
-            res.json({status: 'ok', data: blocksFirst})
+            res.json({status: 'ok', data: blocksFirst, id: finddate._id})
         }else{
             try {
                 const findConfiguration = await Configuration.findOne({branch: req.body.branch})
@@ -657,7 +654,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         if(!inspector){
-                            elementTwo.employes.push({name: element.name, id: element.id, position: i, valid: false})
+                            elementTwo.employes.push({name: element.name, id: element.id, class: element.class, position: i, valid: false})
                         }
                     }
                 }
@@ -749,7 +746,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-                        res.json({status: 'ok', data: blocksFirst})
+                        res.json({status: 'ok', data: blocksFirst, id: createBlockdate._id})
                     }
                 }catch(err){res.send(err)}
             }catch(err){res.send(err)}
@@ -970,8 +967,9 @@ dates.post('/verifydate', async (req, res) => {
     try{
         const finddate = await date.find({
             $and:[
-                {createdAt: {$gte: formatdate, $lte: formatdateTwo}
-            }]
+                {createdAt: {$gte: formatdate, $lte: formatdateTwo}},
+                {branch: req.body.branch}
+            ]
         }).sort({sort:1})
         if (finddate.length > 0) {
             for (let i = 0; i < datadate.serviceSelectds.length; i++) {
@@ -986,8 +984,8 @@ dates.post('/verifydate', async (req, res) => {
                 }
                 for (let r = 0; r < datesData.length; r++) {
                     const elementTwo = datesData[r];
-                    var splitOne = elementTwo.start.split(':')
-                    var splitTwo = elementTwo.end.split(':')
+                    var splitOne = elementTwo.start.split(' ')[1].split(':')
+                    var splitTwo = elementTwo.end.split(' ')[1].split(':')
                     var SumHours  = ((parseFloat(splitTwo[0]) - parseFloat(splitOne[0])) * 60)
                     var SumMinutes = parseFloat(splitTwo[1]) - parseFloat(splitOne[1])
                     var TotalMinutes = SumHours + SumMinutes
@@ -1049,12 +1047,13 @@ dates.post('/noOneLender',  (req, res) => {
     })
 
     const dates = conn.model('dates', dateSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
 
     const dataCitas = []
     const dataDate = req.body.dataDate
     const client = req.body.client
     const date = new Date(req.body.date+' 10:00')
-    var ClientAgend = ''
+    const blocks = req.body.block
     
     var nameFile = ''
     if (req.body.pdf == 'not') {
@@ -1068,26 +1067,23 @@ dates.post('/noOneLender',  (req, res) => {
         const element = dataDate.serviceSelectds[index];
         var data = {
             branch: req.body.branch,
-            start: element.start,
-            end: element.end,
+            start: req.body.date +' '+element.start,
+            end: req.body.date +' '+element.end,
             sort: element.sort,
-            date: req.body.date,
-            title: element.realEmploye,
+            title: element.name,
             content: req.body.client.name,
             createdAt: date,
-            services: [
-                {
-                    name: element.servicio, 
-                    commission: element.commission, 
-                    price: element.price, 
-                    discount: element.discount
-                }
-            ],
+            services: {
+                name: element.name, 
+                commission: element.commission, 
+                price: element.price, 
+                discount: element.discount
+            },
             client: {
-                id: req.body.client.id,
-                name: req.body.client.name,
-                email: req.body.client.email,
-                phone: req.body.phone,
+                id: client.id,
+                name: client.name,
+                email: client.email,
+                phone: client.phone,
             },
             employe: {
                 id: element.employeId,
@@ -1111,8 +1107,122 @@ dates.post('/noOneLender',  (req, res) => {
         .then(citas => { })
         .catch(err => console.log(err))
     }
+
+    for (const block of blocks) {
+        if (block.validator == 'select') {
+            if (block.employes.length > 0) {
+                block.validator = true
+            }else{
+                block.validator = false
+            }
+        }
+    }
     
-    res.json({status: 'cita creada', id: id})
+    dateBlock.findByIdAndUpdate(req.body.blockId, {
+        $set: {
+            blocks: blocks
+        }
+    }).then(edit => {
+        res.json({status: 'ok', id: id})
+    })
+})
+
+dates.post('/sendConfirmation/:id', (req, res) => {
+    const id = req.params.id
+    const data = {
+        name: req.body.name,
+        contact: req.body.contact,
+        start: req.body.start,  
+        end: req.body.end,
+        date: req.body.date,
+        services: '',
+        lender: req.body.lenders,
+        payment: req.body.payment
+    }
+    
+    for (let index = 0; index < req.body.service.length; index++) {
+      const element = req.body.service[index].servicio;
+      if (index > 0){
+        data.services = data.services+' - '+element
+      }else{
+        data.services = element
+      }
+    }
+    const split = data.date.split('-')
+    const mail = {
+      from: "kkprettynails.cl",
+      to: data.contact,
+      subject: 'Confirmacion de cita programada',
+      html: `
+      <div style="width: 80%;max-width:1000px;margin:auto; padding:0;text-align:center;">
+              <div style="width: 100%;height: 10vh;margin: auto;background-color: #181d81;box-shadow: 0 2px 5px 0 rgba(0,0,0,.14);padding: 10px;font-family: 'Google Sans',Roboto,RobotoDraft,Helvetica,Arial,sans-serif;color:#181d81;text-align:justify;-webkit-box-shadow: 0px 6px 8px -8px rgba(0,0,0,0.73);-moz-box-shadow: 0px 6px 8px -8px rgba(0,0,0,0.73);box-shadow: 0px 6px 8px -8px rgba(0,0,0,0.73);">
+                  <div style="width: 80px;margin:auto;border-radius:55%;background-color:#fff;padding: 10px;">     
+                      <img style="width: 100%;" src="${imgMails}syswa-isotipo.png" alt="Logo syswa">
+                  </div>
+              </div>
+              <div style="width: 100%;margin: auto;padding-top: 5%;font-family: 'Google Sans',Roboto,RobotoDraft,Helvetica,Arial,sans-serif;color:#181d81;padding-bottom: 20px;padding-left:10px;">
+                  <center>
+                      <div style="width:100%;text-align: center;">
+                          <h1 style="text-align: center;color:#181d81;">Bienvenid@ </h1>
+                          <img style="height:80px;width:100px;margin-top:-20px;" src="${imgMails}logokk.png" alt="Logo kkprettynails">
+                              <p style="text-align:center;margin-top:10px;font-size:16px;"> <strong>¡Hola ${data.name}! has generado la siguiente cita.</p>
+                              
+                              <p style="text-align:left;margin-top:10px;font-size:14px;font-weight: 300;"> 
+                                  <strong> Profesional: </strong> ${data.lender}. <br>
+                                  <strong> Servicios:</strong> ${data.services}. <br>
+                                  <strong> Horarios de entrada:</strong> ${data.start}. <br>
+                              </p>
+                              <p style="text-align:left;margin-top:10px;font-size:16px;"> 
+                               <img style="height:25px;width:25px;" src="${imgMails}calendar.png" alt="Logo kkprettynails"> 
+                              <b style="margin-top:-5px">${split[1]}-${split[0]}-${split[2]}</b> <br>
+                              <img style="height:25px;width:25px;" src="${imgMails}payment.png" alt="Logo kkprettynails"> 
+                              <b style="margin-top:-5px">${data.payment}</b> <br>
+                              <img style="height:25px;width:25px;" src="${imgMails}market.png" alt="Logo kkprettynails"><a style="text-align:center;font-size:16px;" href="https://goo.gl/maps/m5rVWDEiPj7q1Hxh9"><b style="font-family: 'Google Sans',Roboto,RobotoDraft,Helvetica,Arial,sans-serif;color:#181d81;font-size:16px;margin-top:-5px"> Av. Pedro de Valdivia 3474 Caracol Ñuñoa, Local 53-B Ñuñoa, Chile. </b></a>   <br>
+                              </p>
+                          <center style="margin-top:40px;margin-bottom:30px;">
+                              <a style="background-color:#181d81;font-size:18px;border:none;border-radius:14px;padding:10px;margin-bottom:30px;color:#fff;cursor:pointer;" href="http://kkprettynails.syswa.net/#/ConfirmacionAgenda?id=${id}">Confirmar</a>
+                          </center>
+                          <hr style="border-top: 1.5px solid #ffd4d8;">
+                          <p style="text-align:left;margin-top:10px;font-size:14px;font-weight: 300;"> 
+                              <strong>Al visitar nuestro local ten presente: </strong> <br><br>
+                              1. Llegar con 15 minutos de anticipación. <br>
+                              2. Para evitar restrasos en los servicios, no se atenderá una vez pasado los 15 minutos de la hora agendada.
+                          </p>
+                  <div>
+                  </center>
+              </div>
+              <div style="width: 100%;background-color: #f0f1f3;box-shadow: 0 2px 5px 0 rgba(0,0,0,.14);margin: auto;font-family: 'Google Sans',Roboto,RobotoDraft,Helvetica,Arial,sans-serif;color:#181d81;padding-bottom:8px;-webkit-box-shadow: 0px -4px 11px 0px rgba(0,0,0,0.12);-moz-box-shadow: 0px -4px 11px 0px rgba(0,0,0,0.12);box-shadow: 0px -4px 11px 0px rgba(0,0,0,0.12);">
+                  <center>
+                  <div style="width:100%;">
+                      <center>
+                      <p style="text-align:center;font-size:14px;"><strong> Contáctanos</strong></p>
+                        <a  href="mailto:kkprettynails@gmail.com" style="margin-left:40px;text-decoration:none;"> 
+                          <img style="width:4%;" src="${imgMails}mail.png" alt="Logo mail">
+                        </a>
+                        <a  href="https://www.instagram.com/kkprettynails/" style="margin-left:40px;text-decoration:none;">
+                          <img style="width:4%;" src="${imgMails}ig.png" alt="Logo ig">
+                        </a>
+                        <a  href="https://api.whatsapp.com/send?phone=56972628949&text=&source=&data=&app_absent=" style="margin-left:20px;text-decoration:none;">
+                          <img style="width:4%;" src="${imgMails}ws.png" alt="Logo ws">
+                        </a>
+                        <a  href="https://kkprettynails.cl" style="margin-left:40px;text-decoration:none;">
+                          <img style="width:4%;" src="${imgMails}web.png" alt="Logo web">
+                        </a>
+                      <br>
+                      <a style="text-align:center;font-size:14px;" href="https://goo.gl/maps/m5rVWDEiPj7q1Hxh9"> Av. Pedro de Valdivia 3474 Caracol Ñuñoa, Local 53-B Ñuñoa, Chile.</a>
+                      </center>
+                  </div>
+                  </center>
+              </div>
+          </div>
+      `
+    }
+    try {
+        Mails.sendMail(mail)
+        res.json({status: 'ok'})
+    }catch(err){
+        res.json({status: 'bad'})
+    }
 })
 
 module.exports = dates

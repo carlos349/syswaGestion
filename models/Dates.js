@@ -14,8 +14,11 @@ const dateSchema = new Schema({
     sort: {
         type: Number
     },
+    title: {
+        type: String
+    },
     services: {
-        type: Array
+        type: Object
     },
     content: {
         type: String
@@ -49,9 +52,6 @@ const dateSchema = new Schema({
     },
     imgDesign: {
         type: Array
-    },
-    date: {
-        type: String
     },
     createdAt: {
         type: Date,
