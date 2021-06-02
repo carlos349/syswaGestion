@@ -301,7 +301,7 @@ clients.get('/sendMailChange/:id', (req, res) => {
 
 //input - form with firstName, lastName, email, phone, instagram, birthday, recomendador . formulario con firstName, lastName, email, phone, instagram, birthday, recomendador
 //output - status and token
-clients.post('/', protectRoute, async (req, res) => {
+clients.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -338,7 +338,7 @@ clients.post('/', protectRoute, async (req, res) => {
         if (!findClient) {
             try{
                 const createClient = await Client.create(clientData)
-                res.json({status: 'client create', token: req.requestToken})
+                res.json({status: 'client create', data: createClient, token: req.requestToken})
             }catch(err){
                 res.send(err)
             }
