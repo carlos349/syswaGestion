@@ -3,6 +3,7 @@ const users = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const userSchema = require('../models/Users')
+const employeSchema = require('../models/Employes')
 const credentialSchema = require('../models/userCrendentials')
 const bcrypt = require('bcrypt')
 const email = require('../modelsMail/Mails')
@@ -474,6 +475,7 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
         useUnifiedTopology: true,
     })
     const User = conn.model('users', userSchema)
+    const Employe = conn.model('employes', employeSchema)
 
 	const status = req.body.status
 	const employe = req.body.employe
@@ -482,11 +484,15 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
         const update = await User.findByIdAndUpdate(req.params.id, { 
             $set: {
                 status: status, 
-                access: routes,
-                linkLender: employe
+                access: routes
             }
         })
         if (update) {
+            const updateEmploye = await Employe.findByIdAndUpdate(employe, { 
+                $set: {
+                    linkLender: update._id
+                }
+            })
             res.json({status: 'ok', data: update, token: req.requestToken})
         }
     }catch(err){

@@ -3,6 +3,7 @@ const employes = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const employeSchema = require('../models/Employes')
+const userSchema = require('../models/Users')
 const expenseSchema = require('../models/Expenses')
 const saleSchema = require('../models/Sales')
 const cors = require('cors')
@@ -31,6 +32,42 @@ employes.get('/', protectRoute, async (req, res) => {
     }
 })
 
+
+employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Employe = conn.model('employes', employeSchema)
+    const User = conn.model('users', userSchema)
+
+    try{
+        const getEmployes = await Employe.find()
+        if (getEmployes.length > 0) {
+            try {
+                const users = await User.populate(getEmployes, {path: "users"})
+                console.log(users)
+                const sendData =  []
+                for (const employe of users) {
+                    if (employe.users) {
+                        sendData.push({name: employe.firstName + ' '+ employe.lastName, img: employe.users.userImage != '' ? employe.users.userImage : 'no', days: employe.days, class: employe.class, _id: employe._id})
+                    }else{
+                        sendData.push({name: employe.firstName + ' '+ employe.lastName, img: 'no', days: employe.days, class: employe.class, _id: employe._id})
+                    }
+                }
+                res.json({status: 'ok', data: sendData, token: req.requestToken})
+            }catch(err){
+                res.send(err)
+            }
+        }else{
+            res.json({status:'There is not employes'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
 // Fin de la api. (Retorna datos de los empeados) -- Api end (output employes' data)
 
 //----------------------------------------------------------------------------------

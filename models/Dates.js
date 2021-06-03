@@ -17,8 +17,14 @@ const dateSchema = new Schema({
     title: {
         type: String
     },
+    microServices: {
+        type: Array
+    },
     services: {
         type: Object
+    },
+    split: {
+        type: String
     },
     content: {
         type: String

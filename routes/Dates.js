@@ -15,7 +15,7 @@ dates.use(cors())
 
 // Api que busca toda la informacion de las citas (Ingreso: Nullo) -- Api that search all the dates' data (Input: Null)
 
-dates.get('/', protectRoute, async (req, res) => {
+dates.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -24,7 +24,9 @@ dates.get('/', protectRoute, async (req, res) => {
 
     const date = conn.model('dates', dateSchema)
     try {
-        const getDates = await date.find()
+        const getDates = await date.find({
+            branch: req.params.branch
+        })
         if (getDates.length > 0) {
             res.json({status: 'ok', data: getDates, token: req.requestToken})
         }else{
@@ -956,74 +958,51 @@ dates.post('/verifydate', async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
-
-    const datadate = req.body.datadate
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+        
+    const datadate = req.body.dataDate
     const datee = req.body.date
-    const dateNow = new Date(datee+' 1:00')
-    const formatdate = dateNow.getFullYear() +"-"+(dateNow.getMonth() + 1)+"-"+dateNow.getDate()
-    dateNow.setDate(dateNow.getDate() + 1)
-    const formatdateTwo = dateNow.getFullYear() +"-"+(dateNow.getMonth() + 1)+"-"+dateNow.getDate()
     try{
-        const finddate = await date.find({
-            $and:[
-                {createdAt: {$gte: formatdate, $lte: formatdateTwo}},
-                {branch: req.body.branch}
+        const finddate = await dateBlock.findOne({
+            $and: [ 
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': datee}
             ]
-        }).sort({sort:1})
-        if (finddate.length > 0) {
+        })
+        if (finddate) {
+            console.log(datadate.serviceSelectds)
             for (let i = 0; i < datadate.serviceSelectds.length; i++) {
                 var validFinally = false
                 const element = datadate.serviceSelectds[i];
-                const datesData = []
-                for (let o = 0; o < finddate.length; o++) {
-                    const filter = finddate[o];
-                    if (filter.employe == element.realEmploye) {
-                        datesData.push(filter)
-                    }
-                }
-                for (let r = 0; r < datesData.length; r++) {
-                    const elementTwo = datesData[r];
-                    var splitOne = elementTwo.start.split(' ')[1].split(':')
-                    var splitTwo = elementTwo.end.split(' ')[1].split(':')
-                    var SumHours  = ((parseFloat(splitTwo[0]) - parseFloat(splitOne[0])) * 60)
-                    var SumMinutes = parseFloat(splitTwo[1]) - parseFloat(splitOne[1])
-                    var TotalMinutes = SumHours + SumMinutes
-                    const totalFor = TotalMinutes / 15
-                    var input, output
-                    var minutes = parseInt(splitOne[1])
-                    var hours = parseInt(splitOne[0])
-                    var blockdate = []
-                    for (let index = 0; index <= totalFor - 1; index++) {
-                        if (minutes == 0) {
-                            minutes = "00"
-                        }
-                        output = hours+":"+minutes
-                        if(index > 0){
-                            blockdate.push(output)
-                        }
-                        minutes = parseInt(minutes) + 15
-                        if (minutes == 60) {
-                            hours++
-                            minutes = "00"
-                        }
-                    }
-                    var valid = false
-                    for (let j = 0; j < element.blocks.length; j++) {
-                        const elementBlocks = element.blocks[j];
-                        if (elementBlocks.validator == 'select') {
-                            for (let l = 0; l < blockdate.length; l++) {
-                                const elementBlockdate = blockdate[l];
-                                if (elementBlockdate == elementBlocks.hour) {
-                                    valid = true
-                                    break
+                for (const key in finddate.blocks) {
+                    var validID = true
+                    const elementTwo = finddate.blocks[key]
+                    if (element.blocks[0].employes) {
+                        if (element.blocks[key].validator == 'select') {
+                            for (const employe of elementTwo.employes) {
+                                if (employe.id == element.employeId) {
+                                    validID = false
                                 }
                             }
+                            if(validID){
+                                console.log('entre')
+                                validFinally = true
+                                break
+                            }
                         }
-                    }
-                    if (valid) {
-                        validFinally = true
-                        break
+                    }else{
+                        if (element.blocksFirst[key].validator == 'select') {
+                            for (const employe of elementTwo.employes) {
+                                if (employe.id == element.employeId) {
+                                    validID = false
+                                }
+                            }
+                            if(validID){
+                                console.log('entre')
+                                validFinally = true
+                                break
+                            }
+                        }
                     }
                 }
                 if (validFinally) {
@@ -1031,8 +1010,6 @@ dates.post('/verifydate', async (req, res) => {
                 }
             }
             res.json({status: validFinally})
-        }else{
-            res.json({status: false})
         }
     }catch(err){res.send(err)}
 })
@@ -1072,6 +1049,7 @@ dates.post('/noOneLender',  (req, res) => {
             sort: element.sort,
             title: element.name,
             content: req.body.client.name,
+            split: element.employeId,
             createdAt: date,
             services: {
                 name: element.name, 
@@ -1090,6 +1068,7 @@ dates.post('/noOneLender',  (req, res) => {
                 name: element.realEmploye,
                 class: element.class,
             },
+            microServices: element.microServiceSelect ? element.microServiceSelect : [],
             typeCreation: req.body.typeCreation,
             imgDesign: [],
             class: element.class,

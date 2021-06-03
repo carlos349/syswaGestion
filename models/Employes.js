@@ -29,6 +29,10 @@ const employeSchema = new Schema({
     class: {
         type: String
     },
+    users: {
+        type: Schema.ObjectId, 
+        ref: "users" 
+    },
     createdAt: {
         type: Date,
         default: Date.now
