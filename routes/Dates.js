@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const dateSchema = require('../models/dates')
 const employeSchema = require('../models/Employes')
+const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
@@ -78,6 +79,8 @@ dates.post('/availableslenders', (req, res) => {
 
     const date = conn.model('dates', dateSchema)
     const Employe = conn.model('employes', employeSchema)
+    const User = conn.model('users', userSchema)
+
     console.log(req.body.date)
     const dateNow = new Date(req.body.date)
     const day = dateNow.getDay()
@@ -94,46 +97,54 @@ dates.post('/availableslenders', (req, res) => {
     .then(dates => {
         Employe.find({branch: req.body.branch})
         .then(lenders => {
-            const Lenders = lenders
-            for (let index = 0; index < Lenders.length; index++) {
-                const element = Lenders[index];
-                var valid = false
-                var restTime = ''
-                for (let index = 0; index < element.days.length; index++) {
-                    const elementFour = element.days[index];
-                    if (elementFour.day == day) {
-                        valid = true
-                        restTime = elementFour.hours[0]+'/'+elementFour.hours[1]
+            User.populate(lenders, {path: "users"})
+            .then(EmployeUserData => {
+                const Lenders = EmployeUserData
+                console.log(Lenders)
+                for (let index = 0; index < Lenders.length; index++) {
+                    const element = Lenders[index];
+                    var valid = false
+                    var restTime = ''
+                    for (let index = 0; index < element.days.length; index++) {
+                        const elementFour = element.days[index];
+                        if (elementFour.day == day) {
+                            valid = true
+                            restTime = elementFour.hours[0]+'/'+elementFour.hours[1]
+                        }
                     }
-                }
-                if (valid) {
-                    arrayLenders.push({name: element.firstName +' '+element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class})
-                }
-            }
-            
-            if (dates.length > 0) {
-                for (let i = 0; i < dates.length; i++) {
-                    const elementTwo = dates[i];
-                    for (let j = 0; j < arrayLenders.length; j++) {
-                        const elementThree = arrayLenders[j];
-                        if (elementTwo.employe == elementThree.name) {
-                            elementThree.sort = elementTwo.sort
+                    if (valid) {
+                        if (element.users) {
+                            arrayLenders.push({name: element.firstName +' '+element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class, img: element.users.userImage != '' ? element.users.userImage : 'no'})
+                        }else{
+                            arrayLenders.push({name: element.firstName +' '+element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class, img: 'no'})
                         }
                     }
                 }
-                arrayLenders.sort((a, b) => {
-                    return a.comission - b.comission;
-                });
-                arrayLenders.sort((a, b) => {
-                    return a.sort - b.sort;
-                });
-                res.json({array: arrayLenders, day: day})
-            }else{
-                arrayLenders.sort((a, b) => {
-                    return a.comission - b.comission;
-                });
-                res.json({array: arrayLenders, day: day})
-            }
+                
+                if (dates.length > 0) {
+                    for (let i = 0; i < dates.length; i++) {
+                        const elementTwo = dates[i];
+                        for (let j = 0; j < arrayLenders.length; j++) {
+                            const elementThree = arrayLenders[j];
+                            if (elementTwo.employe == elementThree.name) {
+                                elementThree.sort = elementTwo.sort
+                            }
+                        }
+                    }
+                    arrayLenders.sort((a, b) => {
+                        return a.comission - b.comission;
+                    });
+                    arrayLenders.sort((a, b) => {
+                        return a.sort - b.sort;
+                    });
+                    res.json({array: arrayLenders, day: day})
+                }else{
+                    arrayLenders.sort((a, b) => {
+                        return a.comission - b.comission;
+                    });
+                    res.json({array: arrayLenders, day: day})
+                }
+            }).catch(err => res.send(err))
         })
         .catch(err => {
             res.send(err)
@@ -656,7 +667,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         if(!inspector){
-                            elementTwo.employes.push({name: element.name, id: element.id, class: element.class, position: i, valid: false})
+                            elementTwo.employes.push({name: element.name, id: element.id, class: element.class, position: i, valid: false, img: element.img})
                         }
                     }
                 }
@@ -1067,6 +1078,7 @@ dates.post('/noOneLender',  (req, res) => {
                 id: element.employeId,
                 name: element.realEmploye,
                 class: element.class,
+                img: element.employeImg
             },
             microServices: element.microServiceSelect ? element.microServiceSelect : [],
             typeCreation: req.body.typeCreation,
@@ -1076,8 +1088,8 @@ dates.post('/noOneLender',  (req, res) => {
             confirmation: false,
             imgDesign: [],
             confirmationId: id,
-            typepay: client.pay,
-            paypdf: nameFile
+            typePay: client.pay,
+            payPdf: nameFile
         }
         dataCitas.push(data)
     }

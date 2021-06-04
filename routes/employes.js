@@ -109,10 +109,22 @@ employes.get('/employesbybranch/:branch', protectRoute, async (req, res) =>{
     })
 
     const Employe = conn.model('employes', employeSchema)
+    const User = conn.model('users', userSchema)
+
     try{
-        const findByBranch = await Employe.find({branch:req.params.branch})
+        const findByBranch = await Employe.find({branch: req.params.branch})
         if (findByBranch) {
-            res.json({status: 'ok', data: findByBranch, token: req.requestToken})
+            try {
+                const users = await User.populate(findByBranch, {path: "users"})
+                for (const user of users) {
+                    if (user.users) {
+                        user.users.password = 'password removed for security'
+                    }
+                }
+                res.json({status: 'ok', data: users, token: req.requestToken})
+            }catch(err){
+                res.send(err)
+            }
         }else{
             res.json({status: 'employes not found'})
         }

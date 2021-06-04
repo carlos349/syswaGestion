@@ -198,7 +198,7 @@ users.get('/', protectRoute, async (req, res) => {
 
     const User = conn.model('users', userSchema)
     try {
-        const getUsers = await User.find()
+        const getUsers = await User.find({password: 0})
         if (getUsers.length > 0) {
             res.json({status: 'ok', data: getUsers, token: req.requestToken})
         }else{
@@ -490,9 +490,10 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
         if (update) {
             const updateEmploye = await Employe.findByIdAndUpdate(employe, { 
                 $set: {
-                    linkLender: update._id
+                    users: update._id
                 }
             })
+            console.log(updateEmploye)
             res.json({status: 'ok', data: update, token: req.requestToken})
         }
     }catch(err){
