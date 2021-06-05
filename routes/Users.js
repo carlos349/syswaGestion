@@ -198,7 +198,7 @@ users.get('/', protectRoute, async (req, res) => {
 
     const User = conn.model('users', userSchema)
     try {
-        const getUsers = await User.find({password: 0})
+        const getUsers = await User.find({},{password: 0})
         if (getUsers.length > 0) {
             res.json({status: 'ok', data: getUsers, token: req.requestToken})
         }else{
