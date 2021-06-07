@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 const { Schema } = mongoose
 
 const endingdateSchema = new Schema({
-    services: {
-        type: Array
+    service: {
+        type: Object
     },
     client: {
         type: Object
@@ -12,10 +12,10 @@ const endingdateSchema = new Schema({
         type: String
     },
     employe: {
-        type:String
+        type:Object
     },
-    design: {
-        type: Number
+    microServices: {
+        type: Object
     },
     commision: {
         type: Number
