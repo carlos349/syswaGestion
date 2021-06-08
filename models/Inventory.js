@@ -35,6 +35,9 @@ const inventorySchema = new Schema({
     alertTotal: {
         type: Number
     },
+    productType: {
+        type: String
+    },
     createdAt: {
         type: Date,
         default: Date.now

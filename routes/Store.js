@@ -411,6 +411,7 @@ stores.post('/registertobranch', protectRoute, async (req,res) => {
                 quantity: 0,
                 entry: 0,
                 consume: 0,
+                productType: 'Venta',
                 alertTotal: 0
             }
             try{
@@ -914,7 +915,7 @@ stores.get('/alertstoreproducts', protectRoute, (req, res) => {
             }            
         }
         if (productsToAlert.length > 0) {
-            res.json({status: true, productsToAlert: productsToAlert})
+            res.json({status: true, productsToAlert: productsToAlert, token: req.requestToken})
         }else{
             res.json({status: false})
         }
@@ -948,6 +949,27 @@ stores.post('/nullsale', protectRoute, (req, res) => {
 })
 
 //Final de la api. (Retorna: Nullo) -- Api end. (Return: Null)
+
+//--------------------------------------------------------------------------------------
+
+//Api que cambia el tipo de producto en el inventario (Ingreso: ObjectId del producto, tipo de producto) -- Api that changes product´s type from inventory (Input: product´s ObjectId, product type)
+
+stores.put('/changetype/:id', protectRoute, (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Inventory = conn.model('inventories', inventorySchema)
+    Inventory.findByIdAndUpdate(req.params.id, {
+        $set: {productType:req.body.productType}
+    })
+    .then(ready => {res.json({status:'ok', token: req.requestToken})})  
+ 
+})
+
+//Final de la api. (Retorna: Respuesta simple) -- Api end. (Return: Simple response)
 
 //--------------------------------------------------------------------------------------
 
