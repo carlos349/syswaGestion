@@ -4,6 +4,8 @@ const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const employeSchema = require('../models/Employes')
 const userSchema = require('../models/Users')
+const datesBlockSchema = require('../models/datesBlocks')
+const serviceSchema = require('../models/Services')
 const expenseSchema = require('../models/Expenses')
 const saleSchema = require('../models/Sales')
 const cors = require('cors')
@@ -333,6 +335,8 @@ employes.put('/', protectRoute, async (req,res) => {
     })
 
     const Employe = conn.model('employes', employeSchema)
+    const Service = conn.model('services', serviceSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
 
     Employe.findById(req.body.id)
     .then(found => {
@@ -350,7 +354,23 @@ employes.put('/', protectRoute, async (req,res) => {
                     }
                 })
                 .then(employeEdited => {
-                    res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
+                    Service.find({branch: req.body.branch})
+                    .then(services => {
+                        for (const service of services) {
+                            for (const employe of service.employes) {
+                                if (employe.id == req.body.id) {
+                                    employe.days = req.body.days
+                                }
+                            }
+                            Service.findByIdAndUpdate(service._id, {
+                                $set: {
+                                    employes: service.employes
+                                }
+                            }).then(ready => {})
+                        }
+
+                        res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
+                    }).catch(err => res.send(err))
                 }).catch(err => {
                     res.send(err)
                 })

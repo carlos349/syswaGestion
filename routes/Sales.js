@@ -750,7 +750,7 @@ sales.post('/process', protectRoute, (req, res) => {
                     $inc: {commission: sales.commission}
                   })
                   .then(commission => {
-                    Client.updateOne({email: req.body.client.email},{
+                    Client.findByIdAndUpdate(req.body.client, {
                       $inc: {attends: 1},
                       $set: {lastAttend: today},
                       $push: {historical: daySale}
@@ -765,7 +765,7 @@ sales.post('/process', protectRoute, (req, res) => {
                             }
                           })
                           .then(process => {
-                            Client.findOne({email: req.body.client.email})
+                            Client.findById(req.body.client)
                             .then(reco => { 
                               if (req.body.discount == 10) {
                                 if (reco.idRecommender && reco.idRecommender != '') {
@@ -773,7 +773,7 @@ sales.post('/process', protectRoute, (req, res) => {
                                     $inc : {recommendations: 1}
                                   })
                                   .then(inc =>{
-                                    Client.updateOne({email: req.body.client.email}, {
+                                    Client.findByIdAndUpdate(req.body.client, {
                                       $set : {idRecommender: ''}
                                     })
                                     .then(set =>{
@@ -793,15 +793,15 @@ sales.post('/process', protectRoute, (req, res) => {
                             res.send(err)
                           })
                         }else{
-                          Client.findOne({email: req.body.client.email})
+                          Client.findByIdAndUpdate(req.body.client)
                             .then(reco => {
                               if (req.body.discount == 10) {
                                 if (reco.idRecommender && reco.idRecommender != '') {
-                                  Cliente.findByIdAndUpdate(reco.idRecommender, {
+                                  Client.findByIdAndUpdate(reco.idRecommender, {
                                     $inc : {recommendations:1}
                                   })
                                   .then(inc =>{
-                                    Cliente.updateOne({email: req.body.client.email}, {
+                                    Client.findByIdAndUpdate(req.body.client, {
                                       $set : {idRecommender:''}
                                     })
                                     .then(set =>{

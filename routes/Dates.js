@@ -66,6 +66,33 @@ dates.get('/getDatesbyemploye/:id', protectRoute, async (req, res) => {
     }
 })
 
+//Fin de la api (Retorna: Datos de las citas) -- Api end (Return: dates´s data)
+
+//----------------------------------------------------------------------------------
+
+//Api que busca las citas de un prestador (Ingreso: ObjectId del empleado) -- Api that search dates by an employe (Input: Employe's ObjectId)
+
+dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const EndingDates = conn.model('endingdates', endingDateSchema)
+
+    try{
+        const find = await EndingDates.find({branch: req.params.branch})
+        if (find.length > 0) {
+            res.json({status:'ok', data: find, token: req.requestToken})
+        }else{
+            res.json({status: 'nothing found', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 //Fin de la api (Retorna: Datos de las citas del empleado) -- Api end (Return: Employe dates´s data)
 
 //----------------------------------------------------------------------------------
@@ -661,7 +688,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     for (let u = 0; u < blocksFirst.length; u++) {
                         const elementTwo = blocksFirst[u];
                         var hour = elementTwo.hour.split(':')[0]+elementTwo.hour.split(':')[1]
-                        if (parseFloat(hourInit) < parseFloat(hour)) {
+                        if (parseFloat(hourInit) <= parseFloat(hour)) {
                             inspector = true
                             if (restEnd == elementTwo.hour) {
                                 inspector = false
