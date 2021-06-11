@@ -1067,7 +1067,8 @@ dates.post('/noOneLender',  (req, res) => {
                 name: element.name, 
                 commission: element.commission, 
                 price: element.price, 
-                discount: element.discount
+                discount: element.discount,
+                products: element.products
             },
             client: {
                 id: client.id,
