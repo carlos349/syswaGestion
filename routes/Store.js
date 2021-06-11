@@ -66,6 +66,34 @@ stores.get('/getstorebyid/:id', protectRoute, async (req, res) => {
 
 //--------------------------------------------------------------------------------------
 
+//Api que busca los datos de lun producto de la bodega (Ingreso: ObjectId del producto) -- Api that search a product's data of the store (Input: poduct's ObjectId)
+
+stores.get('/getinventorybyid/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Inventory = conn.model('inventories', inventorySchema)
+
+    try{
+        const findProduct = await Inventory.findById(req.params.id)
+        if (findProduct) {
+            res.json({status: 'ok', data: findProduct, token: req.requestToken})
+        }else{
+            res.json({status: 'nothing found'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+
+//Final de la api. (Retorna: Datos de productos) -- Api end. (Return: Products´ data)
+
+//--------------------------------------------------------------------------------------
+
 //Api que busca los productos por sucursal (Input: branch) -- Api that search products by branch (Input: branch)
 
 stores.get('/getinventorybybranch/:branch', protectRoute, async (req, res) => {
@@ -79,6 +107,39 @@ stores.get('/getinventorybybranch/:branch', protectRoute, async (req, res) => {
 
     try{
         const getInventoryByBranch = await Inventory.find({branch: req.params.branch})
+        if (getInventoryByBranch.length > 0) {
+            res.json({status: 'ok', data: getInventoryByBranch, token: req.requestToken})
+        }else{
+            res.json({status: 'inventories not found'})
+        }
+    }catch(err){
+        res.json(err)
+    }
+})
+
+
+//Final de la api. (Retorna: Datos de productos) -- Api end. (Return: Products´ data)
+
+//--------------------------------------------------------------------------------------
+
+//Api que busca los productos por sucursal (Input: branch) -- Api that search products by branch (Input: branch)
+
+stores.get('/getproductsales/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Inventory = conn.model('inventories', inventorySchema)
+
+    try{
+        const getInventoryByBranch = await Inventory.find({
+            $and: [
+                {branch: req.params.branch},
+                {productType: 'Venta'}
+            ]
+        })
         if (getInventoryByBranch.length > 0) {
             res.json({status: 'ok', data: getInventoryByBranch, token: req.requestToken})
         }else{
