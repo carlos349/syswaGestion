@@ -234,6 +234,7 @@ services.put('/:id', protectRoute, async (req, res) => {
                 name: req.body.name,
                 duration: req.body.duration,
                 price: req.body.price,
+                products: req.body.products,
                 commission: req.body.commission,
                 discount: req.body.discount,
                 category: req.body.category,
