@@ -1044,7 +1044,6 @@ dates.post('/noOneLender',  (req, res) => {
     const client = req.body.client
     const date = new Date(req.body.date+' 10:00')
     const blocks = req.body.block
-    
     var nameFile = ''
     if (req.body.pdf == 'not') {
         nameFile = ''

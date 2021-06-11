@@ -89,6 +89,28 @@ stores.get('/getinventorybybranch/:branch', protectRoute, async (req, res) => {
     }
 })
 
+stores.get('/getinventorybybranchforservice/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Inventory = conn.model('inventories', inventorySchema)
+
+    try{
+        
+        const getInventoryByBranch = await Inventory.find({$and:[{branch:req.params.branch}, {productType: 'Materia prima'}]})
+        if (getInventoryByBranch.length > 0) {
+            res.json({status: 'ok', data: getInventoryByBranch, token: req.requestToken})
+        }else{
+            res.json({status: 'inventories not found'})
+        }
+    }catch(err){
+        res.json(err)
+    }
+})
+
 //Final de la api. (Retorna: Datos del inventario de la sucursal) -- Api end. (Return: inventory´s data of the branch)
 
 //--------------------------------------------------------------------------------------
