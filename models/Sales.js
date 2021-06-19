@@ -5,20 +5,11 @@ const saleSchema = new Schema({
     branch: {
         type: String
     },
-    services: {
+    items: {
         type: Array
-    },
-    employe: {
-        type: Object
     },
     client: {
         type: Object
-    },
-    payType: {
-        type: String
-    },
-    commission: {
-        type: Number
     },
     localGain: {
         type: Number
@@ -29,20 +20,17 @@ const saleSchema = new Schema({
     purchaseOrder: {
         type: Number
     },
-    discount: {
-        type: Number
-    },
-    design: {
-        type: Number
-    },
     count: {
         type: Number
     },
     status: {
         type: Boolean
     },
-    total: {
-        type: Number
+    expenseValid: {
+        type: Boolean
+    },
+    totals: {
+        type: Object
     },
     createdAt: {
         type: Date,

@@ -6,9 +6,10 @@ const saleSchema = require('../models/Sales')
 const closureSchema = require('../models/Closures')
 const cashfundSchema = require('../models/CashFunds')
 const daySaleSchema = require('../models/DaySales')
-const closedDateSchema = require('../models/ClosedDates')
+const endingDateSchema = require('../models/EndingDates')
 const employeSchema = require('../models/Employes')
 const clientSchema = require('../models/Clients')
+const inventorySchema = require('../models/Inventory')
 const dateSchema = require('../models/Dates')
 const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
@@ -104,6 +105,66 @@ sales.get('/Closing/:branch', protectRoute, async (req, res) => {
     }catch(err){
         res.send(err)
     }
+})
+
+//input - branch
+//output - status, data and token
+sales.get('/commissionsTotal/:branch', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+  const Sale = conn.model('sales', saleSchema)
+  const dateDaily = new Date()
+  const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1"
+  const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31"
+  const sinceBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-1"
+  const untilBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-31"
+
+  try {
+    const salesThisMonth = await Sale.find({
+      $and: [
+          {createdAt: { $gte: sinceActual, $lte: untilActual }},
+          {branch: req.params.branch},
+          {expenseValid: true},
+          {status:true}
+      ]
+    })
+    try {
+      const salesBeforeMonth = await Sale.find({
+        $and: [
+            {createdAt: { $gte: sinceBefore, $lte: untilBefore }},
+            {branch: req.params.branch}
+        ]
+      })
+      var thisMonth = 0
+      var totalSales = 0
+      for (const sale of salesThisMonth) {
+        for (const item of sale.items) {
+          if (item.employe.commission) {
+            console.log(item.employe.commission)
+            thisMonth = thisMonth + item.employe.commission
+          }
+        }
+        totalSales = totalSales + sale.totals.total
+      }
+      var beforeMonth = 0
+      for (const sale of salesBeforeMonth) {
+        for (const item of sale.items) {
+          if (item.type = 'service') {
+            beforeMonth = beforeMonth + item.employe.commission
+          }
+        }
+      }
+      const data = {
+        commissionThisMonth: thisMonth,
+        commissionBeforeMonth: beforeMonth,
+        totalSales: totalSales
+      }
+      res.json({status: 'ok', data: data, token: req.requestToken})
+    }catch(err){res.send(err)}
+  }catch(err){res.send(err)}
 })
 
 //input - form with branch
@@ -647,260 +708,136 @@ sales.post('/processEndDates', protectRoute, async (req, res) => {
 // input - form with total, branch, services, employe, client, payType, typesPay, purchaseOrder, discount, design, ifProcess, date
 // ouput - status and token
 sales.post('/process', protectRoute, (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const CashFund = conn.model('cashfunds', cashfundSchema)
-    const DaySale = conn.model('daySales', daySaleSchema)
-    const Sale = conn.model('sales', saleSchema)
-    const ClosedDates = conn.model('closedDates', closedDateSchema)
-    const Client = conn.model('clients', clientSchema)
-    const Employe = conn.model('employes', employeSchema)
-    const Dates = conn.model('dates', dateSchema)
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
 
-    const ifProcess = req.body.ifProcess
-    const services = req.body.services
-    var today
-    if (req.body.processDate) {
-      today = new Date(req.body.date+ ' 10:00')
-    }else{
-      const dateformat = new Date(req.body.date)
-      const dateDailyToday = dateformat.getFullYear() +"-"+(dateformat.getMonth() + 1)+"-"+dateformat.getDate()
-      today = new Date(dateDailyToday+ ' 10:00')
-    }
-    var discount = 100 - req.body.discount
-    var comisionTotal = 0
-    for (let index = 0; index < services.length; index++) {
-      let comisionPerAmount = 0
-      let commissionDiscount = 0
-      if (services[index].discount) {
-          commissionDiscount = parseFloat(services[index].price)
-      }else{ 
-        if (discount == 100) {
-          commissionDiscount = parseFloat(services[index].price)
-        }else{
-          commissionDiscount = parseFloat(services[index].price) * parseFloat('0.'+discount)
-        }
-      }
-      comisionPerAmount = commissionDiscount * parseFloat('0.'+services[index].commission)
-      comisionTotal = comisionTotal + comisionPerAmount
-    }
+  const CashFund = conn.model('cashfunds', cashfundSchema)
+  const DaySale = conn.model('daySales', daySaleSchema)
+  const Sale = conn.model('sales', saleSchema)
+  const EndingDates = conn.model('endingdates', endingDateSchema)
+  const Client = conn.model('clients', clientSchema)
+  const Employe = conn.model('employes', employeSchema)
+  const Dates = conn.model('dates', dateSchema)
+  const Inventory = conn.model('inventories', inventorySchema)
+
+  const items = req.body.items
+  const total = req.body.total
+  const totalPay = req.body.totalPay
+  const typesPay = req.body.typesPay
+  const client = req.body.client
+  const clientId = req.body.clientId
+  const restPay = req.body.restPay
   
-    const total = req.body.total
-    const totalComisionDesign = parseFloat(req.body.design) * 0.50
-    const commission = parseFloat(comisionTotal) + parseFloat(totalComisionDesign)
-    const totalGain = total - parseFloat(commission) 
+  const dataSale = {
+    branch: req.body.branch,
+    items: [],
+    client: client,
+    localGain: 0,
+    typesPay: typesPay,
+    purchaseOrder: 0,
+    count: 0,
+    status: true,
+    expenseValid: true,
+    totals: {
+      total: total,
+      totalPay: totalPay
+    },
+    createdAt: req.body.date
+  }
 
-    var discount
-    if (discount == 100) {
-      discount = '0'
-    }else{
-      discount = req.body.discount
-    }
-    const sale = {
-        branch: req.body.branch,
-        services: req.body.services,
-        employe: req.body.employe,
-        client: req.body.client,
-        payType: req.body.payType,
-        commission: parseFloat(commission),
-        localGain: parseFloat(totalGain),
-        typesPay: req.body.typesPay,
-        purchaseOrder: req.body.purchaseOrder,
-        discount: req.body.discount,
-        design: req.body.design,
-        count: 0,
-        status: true,
-        total: total,
-        createdAt: today,
-    }
-    console.log(sale)
-    const daySale = {
-        branch: req.body.branch,
-        services: req.body.services,
-        employe: req.body.employe,
-        commission: parseFloat(commission),
-        typesPay: req.body.typesPay,
-        purcharseOrder: req.body.purcharseOrder,
-        discount: req.body.discount,
-        design: req.body.design,
-        total: total,
-        idTableSales: '',
-        createdAt: today
-    }
-
-    CashFund.find({branch: req.body.branch})
-    .then(have => {
-      console.log(have)
-      if (have.length > 0) {
-        if (have[0].validator) {
-          Sale.find({branch: req.body.branch})
-          .then(ifCount => {
-            if (ifCount.length > 0) {
-              Sale.find({branch: req.body.branch}).sort({count: -1}).limit(1)
-              .then(Count => {
-                sale.count = parseFloat(Count[0].count) + 1
-                Sale.create(sale)
-                .then(sales => {
-                  console.log(sales)
-                  daySale.idTableSales = sales._id
-                  Employe.findByIdAndUpdate(req.body.employe.id,{
-                    $inc: {commission: sales.commission}
-                  })
-                  .then(commission => {
-                    Client.findByIdAndUpdate(req.body.client, {
-                      $inc: {attends: 1},
-                      $set: {lastAttend: today},
-                      $push: {historical: daySale}
-                    })
-                    .then(lastDate => {
-                      DaySale.create(daySale)
-                      .then(sale => {
-                        if (ifProcess != '') {
-                          Dates.findByIdAndUpdate(ifProcess, {
-                            $set: {
-                              process: false
-                            }
-                          })
-                          .then(process => {
-                            Client.findById(req.body.client)
-                            .then(reco => { 
-                              if (req.body.discount == 10) {
-                                if (reco.idRecommender && reco.idRecommender != '') {
-                                  Client.findByIdAndUpdate(reco.idRecommender, {
-                                    $inc : {recommendations: 1}
-                                  })
-                                  .then(inc =>{
-                                    Client.findByIdAndUpdate(req.body.client, {
-                                      $set : {idRecommender: ''}
-                                    })
-                                    .then(set =>{
-                                      res.json({status: 'Sale register', token: req.requestToken})
-                                    })
-                                  })
-                                }
-                                else{
-                                  res.json({status: 'Sale register', token: req.requestToken})
-                                }
-                              }else{
-                                res.json({status: 'Sale register', token: req.requestToken})
-                              }
-                            })
-                          })
-                          .catch(err => {
-                            res.send(err)
-                          })
-                        }else{
-                          Client.findByIdAndUpdate(req.body.client)
-                            .then(reco => {
-                              if (req.body.discount == 10) {
-                                if (reco.idRecommender && reco.idRecommender != '') {
-                                  Client.findByIdAndUpdate(reco.idRecommender, {
-                                    $inc : {recommendations:1}
-                                  })
-                                  .then(inc =>{
-                                    Client.findByIdAndUpdate(req.body.client, {
-                                      $set : {idRecommender:''}
-                                    })
-                                    .then(set =>{
-                                      res.json({status: 'Sale register', token: req.requestToken})
-                                    })
-                                  })
-                                }
-                                else{
-                                  res.json({status: 'Sale register', token: req.requestToken})
-                                }
-                              }else{
-                                res.json({status: 'Sale register', token: req.requestToken})
-                              }
-                            })
-                        }
-                      })
-                      .catch(err => {
-                        res.send(err)
-                      })
-                    })
-                    .catch(err => {
-                      res.send(err)
-                    })
-                  })
-                  .catch(err => {
-                    res.send(err)
-                  })
-                })
-                .catch(err => {
-                  res.send(err)
-                })
-              })
-            }else{
-              sale.count = 1
-              Sale.create(sale)
-              .then(sales => {
-                console.log(sales)
-                daySale.idTableSales = sales._id
-                Employe.findByIdAndUpdate(req.body.employe.id,{
-                  $inc: {commission: sales.commission}
-                })
-                .then(comision => {
-                  Client.updateOne({email: req.body.client.email},{
-                      $inc: {attends: 1},
-                      $set: {lastAttend: today},
-                      $push: {historical: daySale}
-                  })
-                  .then(lasDate => {
-                    DaySale.create(daySale)
-                    .then(venta => {
-                      if (ifProcess != '') {
-                        Dates.findByIdAndUpdate(ifProcess, {
-                          $set: {
-                            process: false
-                          }
-                        })
-                        .then(process => {
-                          res.json({status: 'Sale register', token: req.requestToken})
-                        })
-                        .catch(err => {
-                          res.send(err)
-                        })
-                      }else{
-                        res.json({status: 'Sale register', token: req.requestToken})
-                      }
-                    })
-                    .catch(err => {
-                      res.send(err)
-                    })
-                  })
-                  .catch(err => {
-                    res.send(err)
-                  })
-                })
-                .catch(err => {
-                  res.send(err)
-                })
-              })
-              .catch(err => {
-                res.send(err)
-              })
-            }
-          })
-        }else{
-          res.json({status: 'no-cash'})
-        }
-      }else{
-        CashFund.create({
-            branch: req.body.branch,
-            userRegister: '',
-            amount: 0,
-            amountEgress: 0,
-            quantity: 0,
-            validator: true
-        }).then(createCash => {
-          res.json({status: 'no-cash'})
-        })
-      }
+  const daySale = {
+    branch: req.body.branch,
+    items: items,
+    typesPay: typesPay,
+    total: total,
+    idTableSales: '',
+    createdAt: req.body.date
+  }
+  
+  for (const item of items) {
+    dataSale.localGain = dataSale.localGain + item.totalLocal
+    item.employe.commission = item.tag == 'service' ? item.commissionEmploye : ''
+    item.employe = item.tag == 'service' ? item.employe : 'none'
+    dataSale.items.push({
+      item: item.item,
+      price: item.price,
+      discount: item.discount,
+      additionals: item.additionals,
+      additionalsTotal: item.additionalTotal,
+      totalItem: item.total,
+      employe: item.employe,
+      type: item.tag
     })
+  }
+  
+  CashFund.findOne({branch: req.body.branch})
+  .then(cashFund => {
+    if (cashFund) {
+      if (cashFund.validator) {
+        if (restPay > 0) {
+          CashFund.findByIdAndUpdate(cashFund._id, {
+            $inc: {
+              amount: parseFloat('-'+restPay),
+              amountEgress: parseFloat(restPay)
+            }
+          }).then(readyCash => {})
+        }
+        Sale.find({branch: req.body.branch}).sort({count: -1}).limit(1)
+        .then(findSale => {
+          dataSale.count = findSale[0] ? findSale[0].count + 1 : 1
+          Sale.create(dataSale)
+          .then(createSale => {
+            daySale.idTableSales = createSale._id
+            Client.findByIdAndUpdate(clientId, {
+              $inc: {attends: 1},
+              $set: {lastAttend: req.body.date},
+              $push: {historical: dataSale}
+            })
+            .then(editClient => {
+              DaySale.create(daySale)
+              .then(createDaySale => {
+                for (let index = 0; index < items.length; index++) {
+                  const item = items[index];
+                  if (item.tag == 'product') {
+                    Inventory.findByIdAndUpdate(item.item._id,{
+                      $inc: {
+                        consume: parseInt(item.quantityProduct)
+                      }
+                    }).then(editInventory => {})
+                  }else{
+                    if (item.datesItem) {
+                      EndingDates.findByIdAndRemove(item.datesItem._id)
+                      .then(delteDate => {})
+                    }
+                    Employe.findByIdAndUpdate(item.employe.id, {
+                      $inc: {
+                        commission: item.commissionEmploye
+                      }
+                    }).then(editEmploye => {})
+                    for (const product of item.item.products) {
+                      Inventory.findByIdAndUpdate(product.id,{
+                        $inc: {
+                          consume: parseInt(product.count)
+                        }
+                      }).then(editInventory => {})
+                    }
+                  }
+                }
+                res.json({status: 'ok', token: req.requestToken})
+              }).catch(err => res.send(err))
+            }).catch(err => res.send(err))
+          }).catch(err => res.send(err))
+        }).catch(err => res.send(err))
+      }else{
+        res.json({status: 'no-cash'})
+      }
+    }else{
+      res.json({status: 'no-cash'})
+    }
+  })
 })
 
 // input - form with total, branch, userRegister, amount
@@ -911,33 +848,44 @@ sales.post('/registerFund', protectRoute, async (req, res) => {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
+
     const CashFund = conn.model('cashfunds', cashfundSchema)
 
-    const find = await CashFund.find({branch: req.body.branch})
-    if (find.length > 0) {
-      const register = await CashFund.findByIdAndUpdate(find[0]._id, {
-        $set: {
+    try {
+      const find = await CashFund.findOne({branch: req.body.branch})
+      console.log(find)
+      if (find) {
+        try {
+          const register = await CashFund.findByIdAndUpdate(find._id, {
+            $set: {
+              userRegister: req.body.userRegister,
+              amount: req.body.amount,
+              amountEgress: 0,
+              validator: true
+            }
+          })
+          if (register) {
+            res.status(200).json({status: 'ok', token: req.requestToken})
+          }else{
+            res.json({status: 'bad'})
+          }
+        }catch(err){res.send(err)}
+      }else{
+        try {
+          const createData = await CashFund.create({
+            branch: req.body.branch,
             userRegister: req.body.userRegister,
             amount: req.body.amount,
             amountEgress: 0,
+            quantity: 0,
             validator: true
-        }
-      })
-      if (register) {
-        res.status(200).json({status: 'ok', token: req.requestToken})
+          })
+          if (createData) {
+            res.json({status: 'ok'})
+          }
+        }catch(err){res.send(err)}
       }
-      res.json({status: 'bad'})
-    }else{
-      const createData = await CashFund.create({
-          branch: req.body.branch,
-          userRegister: req.body.userRegister,
-          amount: req.body.amount,
-          amountEgress: 0,
-          quantity: 0,
-          validator: true
-      })
-      res.json({status: 'ok'})
-    }
+    }catch(err){res.send(err)}
 })
 
 // input - params id, form with employeComision

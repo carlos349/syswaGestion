@@ -11,11 +11,11 @@ const expenseSchema = new Schema({
     amount: {
         type: Number
     },
-    employe: {
-        type: Object
-    },
     type: {
         type: String
+    },
+    validator: {
+        type: Boolean
     },
     createdAt: {
         type: Date,

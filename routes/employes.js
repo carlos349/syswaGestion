@@ -390,6 +390,37 @@ employes.put('/', protectRoute, async (req,res) => {
 
 //Api que cierra a un empleado (Ingreso: ObjectId del empleado) -- Api that close an employe (Input: employe´s ObjectId)
 
+
+employes.put('/registerBonus/:id', protectRoute, async (req,res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Employe = conn.model('employes', employeSchema)
+
+    Employe.findByIdAndUpdate(req.params.id, {
+        $inc: {
+            bonus: req.body.amount
+        }
+    })
+    .then(editEmploye => {
+        if (editEmploye) {
+            res.json({status: 'ok', token: req.requestToken})
+        }
+    }).catch(err => {
+        res.send(err)
+    })
+    
+})
+
+//Fin de la api. (Retorna datos del empleado) -- Api end (output employe's data)
+
+//------------------------------------------------------------------------------------
+
+//Api que cierra a un empleado (Ingreso: ObjectId del empleado) -- Api that close an employe (Input: employe´s ObjectId)
+
 employes.put('/closeemploye', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {

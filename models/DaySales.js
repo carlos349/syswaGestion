@@ -5,26 +5,11 @@ const daySaleSchema = new Schema({
     branch: {
         type: String
     },
-    services: {
+    items: {
         type: Array
-    },
-    employe: {
-        type: Object
-    },
-    commission: {
-        type: Number
     },
     typesPay: {
         type: Array
-    },
-    purcharseOrder: {
-        type: Number
-    },
-    discount: {
-        type: Number
-    },
-    design: {
-        type: Number
     },
     total: {
         type: Number
