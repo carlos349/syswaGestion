@@ -11,6 +11,9 @@ const expenseSchema = new Schema({
     amount: {
         type: Number
     },
+    employe: {
+        type: String
+    },
     type: {
         type: String
     },

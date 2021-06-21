@@ -26,9 +26,6 @@ const saleSchema = new Schema({
     status: {
         type: Boolean
     },
-    expenseValid: {
-        type: Boolean
-    },
     totals: {
         type: Object
     },

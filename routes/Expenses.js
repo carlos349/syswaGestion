@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const expenseSchema = require('../models/Expenses')
 const reinvestmentSchema = require('../models/Reinvestment')
+const employeSchema = require('../models/Employes')
 const saleSchema = require('../models/Sales')
 const formats = require('../formats')
 const pdf = require("pdf-creator-node");
@@ -49,7 +50,8 @@ expenses.get('/:branch', protectRoute, async (req, res) => {
             var thisTotals = {
                 Inventario: 0,
                 Bono: 0,
-                Mensual: 0
+                Mensual: 0,
+                Comision: 0
             }
             for (const expense of thisMonth) {
                 thisTotals[expense.type] = expense.amount + thisTotals[expense.type]
@@ -57,7 +59,8 @@ expenses.get('/:branch', protectRoute, async (req, res) => {
             var beforeTotals = {
                 Inventario: 0,
                 Bono: 0,
-                Mensual: 0
+                Mensual: 0,
+                Comision: 0
             }
             for (const expense of beforeMonth) {
                 beforeTotals[expense.type] = expense.amount + beforeTotals[expense.type]
@@ -130,6 +133,7 @@ expenses.post('/', protectRoute, async (req, res) => {
         branch: req.body.branch,
         detail: req.body.detail,
         amount: req.body.amount,
+        employe: req.body.employe,
         type: req.body.type,
         validator: true,
         createdAt: new Date()
@@ -158,12 +162,27 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
     const Sale = conn.model('sales', saleSchema)
     const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
 
+    const dict = {
+        0: 'Enero',
+        1: 'Febrero',
+        2: 'Marzo',
+        3: 'Abril',
+        4: 'Mayp',
+        5: 'Junio',
+        6: 'Julio',
+        7: 'Agosto',
+        8: 'Septiembre',
+        9: 'Octubre',
+        10: 'Noviembre',
+        11: 'Diciembre'
+    }
+    const month = dict[new Date().getMonth()]
+    const year = new Date().getFullYear()
     const gain = ((req.body.totalFinal - req.body.reinvestment) / req.body.totalFinal) * 100
     const data = {
         reinvestment: formats.price(req.body.reinvestment),
         sales: formats.price(req.body.sales),
         expenses: formats.price(req.body.expenses),
-        commissions: formats.price(req.body.commissions),
         totalFinal: formats.price(req.body.totalFinal),
         gain: gain.toFixed(2)
     }
@@ -198,12 +217,16 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
             html: html,
             data: {
                 expenses: expenses,
-                data: data
+                data: data,
+                datee: {
+                    month: month,
+                    year: year
+                }
             },
             path: "./public/reportExpenses.pdf",
             type: "",
         };
-        console.log(expenses)
+
         pdf
         .create(document, options)
         .then(async (respon) => {
@@ -219,26 +242,14 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
                     }
                 })
                 try {
-                    const updateSale = await Sale.updateMany({
-                        $and: [
-                            {branch: req.body.branch},
-                            {expenseValid: true}
-                        ]},
-                        {
+                    const updateReinvestment = await Reinvestment.findByIdAndUpdate(req.body.reinvestmentId, {
                         $set: {
-                            expenseValid: false
+                            amount: 0,
+                            amountEgress: 0,
+                            validator: false
                         }
                     })
-                    try {
-                        const updateReinvestment = await Reinvestment.findByIdAndUpdate(req.body.reinvestmentId, {
-                            $set: {
-                                amount: 0,
-                                amountEgress: 0,
-                                validator: false
-                            }
-                        })
-                        res.json({status: 'ok'})
-                    }catch(err){res.send(err)}
+                    res.json({status: 'ok'})
                 }catch(err){res.send(err)}
             }catch(err){res.send(err)}
         })
@@ -277,7 +288,7 @@ expenses.put('/regReinvestment/:id', protectRoute, async (req, res) => {
 
 // Api to delete expense
 // input branch, detail, amount, type - output status, token
-expenses.delete('/:id', protectRoute, async (req, res) => {
+expenses.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -285,10 +296,37 @@ expenses.delete('/:id', protectRoute, async (req, res) => {
     })
 
     const Expense = conn.model('expenses', expenseSchema)
+    const Employe = conn.model('employes', employeSchema)
 
     try {
         const deleteExpense = await Expense.findByIdAndRemove(req.params.id)
         if (deleteExpense) {
+            if (req.body.type == 'Comision') {
+                try {
+                    const employeEdit = await Employe.findByIdAndUpdate(req.body.idEmploye, {
+                        $inc: {
+                            advancement: parseFloat('-'+req.body.total)
+                        }
+                    })
+                    if (employeEdit) {
+                        res.json({status: 'ok', token: req.requestToken})
+                    }
+                }catch(err){res.send(err)}
+            }
+
+            if (req.body.type == 'Bono') {
+                try {
+                    const employeEdit = await Employe.findByIdAndUpdate(req.body.idEmploye, {
+                        $inc: {
+                            bonus: parseFloat('-'+req.body.total)
+                        }
+                    })
+                    if (employeEdit) {
+                        res.json({status: 'ok', token: req.requestToken})
+                    }
+                }catch(err){res.send(err)}
+            }
+
             res.json({status: 'ok', token: req.requestToken})  
         }
     }catch(err){

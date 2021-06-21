@@ -740,7 +740,6 @@ sales.post('/process', protectRoute, (req, res) => {
     purchaseOrder: 0,
     count: 0,
     status: true,
-    expenseValid: true,
     totals: {
       total: total,
       totalPay: totalPay

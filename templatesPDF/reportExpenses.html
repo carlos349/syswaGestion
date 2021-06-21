@@ -26,21 +26,27 @@
         tr:nth-child(even) {
             background-color: #dddddd;
         }
+        .headerStyle{
+            width: 100%;
+            /* padding-bottom: 20px; */
+            display: inline-block;
+        }
         
         .boxTotals{
-            width: 40%;
+            width: 60%;
             border: solid 2px #272838;
             padding: 10px;
             border-radius: 5px;
+            display: inline-block;
         }
         .imgStyle{
-            display: inline-block;
             width: 30%;
-            padding-top: 10px;
+            padding: 20px;
+            display: inline-block;
         }
         .imgStyle img{
-            width: 200px;
-            height: 100px;
+            width: 80%;
+            height: 150px;
             /*  */
         }
 
@@ -59,18 +65,18 @@
     </style>
   </head>
   <body>
-    <div class="imgStyle">
-        <img src="http://localhost:3200/static/logos/syswa-gestion.png" alt="">
-    </div>
-    <h1>Reporte del cierre de los gastos de mes</h1>
-    <div style="width: 100%;display: inline-block;">
+    <h1>Reporte Mensual {{datee.month}} {{datee.year}}</h1>
+    <div class="headerStyle">
+        <div class="imgStyle">
+            <img src="http://localhost:3200/static/logos/syswa-gestion.png" alt="">
+        </div>
         <div class="boxTotals">
             <p>Saldo inicial: {{data.reinvestment}} <span>Saldo final: {{data.totalFinal}}</span></p>
             <p>Ingreso: {{data.sales}} <span>Ganancia (%): {{data.gain}}</span></p>
             <p>Egreso: {{data.expenses}}</p>
-            <p>Comisiones: {{data.commissions}}</p>
         </div>
     </div>
+    
     <hr>
     <table>
         <tr>
