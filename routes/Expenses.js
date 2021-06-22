@@ -149,6 +149,35 @@ expenses.post('/', protectRoute, async (req, res) => {
     }
 })
 
+// Api to find expenses by this month and after month
+//input null - output status, data, token
+expenses.post('/findByDates/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Expense = conn.model('expenses', expenseSchema)
+    
+    try {
+        const findExpenses = await Expense.find({
+            $and: [
+                {branch: req.params.branch},
+                {createdAt: { $gte: req.body.dates[0]+' 00:00', $lte: req.body.dates[1]+' 24:00' }},
+            ]
+        })
+        if (findExpenses.length > 0) {
+            res.json({status: 'ok', data: findExpenses, token: req.requestToken})
+        }else{
+            res.json({status: 'bad'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+    
+})
+
 // Api to create expense
 // input branch, detail, amount, type - output status, token
 expenses.post('/closeExpenses', protectRoute, async (req, res) => {
