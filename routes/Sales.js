@@ -110,7 +110,7 @@ sales.get('/Closing/:branch', protectRoute, async (req, res) => {
 
 //input - branch
 //output - status, data and token
-sales.get('/commissionsTotal/:branch', protectRoute, async (req, res) => {
+sales.get('/totalSales/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
       useNewUrlParser: true,
@@ -118,53 +118,22 @@ sales.get('/commissionsTotal/:branch', protectRoute, async (req, res) => {
   })
   const Sale = conn.model('sales', saleSchema)
   const dateDaily = new Date()
-  const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1"
-  const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31"
-  const sinceBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-1"
-  const untilBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-31"
+  const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1 00:00"
+  const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31 24:00"
 
   try {
     const salesThisMonth = await Sale.find({
       $and: [
           {createdAt: { $gte: sinceActual, $lte: untilActual }},
           {branch: req.params.branch},
-          {expenseValid: true},
           {status:true}
       ]
     })
-    try {
-      const salesBeforeMonth = await Sale.find({
-        $and: [
-            {createdAt: { $gte: sinceBefore, $lte: untilBefore }},
-            {branch: req.params.branch}
-        ]
-      })
-      var thisMonth = 0
-      var totalSales = 0
-      for (const sale of salesThisMonth) {
-        for (const item of sale.items) {
-          if (item.employe.commission) {
-            console.log(item.employe.commission)
-            thisMonth = thisMonth + item.employe.commission
-          }
-        }
-        totalSales = totalSales + sale.totals.total
-      }
-      var beforeMonth = 0
-      for (const sale of salesBeforeMonth) {
-        for (const item of sale.items) {
-          if (item.type = 'service') {
-            beforeMonth = beforeMonth + item.employe.commission
-          }
-        }
-      }
-      const data = {
-        commissionThisMonth: thisMonth,
-        commissionBeforeMonth: beforeMonth,
-        totalSales: totalSales
-      }
-      res.json({status: 'ok', data: data, token: req.requestToken})
-    }catch(err){res.send(err)}
+    var totalSales = 0
+    for (const sale of salesThisMonth) {
+      totalSales = totalSales + sale.totals.total
+    }
+    res.json({status: 'ok', data: totalSales, token: req.requestToken})
   }catch(err){res.send(err)}
 })
 
