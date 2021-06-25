@@ -26,6 +26,9 @@ const saleSchema = new Schema({
     status: {
         type: Boolean
     },
+    uuid: {
+        type: Number
+    },
     totals: {
         type: Object
     },

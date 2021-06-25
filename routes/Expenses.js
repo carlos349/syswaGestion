@@ -27,10 +27,10 @@ expenses.get('/:branch', protectRoute, async (req, res) => {
     const Expense = conn.model('expenses', expenseSchema)
 
     const dateDaily = new Date()
-    const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1"
-    const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31"
-    const sinceBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-1"
-    const untilBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-31"
+    const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1 00:00"
+    const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31 24:00"
+    const sinceBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-1 00:00"
+    const untilBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-31 24:00"
 
     try{
         const thisMonth = await Expense.find({

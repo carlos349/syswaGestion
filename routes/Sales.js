@@ -15,6 +15,7 @@ const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
+const formats = require('../formats')
 const cors = require('cors')
 const { CredentialProviderChain } = require('aws-sdk')
 
@@ -273,17 +274,10 @@ sales.post('/findSalesByDate', protectRoute, async (req, res) => {
   })
   const Sale = conn.model('sales', saleSchema)
 
-  const dates = req.body.dates
-  const splitDates = dates.split(':')
-  const since = splitDates[0]
-  const until = new Date(splitDates[1] + ' 10:00') 
-  until.setDate(until.getDate() + 1)
-  const goodUntil =  (until.getMonth() + 1)+"-"+until.getDate()+"-"+until.getFullYear()
-  
   try {
       const Sales = await Sale.find({
         $and: [
-          {createdAt: { $gte: since, $lte: goodUntil }},
+          {createdAt: { $gte: req.body.dates[0]+' 00:00', $lte: req.body.dates[1]+' 24:00' }},
           {branch: req.body.branch}
         ]
       })
@@ -339,58 +333,45 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
     const Sale = conn.model('sales', saleSchema)
 
     const data = {
-      rangeExcel: req.body.rangeExcel, 
-      lenderSelect: req.body.lenderSelect, 
-      clientSelect: req.body.clientSelect,
-      firstDate: '', 
-      lastDate: ''
+      rangeExcel: req.body.rangeExcel,  
+      clientSelect: req.body.clientSelect
     }
-
-    if (data.rangeExcel.split(' a ')) {
-      const split = data.rangeExcel.split(' a ')
-      data.firstDate = split[0]
-      const DateUsage = new Date(split[1])
-      DateUsage.setDate(DateUsage.getDate() + 1)
-      data.lastDate = (DateUsage.getMonth() + 1)+"-"+DateUsage.getDate()+"-"+DateUsage.getFullYear()
-    }else{
-      const split = data.rangeExcel.split(':')
-      const DateUsage = new Date(split[0])
-      data.firstDate = split[0]
-      DateUsage.setDate(DateUsage.getDate() + 1)
-      data.lastDate = (DateUsage.getMonth() + 1)+"-"+DateUsage.getDate()+"-"+DateUsage.getFullYear()
-    }
-  
+    console.log(data)
     var dataTable = []
-    if (data.clientSelect == '' && data.lenderSelect == '' ) {
+    if (data.clientSelect.length == 0) {
         try {
             const sales = await Sale.find({
                 $and: [
-                  {createdAt: {$gte: data.firstDate, $lte: data.lastDate}},
-                  {status:true}
+                  {createdAt: {$gte: data.rangeExcel[0]+' 00:00', $lte: data.rangeExcel[1]+' 24:00'}},
+                  {status:true},
+                  {branch: req.body.branch}
                 ]
             })
             if(sales.length > 0){
               for (let index = 0; index < sales.length; index++) {
                 const element = sales[index];
-                var services = ''
-                for (let indexTwo = 0; indexTwo < element.services.length; indexTwo++) {
-                  const elementTwo = element.services[indexTwo];
-                  if (indexTwo == 0) {
-                    services = elementTwo.service
-                  }else{
-                    services = services + ',' + elementTwo.service
-                  }
-                }
+
                 var typesPay = ''
-                for (let ind = 0; ind < element.typesPay.length; ind++) {
-                    const elementTwo = element.typesPay[ind];
+                for (let e = 0; e < element.typesPay.length; e++) {
+                    const elementTwo = element.typesPay[e];
                     if (elementTwo.total > 0) {
                       typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
                     }
                 }
-                const formatDate = element.createdAt.getDate()+"-"+(element.createdAt.getMonth() + 1)+"-"+element.createdAt.getFullYear()
-                dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Empleado: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comisión: element.commission, typesPay})
+
+                var items = ''
+                for (const elementTwo of element.items) {
+                  if (elementTwo.type == 'service') {
+                    var additional = elementTwo.additionals.length > 0 ? elementTwo.additionals.length : 'sin adicional'
+                    items = items + 'Servicio: '+elementTwo.item.name+' Adicional: '+additional+' Total: '+formats.price(elementTwo.totalItem)+' '
+                  }else{
+                    items = items + 'Product: '+elementTwo.item.name+' Cantidad: '+elementTwo.quantityProduct+' Total: '+formats.price(elementTwo.totalItem)+' '
+                  }
+                }
+                
+                dataTable.push({'ID de venta': element.uuid, Fecha: formats.dates(element.createdAt), Cliente: element.client.firstName+' '+element.client.lastName, ítems: items, typesPay, Total: element.totals.total})
               }
+              console.log(dataTable)
               res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
             }else{
               res.json({status: 'bad'})
@@ -399,82 +380,46 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
             res.send(err)
         }
     }else{
-      if(data.clientSelect == '' || data.clientSelect == null){
-            try {
-                const sales = await Sale.find({
-                    $and: [
-                        {createdAt: {$gte: data.firstDate, $lte: data.lastDate}},
-                        {'employe.name': { $regex: data.lenderSelect, $options: 'i'}},
-                        {status:true}
-                    ]
-                })
-                if(sales.length > 0){
-                    for (let index = 0; index < sales.length; index++) {
-                        const element = sales[index];
-                        var services = ''
-                        for (let indexTwo = 0; indexTwo < element.services.length; indexTwo++) {
-                            const elementTwo = element.services[indexTwo];
-                            if (indexTwo == 0) {
-                                services = elementTwo.service
-                            }else{
-                                services = services + ',' + elementTwo.service
-                            }
-                        }
-                        var typesPay = ''
-                        for (let ind = 0; ind < element.typesPay.length; ind++) {
-                            const elementTwo = element.typesPay[ind];
-                            if (elementTwo.total > 0) {
-                              typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
-                            }
-                        }
-                        const formatDate = element.createdAt.getDate()+"-"+(element.createdAt.getMonth() + 1)+"-"+element.createdAt.getFullYear()
-                        dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Empleado: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comision: element.commission, typesPay})
-                    }
-                    res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
-                }else{
-                    res.json({status: 'bad'})
+      try {
+        const sales = await Sale.find({
+            $and: [
+                {createdAt: {$gte: data.rangeExcel[0]+' 00:00', $lte: data.rangeExcel[1]+' 24:00'}},
+                {'client.email': data.clientSelect },
+                {status:true},
+                {branch: req.body.branch}
+            ]
+        })
+        if(sales.length > 0){
+          for (let index = 0; index < sales.length; index++) {
+            const element = sales[index];
+
+            var typesPay = ''
+            for (let e = 0; e < element.typesPay.length; e++) {
+                const elementTwo = element.typesPay[e];
+                if (elementTwo.total > 0) {
+                  typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
                 }
-            }catch(err){
-                res.send(err)
             }
-      }else if (data.lenderSelect == '' || data.lenderSelect == null) {
-        try {
-            const sales = await Sale.find({
-                $and: [
-                    {createdAt: {$gte: data.firstDate, $lte: data.lastDate}},
-                    {'client.email': data.clientSelect },
-                    {status:true}
-                ]
-            })
-            if(sales.length > 0){
-                for (let index = 0; index < sales.length; index++) {
-                    const element = sales[index];
-                    var services = ''
-                    for (let indexTwo = 0; indexTwo < element.services.length; indexTwo++) {
-                        const elementTwo = element.services[indexTwo];
-                        if (indexTwo == 0) {
-                            services = elementTwo.service
-                        }else{
-                            services = services + ',' + elementTwo.service
-                        }
-                    }
-                    var typesPay = ''
-                    for (let ind = 0; ind < element.typesPay.length; ind++) {
-                        const elementTwo = element.typesPay[ind];
-                        if (elementTwo.total > 0) {
-                          typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
-                        }
-                    }
-                    const formatDate = element.createdAt.getDate()+"-"+(element.createdAt.getMonth() + 1)+"-"+element.createdAt.getFullYear()
-                    dataTable.push({'id de ventas': 'V-'+element.count, Fecha: formatDate, Empleado: element.employe.name, Cliente: element.client.name, servicios: services, Descuento: element.discount+'%', Diseño: element.design, Comision: element.commission, typesPay})
-                }
-                res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
-            }else{
-                res.json({status: 'bad'})
+
+            var items = ''
+            for (const elementTwo of element.items) {
+              if (elementTwo.type == 'service') {
+                var additional = elementTwo.additionals.length > 0 ? elementTwo.additionals.length : 'sin adicional'
+                items = items + 'Servicio: '+elementTwo.item.name+' Adicional: '+additional+' Total: '+formats.price(elementTwo.totalItem)+' '
+              }else{
+                items = items + 'Product: '+elementTwo.item.name+' Cantidad: '+elementTwo.quantityProduct+' Total: '+formats.price(elementTwo.totalItem)+' '
+              }
             }
-        }catch(err){
-            res.send(err)
+            
+            dataTable.push({'ID de venta': element.uuid, Fecha: formats.dates(element.createdAt), Cliente: element.client.firstName+' '+element.client.lastName, ítems: items, typesPay, Total: element.totals.total})
+          }
+          console.log(dataTable)
+          res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
+        }else{
+          res.json({status: 'bad'})
         }
+      }catch(err){
+          res.send(err)
       }
     }
 })
@@ -744,6 +689,7 @@ sales.post('/process', protectRoute, (req, res) => {
       total: total,
       totalPay: totalPay
     },
+    uuid: new Date().getTime(),
     createdAt: req.body.date
   }
 
@@ -766,6 +712,7 @@ sales.post('/process', protectRoute, (req, res) => {
       discount: item.discount,
       additionals: item.additionals,
       additionalsTotal: item.additionalTotal,
+      quantityProduct: item.quantityProduct,
       totalItem: item.total,
       employe: item.employe,
       type: item.tag
