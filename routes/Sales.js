@@ -42,27 +42,6 @@ sales.get('/:branch', protectRoute, async (req, res) => {
         res.send(err)
     }
 })
- // input - params id, pasar id
-//  output - status, data and token
-sales.get('/getSale/:id', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Sale = conn.model('sales', saleSchema)
-
-    try{ 
-        const findSale = await Sale.findById(req.params.id)
-        if (findSale) {
-            res.json({status: 'ok', data: findSale, token: req.requestToken})
-        }else{
-            res.json({status: 'sale does exist', token: req.requestToken})
-        }
-    }catch(err){
-        res.send(err)
-    }
-})
 
 // input - params id, pasar id
 //  output - status, data and token
@@ -201,6 +180,29 @@ sales.get('/getClosingDay/:branch', protectRoute, async(req, res) => {
     }catch(err){
         res.send(err)
     }
+})
+
+// input - params id, pasar id
+//  output - status, data and token
+sales.get('/getSale/:id', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+  const Sale = conn.model('sales', saleSchema)
+
+  try{ 
+      const findSale = await Sale.findById(req.params.id)
+      console.log(findSale)
+      if (findSale) {
+          res.json({status: 'ok', data: findSale, token: req.requestToken})
+      }else{
+          res.json({status: 'sale does exist', token: req.requestToken})
+      }
+  }catch(err){
+      res.send(err)
+  }
 })
 
 // input - null
