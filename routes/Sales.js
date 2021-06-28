@@ -191,7 +191,7 @@ sales.get('/getSale/:id', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
   const Sale = conn.model('sales', saleSchema)
-
+  console.log(req.params.id)
   try{ 
       const findSale = await Sale.findById(req.params.id)
       console.log(findSale)
@@ -816,26 +816,42 @@ sales.put('/:id', protectRoute, async (req, res, next) => {
     const DaySale = conn.model('daySales', daySaleSchema)
     const Sale = conn.model('sales', saleSchema)
     const Employe = conn.model('employes', employeSchema)
-
+    const Inventory = conn.model('inventories', inventorySchema)
     const id = req.params.id
-    const dataComision = '-'+req.body.commission
+    
     try {
       const cancelSale = await Sale.findByIdAndUpdate(id, {
         $set: { status: false}
       })
       if (cancelSale) {
+        console.log(cancelSale)
+        const items = cancelSale.items
+        for (let index = 0; index < items.length; index++) {
+          const item = items[index];
+          if (item.type == 'product') {
+            Inventory.findByIdAndUpdate(item.item._id,{
+              $inc: {
+                consume: parseFloat('-'+item.quantityProduct)
+              }
+            }).then(editInventory => {})
+          }else{
+            Employe.findByIdAndUpdate(item.employe.id, {
+              $inc: {
+                commission: parseFloat('-'+item.employe.commission)  
+              }
+            }).then(editEmploye => {})
+            for (const product of item.item.products) {
+              Inventory.findByIdAndUpdate(product.id,{
+                $inc: {
+                  consume: parseFloat('-'+product.count)
+                }
+              }).then(editInventory => {})
+            }
+          }
+        }
         try {
           const removeSale = await DaySale.findOneAndRemove({idTableSales: id})
-          try {
-            const removeComision = await Employe.findByIdAndUpdate(req.body.employeId, {
-              $inc: {
-                commission: parseFloat(dataComision)
-              }
-            })
-            res.json({status: 'ok', token: req.requestToken})
-          }catch(err){res.send(err)}
-          
-          res.status(200).json({status: 'ok', token: req.requestToken})
+          res.json({status: 'ok', token: req.requestToken})
         }catch(err){res.send(err)}
       }
       res.json({status: 'bad'})
