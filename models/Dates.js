@@ -21,7 +21,7 @@ const dateSchema = new Schema({
         type: Array
     },
     services: {
-        type: Object
+        type: Array
     },
     split: {
         type: String

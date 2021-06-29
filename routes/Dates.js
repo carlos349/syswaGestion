@@ -1260,68 +1260,19 @@ dates.post('/endDate/:id', (req, res) => {
     
     Client.findById(req.body.client.id)
     .then(client => {
-        const ifRecomend = client.recommendations > 0 ? true : false
-        const ifFirst = client.attends == 0 ? true : false
-        var discount = 0
-        if (ifRecomend) {
-            discount = 100 - 15
-        }else if(ifFirst){
-            discount = 100 - 10
-        }
-        var total = 0
-        var comision = 0
-        var comisionTotal = 0 
-        if (!req.body.service.descuento) {
-            if (discount > 0) {
-            comision = parseFloat(req.body.service.price) * parseFloat('0.'+discount)
-            comisionTotal = comision * parseFloat('0.'+req.body.service.commission) + comisionTotal
-            total = total + req.body.service.price
-            }else{
-            comision = req.body.service.price 
-            comisionTotal = comision * parseFloat('0.'+req.body.service.commission) + comisionTotal
-            total = total + req.body.service.price
-            }
-        }else{
-            comision = parseFloat(req.body.service.price) 
-            comisionTotal = comision * parseFloat('0.'+req.body.service.commission) + comisionTotal
-            total = total + req.body.service.price
-        }
-  
-        var totalLocal = total - comisionTotal
-        if (discount == 85) {
-            discount = 15
-        }else if(discount == 90){
-            discount = 10
-        }
         const data = {
-            service: req.body.service,
+            services: req.body.service,
             branch:req.body.branch,
             client: req.body.client,
             employe: req.body.employe,
             microServices: req.body.microServices,
-            commision: comisionTotal,
-            totalBranch: totalLocal,
-            total: total,
-            discount: discount,
             createdAt: new Date()
         }
         EndingDates.create(data)
         .then(closed => {
             Dates.findByIdAndUpdate(id, {$set: {process: false}})
             .then(end => {
-                if (discount == 85) {
-                    Client.findByIdAndUpdate(req.body.client.id, {
-                        $inc: {recommendations: -1}
-                    })
-                    .then(recomend => {
-                        res.json({status:'ok'})
-                    })
-                    .catch(err => {
-                        res.send(err)
-                    })
-                }else{
-                    res.json({status:'ok'})
-                }
+                res.json({status:'ok'})
             })
             .catch(err => {
                 res.send(err)
