@@ -42,27 +42,6 @@ sales.get('/:branch', protectRoute, async (req, res) => {
         res.send(err)
     }
 })
- // input - params id, pasar id
-//  output - status, data and token
-sales.get('/getSale/:id', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Sale = conn.model('sales', saleSchema)
-
-    try{ 
-        const findSale = await Sale.findById(req.params.id)
-        if (findSale) {
-            res.json({status: 'ok', data: findSale, token: req.requestToken})
-        }else{
-            res.json({status: 'sale does exist', token: req.requestToken})
-        }
-    }catch(err){
-        res.send(err)
-    }
-})
 
 // input - params id, pasar id
 //  output - status, data and token
@@ -110,7 +89,7 @@ sales.get('/Closing/:branch', protectRoute, async (req, res) => {
 
 //input - branch
 //output - status, data and token
-sales.get('/commissionsTotal/:branch', protectRoute, async (req, res) => {
+sales.get('/totalSales/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
       useNewUrlParser: true,
@@ -118,53 +97,22 @@ sales.get('/commissionsTotal/:branch', protectRoute, async (req, res) => {
   })
   const Sale = conn.model('sales', saleSchema)
   const dateDaily = new Date()
-  const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1"
-  const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31"
-  const sinceBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-1"
-  const untilBefore = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() == 0 ? 12 : dateDaily.getMonth())+"-31"
+  const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1 00:00"
+  const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31 24:00"
 
   try {
     const salesThisMonth = await Sale.find({
       $and: [
           {createdAt: { $gte: sinceActual, $lte: untilActual }},
           {branch: req.params.branch},
-          {expenseValid: true},
           {status:true}
       ]
     })
-    try {
-      const salesBeforeMonth = await Sale.find({
-        $and: [
-            {createdAt: { $gte: sinceBefore, $lte: untilBefore }},
-            {branch: req.params.branch}
-        ]
-      })
-      var thisMonth = 0
-      var totalSales = 0
-      for (const sale of salesThisMonth) {
-        for (const item of sale.items) {
-          if (item.employe.commission) {
-            console.log(item.employe.commission)
-            thisMonth = thisMonth + item.employe.commission
-          }
-        }
-        totalSales = totalSales + sale.totals.total
-      }
-      var beforeMonth = 0
-      for (const sale of salesBeforeMonth) {
-        for (const item of sale.items) {
-          if (item.type = 'service') {
-            beforeMonth = beforeMonth + item.employe.commission
-          }
-        }
-      }
-      const data = {
-        commissionThisMonth: thisMonth,
-        commissionBeforeMonth: beforeMonth,
-        totalSales: totalSales
-      }
-      res.json({status: 'ok', data: data, token: req.requestToken})
-    }catch(err){res.send(err)}
+    var totalSales = 0
+    for (const sale of salesThisMonth) {
+      totalSales = totalSales + sale.totals.total
+    }
+    res.json({status: 'ok', data: totalSales, token: req.requestToken})
   }catch(err){res.send(err)}
 })
 
@@ -232,6 +180,29 @@ sales.get('/getClosingDay/:branch', protectRoute, async(req, res) => {
     }catch(err){
         res.send(err)
     }
+})
+
+// input - params id, pasar id
+//  output - status, data and token
+sales.get('/getSale/:id', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+  const Sale = conn.model('sales', saleSchema)
+  console.log(req.params.id)
+  try{ 
+      const findSale = await Sale.findById(req.params.id)
+      console.log(findSale)
+      if (findSale) {
+          res.json({status: 'ok', data: findSale, token: req.requestToken})
+      }else{
+          res.json({status: 'sale does exist', token: req.requestToken})
+      }
+  }catch(err){
+      res.send(err)
+  }
 })
 
 // input - null
@@ -845,26 +816,42 @@ sales.put('/:id', protectRoute, async (req, res, next) => {
     const DaySale = conn.model('daySales', daySaleSchema)
     const Sale = conn.model('sales', saleSchema)
     const Employe = conn.model('employes', employeSchema)
-
+    const Inventory = conn.model('inventories', inventorySchema)
     const id = req.params.id
-    const dataComision = '-'+req.body.commission
+    
     try {
       const cancelSale = await Sale.findByIdAndUpdate(id, {
         $set: { status: false}
       })
       if (cancelSale) {
+        console.log(cancelSale)
+        const items = cancelSale.items
+        for (let index = 0; index < items.length; index++) {
+          const item = items[index];
+          if (item.type == 'product') {
+            Inventory.findByIdAndUpdate(item.item._id,{
+              $inc: {
+                consume: parseFloat('-'+item.quantityProduct)
+              }
+            }).then(editInventory => {})
+          }else{
+            Employe.findByIdAndUpdate(item.employe.id, {
+              $inc: {
+                commission: parseFloat('-'+item.employe.commission)  
+              }
+            }).then(editEmploye => {})
+            for (const product of item.item.products) {
+              Inventory.findByIdAndUpdate(product.id,{
+                $inc: {
+                  consume: parseFloat('-'+product.count)
+                }
+              }).then(editInventory => {})
+            }
+          }
+        }
         try {
           const removeSale = await DaySale.findOneAndRemove({idTableSales: id})
-          try {
-            const removeComision = await Employe.findByIdAndUpdate(req.body.employeId, {
-              $inc: {
-                commission: parseFloat(dataComision)
-              }
-            })
-            res.json({status: 'ok', token: req.requestToken})
-          }catch(err){res.send(err)}
-          
-          res.status(200).json({status: 'ok', token: req.requestToken})
+          res.json({status: 'ok', token: req.requestToken})
         }catch(err){res.send(err)}
       }
       res.json({status: 'bad'})

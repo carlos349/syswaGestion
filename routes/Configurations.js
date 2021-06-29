@@ -10,7 +10,7 @@ const cors = require('cors')
 
 configurations.use(cors())
 
-configurations.get('/', protectRoute, async (req, res) => {
+configurations.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -20,8 +20,10 @@ configurations.get('/', protectRoute, async (req, res) => {
     const Configuration = conn.model('configurations', configurationSchema)
 
     try {
-        const getConfigurations = await Configuration.find()
-        if (getConfigurations.length > 0) {
+        const getConfigurations = await Configuration.findOne({
+            branch: req.params.branch
+        })
+        if (getConfigurations) {
             res.json({status: 'ok', data: getConfigurations, token: req.requestToken})
         }
     }catch(err){
