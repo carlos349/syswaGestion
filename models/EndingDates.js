@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 const { Schema } = mongoose
 
 const endingdateSchema = new Schema({
-    service: {
-        type: Object
+    services: {
+        type: Array
     },
     client: {
         type: Object
