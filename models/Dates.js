@@ -23,6 +23,9 @@ const dateSchema = new Schema({
     services: {
         type: Array
     },
+    duration: {
+        type: Number
+    },
     split: {
         type: String
     },

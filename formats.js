@@ -10,4 +10,9 @@ formats.dates = (value) => {
     return dateFormat.getDate()+"-"+(dateFormat.getMonth() + 1)+"-"+dateFormat.getFullYear()
 }
 
+formats.datesEdit = (value) => {
+    let dateFormat = new Date(value)
+    return (dateFormat.getMonth()+1)+"-"+dateFormat.getDate()+"-"+dateFormat.getFullYear()
+}
+
 module.exports = formats

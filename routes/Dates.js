@@ -12,7 +12,9 @@ const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
+const formats = require('../formats')
 const cors = require('cors')
+
 
 dates.use(cors())
 
@@ -800,6 +802,34 @@ dates.post('/blocksHoursFirst', async (req, res) => {
 
 // -----------------------------------------------------------------------------
 
+//Api para editar bloques
+
+dates.post('/editdateblockbefore' , async (req, res) => {
+    const blocks = req.body.block
+    const employe = req.body.employe
+    const start = req.body.start
+    const end = req.body.end
+    employe.valid = true
+    var valid = false
+    for (const block of blocks) {
+        if (valid) {
+            block.employes.push(employe)
+            block.validator = true
+            if (block.hour == end) {
+                valid = false
+            }
+        }
+        if (block.hour == start) {
+            valid = true
+            block.employes.push(employe)
+            block.validator = true
+        }
+    }
+
+    res.json({data:blocks})
+
+})
+
 //Api que busca y crea los bloques de horarios (Ingreso: date, timedate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timedate, hour, branch, employe)
 
 dates.post('/selectDatesBlocks', async (req, res) => {
@@ -1095,8 +1125,10 @@ dates.post('/noOneLender',  (req, res) => {
                 commission: element.commission, 
                 price: element.price, 
                 discount: element.discount,
-                products: element.products
+                products: element.products,
+                employes:element.employes
             },
+            duration:element.duration,
             client: {
                 id: client.id,
                 name: client.name,
@@ -1285,6 +1317,58 @@ dates.post('/endDate/:id', (req, res) => {
     .catch(err => {
       res.send(err)
     })
+  })
+
+  dates.post('/editdate', async (req,res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Dates = conn.model('dates', dateSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+
+    const blocks = req.body.blocks
+    const dataEdit = req.body.data
+    console.log()
+    try{
+        const editDate = await Dates.findByIdAndUpdate(dataEdit._id,{
+            $set: {
+                createdAt:dataEdit.createdAt,
+                start: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.startEdit,
+                end: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.endEdit,
+                employe: dataEdit.employe,
+                duration: dataEdit.duration
+            }
+        })
+        if (editDate) {
+            for (const block of blocks) {
+                if (block.validator == 'select') {
+                    if (block.employes.length > 0) {
+                        block.validator = true
+                    }else{
+                        block.validator = false
+                    }
+                }
+            }
+            try{
+                const findBlocks = await  dateBlock.findByIdAndUpdate(dataEdit.idBlock, {
+                    $set: {
+                        blocks: blocks
+                    }
+                })
+
+                if (findBlocks) {
+                    res.json({status: 'ok'})
+                }
+            }catch(err){
+                res.send(err)
+            }
+        }
+    }catch(err){
+        res.send(err)
+    }
   })
 
 module.exports = dates
