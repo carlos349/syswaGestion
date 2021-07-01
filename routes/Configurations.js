@@ -10,6 +10,22 @@ const cors = require('cors')
 
 configurations.use(cors())
 
+configurations.get('/profiles', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Profiles = conn.model('accessprofiles', profilesSchema)
+
+    try {
+        const getProfiles = await Profiles.find().limit(1)
+        res.json({status: 'ok', data: getProfiles, token: req.requestToken})
+    }catch(err){
+        res.send(err)
+    }
+})
+
 configurations.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -29,6 +45,19 @@ configurations.get('/:branch', protectRoute, async (req, res) => {
     }catch(err){
         res.send(err)
     }
+})
+
+
+configurations.get('/getProfiles', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    console.log(database)
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    console.log(database)
+    // res.json({status: 'ok', data: database, token: req.requestToken})
+    
 })
 
 configurations.get('/addFirstProfile', async (req, res) => {
@@ -200,23 +229,6 @@ configurations.get('/getMicroservice/:branch', async (req, res) => {
         }else{
             res.json({status: 'bad', token: req.requestToken})
         }
-    }catch(err){
-        res.send(err)
-    }
-})
-
-configurations.get('/getProfiles', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-
-    const Profiles = conn.model('accessprofiles', profilesSchema)
-
-    try {
-        const getProfiles = await Profiles.find()
-        res.json({status: 'ok', data: getProfiles, token: req.requestToken})
     }catch(err){
         res.send(err)
     }
