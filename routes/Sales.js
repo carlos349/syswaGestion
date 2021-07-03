@@ -319,6 +319,11 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
                 ]
             })
             if(sales.length > 0){
+              try {
+
+              }catch(err){
+                console.log(err)
+              }
               for (let index = 0; index < sales.length; index++) {
                 const element = sales[index];
 
@@ -326,21 +331,23 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
                 for (let e = 0; e < element.typesPay.length; e++) {
                     const elementTwo = element.typesPay[e];
                     if (elementTwo.total > 0) {
-                      typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
+                      typesPay = typesPay + elementTwo.type + ': ' + elementTwo.total + ' '
                     }
                 }
-
-                var items = ''
-                for (const elementTwo of element.items) {
-                  if (elementTwo.type == 'service') {
-                    var additional = elementTwo.additionals.length > 0 ? elementTwo.additionals.length : 'sin adicional'
-                    items = items + 'Servicio: '+elementTwo.item.name+' Adicional: '+additional+' Total: '+formats.price(elementTwo.totalItem)+' '
-                  }else{
-                    items = items + 'Product: '+elementTwo.item.name+' Cantidad: '+elementTwo.quantityProduct+' Total: '+formats.price(elementTwo.totalItem)+' '
+                for (const items of element.items) {
+                  var additionals = ''
+                  var totalAddi = 0
+                  for (const addi of items.additionals) {
+                    additionals = additionals == '' ? addi.name : + ', ' + addi.name
+                    totalAddi = totalAddi + addi.price
                   }
+                  if (items.type == 'service') {
+                    dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: '', Servicio: items.item.name, Precio: items.item.price, Adicionales: additionals == '' ? 'Sin adicional' : additionals, 'Total Adicionales': totalAddi,  'Tipo de pago': typesPay, Total: items.totalItem})
+                  }else{
+                    dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: items.item.name+', Cantidad: '+items.quantityProduct, Servicio: '', Precio: items.item.price, Adicionales: 'Sin adicional', 'Total Adicionales': 'Sin adicional',  'Tipo de pago': typesPay, Total: items.totalItem})
+                  }
+                  
                 }
-                
-                dataTable.push({'ID de venta': element.uuid, Fecha: formats.dates(element.createdAt), Cliente: element.client.firstName+' '+element.client.lastName, ítems: items, typesPay, Total: element.totals.total})
               }
               console.log(dataTable)
               res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
@@ -368,21 +375,23 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
             for (let e = 0; e < element.typesPay.length; e++) {
                 const elementTwo = element.typesPay[e];
                 if (elementTwo.total > 0) {
-                  typesPay = typesPay + elementTwo.type + ':' + elementTwo.total + ' '
+                  typesPay = typesPay + elementTwo.type + ': ' + elementTwo.total + ' '
                 }
             }
-
-            var items = ''
-            for (const elementTwo of element.items) {
-              if (elementTwo.type == 'service') {
-                var additional = elementTwo.additionals.length > 0 ? elementTwo.additionals.length : 'sin adicional'
-                items = items + 'Servicio: '+elementTwo.item.name+' Adicional: '+additional+' Total: '+formats.price(elementTwo.totalItem)+' '
-              }else{
-                items = items + 'Product: '+elementTwo.item.name+' Cantidad: '+elementTwo.quantityProduct+' Total: '+formats.price(elementTwo.totalItem)+' '
+            for (const items of element.items) {
+              var additionals = ''
+              var totalAddi = 0
+              for (const addi of items.additionals) {
+                additionals = additionals == '' ? addi.name : + ', ' + addi.name
+                totalAddi = totalAddi + addi.price
               }
+              if (items.type == 'service') {
+                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: '', Servicio: items.item.name, Precio: items.item.price, Adicionales: additionals == '' ? 'Sin adicional' : additionals, 'Total Adicionales': totalAddi,  'Tipo de pago': typesPay, Total: items.totalItem})
+              }else{
+                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: items.item.name+', Cantidad: '+items.quantityProduct, Servicio: '', Precio: items.item.price, Adicionales: 'Sin adicional', 'Total Adicionales': 'Sin adicional',  'Tipo de pago': typesPay, Total: items.totalItem})
+              }
+              
             }
-            
-            dataTable.push({'ID de venta': element.uuid, Fecha: formats.dates(element.createdAt), Cliente: element.client.firstName+' '+element.client.lastName, ítems: items, typesPay, Total: element.totals.total})
           }
           console.log(dataTable)
           res.json({status: 'ok', dataTable: dataTable, token: req.requestToken})
