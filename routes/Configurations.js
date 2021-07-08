@@ -26,7 +26,7 @@ configurations.get('/profiles', protectRoute, async (req, res) => {
     }
 })
 
-configurations.get('/:branch', protectRoute, async (req, res) => {
+configurations.get('/:branch', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,

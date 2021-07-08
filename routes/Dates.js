@@ -708,11 +708,14 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     if (element.employes.length == 0) {
                         element.validator = false
                     }
-                }   
+                }
+                
                 const dataConfiguration = {
                     dateData: {
                         branch: req.body.branch,
-                        date: req.body.date
+                        date: req.body.date,
+                        dateFormat: new Date(req.body.date+' 10:00'),
+                        dateDay: new Date(req.body.date+' 10:00').getDay()
                     },
                     blocks: blocksFirst
                 }
