@@ -578,84 +578,102 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             ]
         })
         if (finddate) {
-            const blocksFirst = finddate.blocks
-            for (let i = 0; i < employesServices.length; i++) {
-                const element = employesServices[i];
-                for (let u = 0; u < blocksFirst.length; u++) {
-                    const elementTwo = blocksFirst[u];
-                    for (let o = 0; o < elementTwo.employes.length; o++) {
-                        const elementThree = elementTwo.employes[o];
-                        if (element.id == elementThree.id) {
-                            elementThree.valid = true
+            try {
+                const findConfiguration = await Configuration.findOne({branch: req.body.branch})
+                const blocksFirst = finddate.blocks
+                for (let i = 0; i < employesServices.length; i++) {
+                    const element = employesServices[i];
+                    for (let u = 0; u < blocksFirst.length; u++) {
+                        const elementTwo = blocksFirst[u];
+                        for (let o = 0; o < elementTwo.employes.length; o++) {
+                            const elementThree = elementTwo.employes[o];
+                            if (element.id == elementThree.id) {
+                                elementThree.valid = true
+                            }
                         }
                     }
                 }
-            }
-            for (let i = 0; i < employesServices.length; i++) {
-                const employeService = employesServices[i];
-                for (let e = 0; e < blocksFirst.length; e++) {
-                    const block = blocksFirst[e];
-                    var valid = false
-                    for (let r = 0; r < block.employes.length; r++) {
-                        const employeBlock = block.employes[r];
-                        if (employeBlock.id  == employeService.id) {
-                            valid = true
+                for (let i = 0; i < employesServices.length; i++) {
+                    const employeService = employesServices[i];
+                    for (let e = 0; e < blocksFirst.length; e++) {
+                        const block = blocksFirst[e];
+                        var valid = false
+                        for (let r = 0; r < block.employes.length; r++) {
+                            const employeBlock = block.employes[r];
+                            if (employeBlock.id  == employeService.id) {
+                                valid = true
+                            }
                         }
-                    }
-                    if (valid == false && blocksFirst[e-1]) {
-                        for (let u = 1; u <= hoursdate / 15; u++) {
-                            if (blocksFirst[e - u]) {
-                                for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
-                                    if (blocksFirst[e - u].employes[r].id  == employeService.id) {
-                                        blocksFirst[e - u].employes[r].valid = false
+                        if (valid == false && blocksFirst[e-1]) {
+                            for (let u = 1; u <= hoursdate / 15; u++) {
+                                if (blocksFirst[e - u]) {
+                                    for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
+                                        if (blocksFirst[e - u].employes[r].id  == employeService.id) {
+                                            blocksFirst[e - u].employes[r].valid = false
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            // res.json({status: 'ok', data: blocksFirst})
-            for (let e = 0; e < blocksFirst.length; e++) {
-                const element = blocksFirst[e];
-                if (blocksFirst[e-1]) {
-                    if (element.validator == true) {
-                        var valid = true
-                        for (let i = 0; i < element.employes.length; i++) {
-                            const elementTwo = element.employes[i];
-                            if (elementTwo.valid == true) {
-                                valid = false
-                                break
+                // res.json({status: 'ok', data: blocksFirst})
+                for (let e = 0; e < blocksFirst.length; e++) {
+                    const element = blocksFirst[e];
+                    if (blocksFirst[e-1]) {
+                        if (element.validator == true) {
+                            var valid = true
+                            for (let i = 0; i < element.employes.length; i++) {
+                                const elementTwo = element.employes[i];
+                                if (elementTwo.valid == true) {
+                                    valid = false
+                                    break
+                                }
+                            }
+                            if (valid) {
+                                element.validator = 'unavailable'
                             }
                         }
-                        if (valid) {
-                            element.validator = 'unavailable'
-                        }
-                    }
-                    if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
-                        for (let u = 1; u <= hoursdate / 15; u++) {
-                            if (blocksFirst[e - u]) {
-                                blocksFirst[e - u].validator = 'unavailable'
+                        if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
+                            for (let u = 1; u <= hoursdate / 15; u++) {
+                                if (blocksFirst[e - u]) {
+                                    blocksFirst[e - u].validator = 'unavailable'
+                                }
                             }
                         }
-                    }
-                    if (blocksFirst.length - 1 == e) {
-                        for (let u = 0; u < hoursdate / 15; u++) {
-                            if (blocksFirst[e - u]) {
-                                blocksFirst[e - u].validator = 'unavailable'
+                        if (blocksFirst.length - 1 == e) {
+                            for (let u = 0; u < hoursdate / 15; u++) {
+                                if (blocksFirst[e - u]) {
+                                    blocksFirst[e - u].validator = 'unavailable'
+                                }
                             }
                         }
                     }
                 }
-            }
+                
+                const thisDate = new Date()
+                const dateSelected = new Date(req.body.date)
+                if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
+                    const hour = thisDate.getHours() - findConfiguration.datesPolitics.minTypeDate
+                    for (const key in blocksFirst) {
+                        const element = blocksFirst[key]
+                        
+                        if (element.hour.split(':')[0] == hour) {
+                            break
+                        }
+                        element.validator = 'unavailable'
+                    }
+                }
 
-            res.json({status: 'ok', data: blocksFirst, id: finddate._id})
+                res.json({status: 'ok', data: blocksFirst, id: finddate._id})
+            }catch(err){
+                res.send(err)
+            }
         }else{
             try {
                 const findConfiguration = await Configuration.findOne({branch: req.body.branch})
                 const getDay = findConfiguration.blockHour.filter(day => day.day == Day)[0]
-                console.log(getDay)
                 var blocksFirst = []
                 var splitHour = parseFloat(getDay.start.split(':')[0])
                 var splitMinutes = getDay.start.split(':')[1]
@@ -680,7 +698,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
                     }
                 }
-                console.log(blocksFirst)
                 for (let i = 0; i < employes.length; i++) {
                     const element = employes[i];
                     const restInit = element.restTime.split('/')[0]
@@ -707,6 +724,20 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     const element = blocksFirst[i];
                     if (element.employes.length == 0) {
                         element.validator = false
+                    }
+                }
+
+                const thisDate = new Date()
+                const dateSelected = new Date(req.body.date)
+                if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
+                    const hour = thisDate.getHours() - findConfiguration.datesPolitics.minTypeDate
+                    for (const key in blocksFirst) {
+                        const element = blocksFirst[key]
+                        
+                        if (element.hour.split(':')[0] == hour) {
+                            break
+                        }
+                        element.validator = 'unavailable'
                     }
                 }
                 
