@@ -554,15 +554,18 @@ configurations.post('/editblockhour', async (req,res) => {
                 console.log(last)
                 const blocks = block.blocks
                 let splitMinutes, splitHour, hour
-                
-                if (first != element.start && element.start < first ) {
-                    
+                const splitStart = element.start.split(":")[0]+element.start.split(":")[1]
+                const splitFirst = first.split(":")[0]+first.split(":")[1]
+                const splitEnd = element.end.split(":")[0]+element.end.split(":")[1]
+                const splitLast = last.split(":")[0]+last.split(":")[1]
+
+                if (first != element.start && parseFloat(splitStart) < parseFloat(splitFirst) ) {
+                    console.log("entra aqui?")
                     splitMinutes = first.split(":")[1]
                     splitHour = first.split(":")[0]
                     
                     for (let q = 0; q < 120; q++) {
                         splitMinutes = parseFloat(splitMinutes - 15)
-                        console.log(splitMinutes)
                         if (splitMinutes == (-15)) {
                             splitHour--
                         } 
@@ -572,15 +575,13 @@ configurations.post('/editblockhour', async (req,res) => {
                             splitMinutes = '00'
                         }
                         hour = splitHour+':'+splitMinutes
-                        console.log("ciclo for")
-                        console.log(hour)
                         blocks.unshift({hour: hour, validator:true, employes: employesArray})
                         if (hour == element.start) {
                             break
                         }
                     }
                 }
-                if (first != element.start && element.start > first) {
+                if (first != element.start && parseFloat(splitStart) > parseFloat(splitFirst)) {
                     for (let a = 0; a < 120; a++) {
                         blocks.splice(0,1)
                         if (blocks[0].hour == element.start) {
@@ -589,7 +590,7 @@ configurations.post('/editblockhour', async (req,res) => {
                     }
                     
                 }
-                if (last != element.end && element.end > last) {
+                if (last != element.end && parseFloat(splitEnd) > parseFloat(splitLast)) {
                     splitMinutes = last.split(":")[1]
                     splitHour = last.split(":")[0]
                     for (let q = 0; q < 120; q++) {
@@ -607,7 +608,7 @@ configurations.post('/editblockhour', async (req,res) => {
                         }
                     }
                 }
-                if (last != element.end && element.end < last) {
+                if (last != element.end && parseFloat(splitEnd) < parseFloat(splitLast)) {
                     for (let a = 0; a < 120; a++) {
                         blocks.splice(blocks.length - 1,1)
                         if (blocks[blocks.length - 1].hour == element.end) {
