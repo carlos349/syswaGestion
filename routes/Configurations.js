@@ -3,9 +3,11 @@ const express = require('express')
 const configurations = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
+const datesBlockSchema = require('../models/datesBlocks')
 const configurationSchema = require('../models/Configurations')
 const profilesSchema = require('../models/accessProfile')
 const credentialSchema = require('../models/userCrendentials')
+const employeSchema = require('../models/Employes')
 const cors = require('cors')
 
 configurations.use(cors())
@@ -517,6 +519,115 @@ configurations.delete('/:branch', protectRoute, async (req, res) => {
     }catch(err){
         res.send(err)
     }
+})
+
+configurations.post('/editblockhour', async (req,res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Employe = conn.model('employes', employeSchema)
+    let employesArray = []
+    try{
+        const findEmployes = await Employe.find({branch:req.body.branch})
+        if (findEmployes) {
+            const employes = findEmployes
+            employes.forEach(element => {
+                employesArray.push({name: element.firstName + ' ' + element.lastName, id: element._id, class:element.class, valid:false, img: element.img ? element.img : 'no'})
+            });
+        }
+    }catch(err){
+        res.send(err)
+    }
+
+    const element = req.body.blockHour
+    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+    .then(res => {
+        if (res.length > 0) {
+            for (let i = 0; i < res.length; i++) {
+                const block = res[i];
+                
+                const first = block.blocks[0].hour
+                const last = block.blocks[block.blocks.length - 1].hour
+                console.log(last)
+                const blocks = block.blocks
+                let splitMinutes, splitHour, hour
+                
+                if (first != element.start && element.start < first ) {
+                    
+                    splitMinutes = first.split(":")[1]
+                    splitHour = first.split(":")[0]
+                    
+                    for (let q = 0; q < 120; q++) {
+                        splitMinutes = parseFloat(splitMinutes - 15)
+                        console.log(splitMinutes)
+                        if (splitMinutes == (-15)) {
+                            splitHour--
+                        } 
+                        
+                        splitMinutes = splitMinutes == -15 ? '45' : splitMinutes
+                        if (splitMinutes == 0) {
+                            splitMinutes = '00'
+                        }
+                        hour = splitHour+':'+splitMinutes
+                        console.log("ciclo for")
+                        console.log(hour)
+                        blocks.unshift({hour: hour, validator:true, employes: employesArray})
+                        if (hour == element.start) {
+                            break
+                        }
+                    }
+                }
+                if (first != element.start && element.start > first) {
+                    for (let a = 0; a < 120; a++) {
+                        blocks.splice(0,1)
+                        if (blocks[0].hour == element.start) {
+                            break
+                        }
+                    }
+                    
+                }
+                if (last != element.end && element.end > last) {
+                    splitMinutes = last.split(":")[1]
+                    splitHour = last.split(":")[0]
+                    for (let q = 0; q < 120; q++) {
+                        splitMinutes = parseFloat(splitMinutes + 15)
+                        if (splitMinutes == 60) {
+                            splitHour++
+                        }
+                        console.log('hour:' + splitHour + 'minute:' + splitMinutes)
+                        splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                        
+                        hour = splitHour+':'+splitMinutes
+                        blocks.push({hour: hour, validator:true, employes: employesArray})
+                        if (hour == element.end) {
+                            break
+                        }
+                    }
+                }
+                if (last != element.end && element.end < last) {
+                    for (let a = 0; a < 120; a++) {
+                        blocks.splice(blocks.length - 1,1)
+                        if (blocks[blocks.length - 1].hour == element.end) {
+                            break
+                        }
+                    }
+                    
+                }
+                console.log("aqui")
+                console.log(blocks[0])
+                dateBlock.findByIdAndUpdate(block._id,{
+                    $set:{
+                        blocks:blocks
+                    }
+                }).then(resEdit=>{}) 
+            }
+            
+        }
+        res.json({status:'ok'})
+    }).catch(err => res.send(err))
 })
 
 module.exports = configurations
