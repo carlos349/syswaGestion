@@ -558,7 +558,7 @@ configurations.post('/editblockhour', async (req,res) => {
                 const splitFirst = first.split(":")[0]+first.split(":")[1]
                 const splitEnd = element.end.split(":")[0]+element.end.split(":")[1]
                 const splitLast = last.split(":")[0]+last.split(":")[1]
-
+                 console.log("ESTE:"+ splitLast)
                 if (first != element.start && parseFloat(splitStart) < parseFloat(splitFirst) ) {
                     console.log("entra aqui?")
                     splitMinutes = first.split(":")[1]
@@ -594,7 +594,7 @@ configurations.post('/editblockhour', async (req,res) => {
                     splitMinutes = last.split(":")[1]
                     splitHour = last.split(":")[0]
                     for (let q = 0; q < 120; q++) {
-                        splitMinutes = parseFloat(splitMinutes + 15)
+                        splitMinutes = parseFloat(splitMinutes) + parseFloat(15)
                         if (splitMinutes == 60) {
                             splitHour++
                         }
