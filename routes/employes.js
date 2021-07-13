@@ -418,13 +418,11 @@ employes.put('/', protectRoute, async (req,res) => {
                                                             
                                                             if (elementB.id == req.body.id) {
                                                                 blocks[j + q].employes.splice(indexB, 1)
-                                                                console.log(blocks[j + q])
                                                             }
                                                         }
                                                     }
                                                 }
                                             }
-                                            console.log(blocks)
                                             dateBlock.findByIdAndUpdate(res[e]._id,{
                                                 $set:{
                                                     blocks:blocks
