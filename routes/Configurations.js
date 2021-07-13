@@ -548,19 +548,15 @@ configurations.post('/editblockhour', async (req,res) => {
         if (res.length > 0) {
             for (let i = 0; i < res.length; i++) {
                 const block = res[i];
-                
                 const first = block.blocks[0].hour
                 const last = block.blocks[block.blocks.length - 1].hour
-                console.log(last)
                 const blocks = block.blocks
                 let splitMinutes, splitHour, hour
                 const splitStart = element.start.split(":")[0]+element.start.split(":")[1]
                 const splitFirst = first.split(":")[0]+first.split(":")[1]
                 const splitEnd = element.end.split(":")[0]+element.end.split(":")[1]
                 const splitLast = last.split(":")[0]+last.split(":")[1]
-                 console.log("ESTE:"+ splitLast)
                 if (first != element.start && parseFloat(splitStart) < parseFloat(splitFirst) ) {
-                    console.log("entra aqui?")
                     splitMinutes = first.split(":")[1]
                     splitHour = first.split(":")[0]
                     
@@ -598,7 +594,6 @@ configurations.post('/editblockhour', async (req,res) => {
                         if (splitMinutes == 60) {
                             splitHour++
                         }
-                        console.log('hour:' + splitHour + 'minute:' + splitMinutes)
                         splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
                         
                         hour = splitHour+':'+splitMinutes
@@ -617,8 +612,6 @@ configurations.post('/editblockhour', async (req,res) => {
                     }
                     
                 }
-                console.log("aqui")
-                console.log(blocks[0])
                 dateBlock.findByIdAndUpdate(block._id,{
                     $set:{
                         blocks:blocks
