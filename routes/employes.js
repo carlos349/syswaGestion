@@ -310,7 +310,7 @@ employes.delete('/:id', protectRoute, async (req, res) => {
     const Employe = conn.model('employes', employeSchema)
 
     try{
-        const deleteEmploye = await Employe.findOneAndRemove(req.params.id)
+        const deleteEmploye = await Employe.findByIdAndRemove(req.params.id)
         if (deleteEmploye) {
             res.json({status: 'employe deleted', data:deleteEmploye, token: req.requestToken })
         }else{
