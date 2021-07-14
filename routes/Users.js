@@ -31,18 +31,18 @@ users.post('/createUserCertificate', async (req, res, next) => {
                 {
                         "ruta" : "usuarios",
                         "validaciones" : [
-                                "editar",
-                                "registrar",
-                                "eliminar"
+                            "editar",
+                            "registrar",
+                            "eliminar",
+                            "perfiles"
                         ]
                 },
                 {
                         "ruta" : "procesar",
                         "validaciones" : [
-                                "editar",
-                                "nuevo_cliente",
-                                "nuevo_servicio",
-                                "descuento"
+                            "editar",
+                            "nuevo_cliente",
+                            "descuento"
                         ]
                 },
                 {
@@ -54,95 +54,121 @@ users.post('/createUserCertificate', async (req, res, next) => {
                 {
                         "ruta" : "ventas",
                         "validaciones" : [
-                                "filtrar",
-                                "anular",
-                                "detalle"
+                            "filtrar",
+                            "anular",
+                            "detalle",
+                            "correo",
+                            "reporte"
                         ]
                 },
                 {
                         "ruta" : "servicios",
                         "validaciones" : [
-                                "editar",
-                                "ingresar",
-                                "activaciones"
+                            "editar",
+                            "ingresar",
+                            "activaciones",
+                            "categoria",
+                            "eliminar"
                         ]
                 },
                 {
                         "ruta" : "empleados",
                         "validaciones" : [
-                                "registrar",
-                                "detalle",
-                                "editar",
-                                "reportes",
-                                "cerrar ventas",
-                                "eliminar",
-                                "adelantos",
-                                "correos"
+                            "registrar",
+                            "detalle",
+                            "editar",
+                            "reportes",
+                            "cerrar ventas",
+                            "eliminar",
+                            "adelantos",
+                            "correos"
                         ]
                 },
                 {
                         "ruta" : "clientes",
                         "validaciones" : [
-                                "filtrar",
-                                "registrar",
-                                "editar",
-                                "detalle",
-                                "eliminar",
-                                "correos"
+                            "filtrar",
+                            "registrar",
+                            "editar",
+                            "detalle",
+                            "eliminar",
+                            "correos",
+                            "excel"
                         ]
                 },
                 {
                         "ruta" : "inventario",
                         "validaciones" : [
-                                "filtrar",
-                                "registrar",
-                                "editar",
-                                "detalle",
-                                "eliminar"
+                            "cerrar",
+                            "cambiar_tipo"
                         ]
                 },
                 {
                         "ruta" : "gastos",
                         "validaciones" : [
-                                "registrar"
+                            "registrar_bono",
+                            "registrar_gasto",
+                            "cierre",
+                            "registrar_inversion",
+                            "filtrar",
+                            "eliminar"
                         ]
                 },
                 {
                         "ruta" : "agendamiento",
                         "validaciones" : [
-                                "filtrar",
-                                "agendar",
-                                "todas",
-                                "editar",
-                                "eliminar",
-                                "cerrar",
-                                "finalizar",
-                                "procesar"
+                            "filtrar",
+                            "agendar",
+                            "todas",
+                            "editar",
+                            "eliminar",
+                            "cerrar",
+                            "finalizar",
+                            "confirmacion"
                         ]
                 },
                 {
                         "ruta" : "caja",
-                        "validaciones" : [ ]
+                        "validaciones" : [
+                            "fondo",
+                            "cerrar",
+                            "visualizar",
+                            "editar",
+                            "Reporte"
+                        ]
                 },
                 {
                         "ruta" : "pedidos",
                         "validaciones" : [
-                                "filtrar",
-                                "registrar",
-                                "editar",
-                                "detalle",
-                                "eliminar",
-                                "correos"
+                            "filtrar",
+                            "registrar",
+                            "editar",
+                            "detalle",
+                            "eliminar",
+                            "correos"
                         ]
                 },
                 {
                     "ruta" : "sucursales",
                     "validaciones" : [
+                        "cambiar",
+                        "registrar",
+                        "configurar"
                     ]
                 },
                 {
                     "ruta" : "bodega",
                     "validaciones" : [
+                        "registrar_producto",
+                        "gestion_sucursales",
+                        "registrar_proveedores",
+                        "cierre_bodega",
+                        "anexar_productos",
+                        "editar_producto",
+                        "eliminar_producto",
+                        "editar_proveedor",
+                        "eliminar_proveedor",
+                        "ver_historial_compras"
                     ]
                 }
             ]

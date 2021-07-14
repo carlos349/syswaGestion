@@ -279,15 +279,15 @@ configurations.post('/addFirstProfile', async (req, res) => {
                             "validaciones" : [
                                 "editar",
                                 "registrar",
-                                "eliminar"
+                                "eliminar",
+                                "perfiles"
                             ]
                         },
                         {
                             "ruta" : "procesar",
                             "validaciones" : [
-                                "editar",
+                                "editar_cliente",
                                 "nuevo_cliente",
-                                "nuevo_servicio",
                                 "descuento"
                             ]
                         },
@@ -302,7 +302,9 @@ configurations.post('/addFirstProfile', async (req, res) => {
                             "validaciones" : [
                                 "filtrar",
                                 "anular",
-                                "detalle"
+                                "detalle",
+                                "correo",
+                                "reporte"
                             ]
                         },
                         {
@@ -310,7 +312,9 @@ configurations.post('/addFirstProfile', async (req, res) => {
                             "validaciones" : [
                                 "editar",
                                 "ingresar",
-                                "activaciones"
+                                "activaciones",
+                                "categoria",
+                                "eliminar"
                             ]
                         },
                         {
@@ -334,23 +338,26 @@ configurations.post('/addFirstProfile', async (req, res) => {
                                 "editar",
                                 "detalle",
                                 "eliminar",
-                                "correos"
+                                "correos",
+                                "excel"
                             ]
                         },
                         {
                             "ruta" : "inventario",
                             "validaciones" : [
-                                "filtrar",
-                                "registrar",
-                                "editar",
-                                "detalle",
-                                "eliminar"
+                                "cerrar",
+                                "cambiar_tipo"
                             ]
                         },
                         {
                             "ruta" : "gastos",
                             "validaciones" : [
-                                "registrar"
+                                "registrar_bono",
+                                "registrar_gasto",
+                                "cierre",
+                                "registrar_inversion",
+                                "filtrar",
+                                "eliminar"
                             ]
                         },
                         {
@@ -363,12 +370,18 @@ configurations.post('/addFirstProfile', async (req, res) => {
                                 "eliminar",
                                 "cerrar",
                                 "finalizar",
-                                "procesar"
+                                "confirmacion"
                             ]
                         },
                         {
                             "ruta" : "caja",
-                            "validaciones" : [ ]
+                            "validaciones" : [
+                                "fondo",
+                                "cerrar",
+                                "visualizar",
+                                "editar",
+                                "Reporte"
+                            ]
                         },
                         {
                             "ruta" : "pedidos",
@@ -384,11 +397,24 @@ configurations.post('/addFirstProfile', async (req, res) => {
                         {
                             "ruta" : "sucursales",
                             "validaciones" : [
+                                "cambiar",
+                                "registrar",
+                                "configurar"
                             ]
                         },
                         {
                             "ruta" : "bodega",
                             "validaciones" : [
+                                "registrar_producto",
+                                "gestion_sucursales",
+                                "registrar_proveedores",
+                                "cierre_bodega",
+                                "anexar_productos",
+                                "editar_producto",
+                                "eliminar_producto",
+                                "editar_proveedor",
+                                "eliminar_proveedor",
+                                "ver_historial_compras"
                             ]
                         }
                     ]
