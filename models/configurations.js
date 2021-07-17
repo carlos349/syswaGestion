@@ -23,6 +23,12 @@ const configurationSchema = new Schema({
     businessLocation: {
         type: String
     },
+    bussinessLogo: { 
+        type: String
+    },
+    businessEmail: {
+        type: String
+    },
     typesPay: {
         type: Array
     },

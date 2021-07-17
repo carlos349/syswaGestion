@@ -3,11 +3,15 @@ const express = require('express')
 const configurations = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
+const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const configurationSchema = require('../models/Configurations')
 const profilesSchema = require('../models/accessProfile')
 const credentialSchema = require('../models/userCrendentials')
 const employeSchema = require('../models/Employes')
+const uploadS3 = require('../common-midleware/index')
+const jwt = require('jsonwebtoken')
+const key = require('../private/key-jwt');
 const cors = require('cors')
 
 configurations.use(cors())
@@ -186,6 +190,8 @@ configurations.post('/', protectRoute, async (req, res) => {
         businessPhone: req.body.businessPhone,
         businessType: req.body.businessType,
         businessLocation: req.body.businessLocation,
+        bussinessLogo: req.body.file,
+        businessEmail: req.body.email,
         typesPay: req.body.typesPay,
         currency: req.body.currency,
         datesPolitics: {
@@ -209,6 +215,14 @@ configurations.post('/', protectRoute, async (req, res) => {
         }
     }catch(err){
         res.send(err)
+    }
+})
+
+configurations.post('/uploadLogo', protectRoute, uploadS3.single("image"), (req, res) => {
+    if (req.file) {
+        res.json({status: 'ok', file: req.file.location})
+    }else{
+        res.json({status: 'bad'})
     }
 })
 
@@ -461,92 +475,6 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
     }
 })
 
-configurations.post('/addBlackList/:id', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
-
-    try {
-        const editConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
-            $push: {
-                blackList: req.body.client
-            }
-        })
-        if (editConfiguration) {
-            res.json({status: 'ok', token: req.requestToken})
-        }
-    }catch(err){
-        res.send(err)
-    }
-})
-
-
-configurations.post('/removeBlackList/:id', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
-
-    try {
-        const editConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
-            $splice: [
-                blackList, 
-                req.body.position, 
-                1
-            ]
-        })
-        if (editConfiguration) {
-            res.json({status: 'ok', token: req.requestToken})
-        }
-    }catch(err){
-        res.send(err)
-    }
-})
-
-configurations.put('/editProfiles/:id', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-
-    const Profiles = conn.model('accessprofiles', profilesSchema)
-
-    try {
-        const editProfile = await Profiles.findByIdAndUpdate(req.params.id, {
-            $set : {
-                profiles: req.body.profiles
-            }
-        })
-        if (editProfile) {
-            res.json({status: 'ok', token: req.requestToken})
-        }
-    }catch(err){res.send(err)}
-})
-
-configurations.delete('/:branch', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
-
-    try {
-        const deleteConfiguration = await Configuration.findOneAndDelete({branch: req.body.branch})
-        if (deleteConfiguration) {
-            res.json({status: 'ok', token: req.requestToken})
-        }
-    }catch(err){
-        res.send(err)
-    }
-})
-
 configurations.post('/editblockhour', async (req,res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -648,6 +576,141 @@ configurations.post('/editblockhour', async (req,res) => {
         }
         res.json({status:'ok'})
     }).catch(err => res.send(err))
+})
+
+configurations.post('/addBlackList/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    try {
+        const editConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
+            $push: {
+                blackList: req.body.client
+            }
+        })
+        if (editConfiguration) {
+            res.json({status: 'ok', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+
+configurations.post('/removeBlackList/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    try {
+        const editConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
+            $splice: [
+                blackList, 
+                req.body.position, 
+                1
+            ]
+        })
+        if (editConfiguration) {
+            res.json({status: 'ok', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+configurations.put('/editProfiles/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Profiles = conn.model('accessprofiles', profilesSchema)
+
+    try {
+        const editProfile = await Profiles.findByIdAndUpdate(req.params.id, {
+            $set : {
+                profiles: req.body.profiles
+            }
+        })
+        if (editProfile) {
+            res.json({status: 'ok', token: req.requestToken})
+        }
+    }catch(err){res.send(err)}
+})
+
+configurations.put('/editAccessUsers/:name', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const User = conn.model('users', userSchema)
+
+    try {
+        const findUsers = await User.updateMany(
+            {
+                status: req.params.name
+            },
+            {
+                $set: {access: req.body.access}
+            }
+        )
+        if (findUsers) {
+            try {
+                const findUser = await User.findById(req.body.id)
+                if (findUser.status == req.params.name) {
+                    const payload = {
+						_id: findUser._id,
+						first_name: findUser.first_name,
+						last_name: findUser.last_name,
+                        branch: findUser.branch,
+						email: findUser.email,
+						about: findUser.about,
+						status: findUser.status,
+						access: findUser.access,
+						userImage: findUser.userImage,
+						LastAccess: findUser.LastAccess,
+						linkLender: findUser.linkLender
+					}
+					let token = jwt.sign(payload, key, {
+						expiresIn: 60 * 60 * 24
+					})
+                    res.json({status: 'reload', token: token})
+                }else{
+                    res.json({status: 'notReload', token: req.requestToken})
+                }
+            }catch(err){
+                res.send(err)
+            }
+        }
+    }catch(err){res.send(err)}
+})
+
+configurations.delete('/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    try {
+        const deleteConfiguration = await Configuration.findOneAndDelete({branch: req.body.branch})
+        if (deleteConfiguration) {
+            res.json({status: 'ok', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
 })
 
 module.exports = configurations
