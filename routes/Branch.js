@@ -113,4 +113,35 @@ branches.delete('/', protectRoute, async (req, res) => {
     //por definir
 })
 
+branches.put('/changeActive/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Branch = conn.model('branches', branchSchema)
+
+    try{
+        const findBranch = await Branch.findById(req.params.id)
+        if (findBranch.active == true) {
+            const changeActive = await Branch.findByIdAndUpdate(req.params.id, {
+                $set: {
+                    active: false
+                }
+            })
+            res.json({status: 'ok', data: false, token: req.requestToken})
+        }else{
+            const changeActive = await Branch.findByIdAndUpdate(req.params.id, {
+                $set: {
+                    active: true
+                }
+            })
+            res.json({status: 'ok', data: true, token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 module.exports = branches
