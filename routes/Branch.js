@@ -63,6 +63,8 @@ branches.post('/', protectRoute, async (req, res) => {
                     res.json({status: 'ok', data: createBranch, token: req.requestToken})
                 }
             }catch(err){res.send(err)}
+        }else{
+            res.json({status: 'bad', token: req.requestToken})
         }
     }catch(err){res.send(err)}
 })
