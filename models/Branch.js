@@ -8,6 +8,10 @@ const branchSchema = new Schema({
     productsCount: {
         type: Number
     },
+    active: {
+        type: Boolean,
+        default: true
+    },
     createdAt: {
         type: Date,
         default: Date.now
