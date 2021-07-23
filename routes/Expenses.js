@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const expenseSchema = require('../models/Expenses')
 const reinvestmentSchema = require('../models/Reinvestment')
+const historyExpensesSchema = require('../models/HistoryExpenses')
 const employeSchema = require('../models/Employes')
 const saleSchema = require('../models/Sales')
 const formats = require('../formats')
@@ -190,6 +191,7 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
     const Expense = conn.model('expenses', expenseSchema)
     const Sale = conn.model('sales', saleSchema)
     const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
+    const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
 
     const dict = {
         0: 'Enero',
@@ -215,6 +217,12 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
         totalFinal: formats.price(req.body.totalFinal),
         gain: gain.toFixed(2)
     }
+    const historyData = {
+        expenses: [],
+        totals: {},
+        branch: req.body.branch,
+        createdAt: new Date()
+    }
     const options = {
         format: "A3",
         orientation: "portrait",
@@ -234,12 +242,19 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
             ]
         })
         var expenses = []
+        var expensesNumber = []
         for (const expense of findExpenses) {
             expenses.push({
                 detaill: expense.detail,
                 typee: expense.type,
                 createdAt: formats.dates(expense.createdAt),
                 amount: formats.price(expense.amount)
+            })
+            expensesNumber.push({
+                detaill: expense.detail,
+                typee: expense.type,
+                createdAt: formats.dates(expense.createdAt),
+                amount: expense.amount
             })
         }
         const document = {
@@ -255,7 +270,8 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
             path: "./public/reportExpenses.pdf",
             type: "",
         };
-
+        historyData.expenses = expensesNumber
+        historyData.totals = data
         pdf
         .create(document, options)
         .then(async (respon) => {
@@ -278,7 +294,10 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
                             validator: false
                         }
                     })
-                    res.json({status: 'ok'})
+                    try {
+                        const createHistory = await HistoryExpense.create(historyData)
+                        res.json({status: 'ok'})
+                    }catch(err){res.send(err)}
                 }catch(err){res.send(err)}
             }catch(err){res.send(err)}
         })

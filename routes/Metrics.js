@@ -6,6 +6,7 @@ const saleSchema = require('../models/Sales')
 const dateSchema = require('../models/Dates')
 const employeSchema = require('../models/Employes')
 const expenseSchema = require('../models/Expenses')
+const historyExpensesSchema = require('../models/HistoryExpenses')
 const formats = require('../formats')
 const cors = require('cors')
 metrics.use(cors())
@@ -103,7 +104,7 @@ metrics.get('/compareItems/:branch', protectRoute, async (req, res) => {
   }
 })
 
-metrics.get('/totalsTypesPays/:branch', protectRoute, async (req, res) => {
+metrics.post('/totalsTypesPays', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
       useNewUrlParser: true,
@@ -112,13 +113,17 @@ metrics.get('/totalsTypesPays/:branch', protectRoute, async (req, res) => {
 
   const Sale = conn.model('sales', saleSchema)
 
-  var dates = formats.datesMonth()
-  
+  var dates = req.body.dates
+  var series = [{
+    name:"Total de pago",
+    data: []
+  }]
+  var categories = []
   try{
     const findSales = await Sale.find({
       $and: [
-        {branch: req.params.branch},
-        {createdAt: { $gte: dates.thisMonth.since+' 00:00', $lte: dates.thisMonth.until+' 24:00' }},
+        {branch: req.body.branch},
+        {createdAt: { $gte: dates[0]+' 00:00', $lte: dates[1]+' 24:00' }},
         {status: true}
       ]
     })
@@ -139,7 +144,12 @@ metrics.get('/totalsTypesPays/:branch', protectRoute, async (req, res) => {
           total: element[1]
         })
     })
-    res.json({status: 'ok', data: pays})
+    
+    for (const pay of pays) {
+      categories.push(pay.type)
+      series[0].data.push(pay.total)
+    }
+    res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
     res.send(err)
   }
@@ -277,7 +287,11 @@ metrics.post('/totalByEmploye', protectRoute, async (req, res) => {
   const Sale = conn.model('sales', saleSchema)
   const Employe = conn.model('employes', employeSchema)
   var datess = req.body.dates
-  var series = []
+  var series = [{
+    name:"Totales",
+    data: []
+  }]
+  var categories = []
   var totalsByEmployes = []
   try {
     const sales = await Sale.find({
@@ -294,31 +308,20 @@ metrics.post('/totalByEmploye', protectRoute, async (req, res) => {
       if (employes.length > 0) {
         for (const key in employes) {
           const employe = employes[key]
-          series.push({name: employe.firstName+' '+employe.lastName, data: []})
           totalsByEmployes.push({name: employe.firstName+' '+employe.lastName, total: 0})
-          saleTotal = {}
           for (const salee of sales) {
-            const dateFormat = formats.datesTime(salee.createdAt)
             for (const item of salee.items) {
               if (item.type == "service") {
                 if (item.employe.id == employe._id) {
-                  if (saleTotal[dateFormat]) {
-                    saleTotal[dateFormat] = saleTotal[dateFormat] + item.totalItem
-                    totalsByEmployes[key].total = totalsByEmployes[key].total + item.totalItem
-                  }else{
-                    saleTotal[dateFormat] = item.totalItem
-                    totalsByEmployes[key].total = totalsByEmployes[key].total + item.totalItem
-                  }
+                  totalsByEmployes[key].total = totalsByEmployes[key].total + item.totalItem
                 }
               }
-            } 
+            }
           }
-          series[key].data = Object.entries(saleTotal)
-          series[key].data.forEach(element => {
-            element[0] = parseInt(element[0])
-          })
+          categories.push(totalsByEmployes[key].name)
+          series[0].data.push(totalsByEmployes[key].total)
         }
-        res.json({status: 'ok', series: series, totals: totalsByEmployes})
+        res.json({status: 'ok', series: series, categories: categories})
       }else{
         res.json({status: 'bad'})
       }
@@ -340,7 +343,11 @@ metrics.post('/servicesByEmploye', protectRoute, async (req, res) => {
   const Sale = conn.model('sales', saleSchema)
   const Employe = conn.model('employes', employeSchema)
   var datess = req.body.dates
-  var series = []
+  var series = [{
+    name:"Servicios",
+    data: []
+  }]
+  var categories = []
   var totalsByEmployes = []
   try {
     const sales = await Sale.find({
@@ -357,31 +364,20 @@ metrics.post('/servicesByEmploye', protectRoute, async (req, res) => {
       if (employes.length > 0) {
         for (const key in employes) {
           const employe = employes[key]
-          series.push({name: employe.firstName+' '+employe.lastName, data: []})
           totalsByEmployes.push({name: employe.firstName+' '+employe.lastName, total: 0})
-          saleTotal = {}
           for (const salee of sales) {
-            const dateFormat = formats.datesTime(salee.createdAt)
             for (const item of salee.items) {
               if (item.type == "service") {
                 if (item.employe.id == employe._id) {
-                  if (saleTotal[dateFormat]) {
-                    saleTotal[dateFormat]++
-                    totalsByEmployes[key].total = totalsByEmployes[key].total + 1
-                  }else{
-                    saleTotal[dateFormat] = 1
-                    totalsByEmployes[key].total = totalsByEmployes[key].total + 1
-                  }
+                  totalsByEmployes[key].total = totalsByEmployes[key].total + 1
                 }
               }
             }
           }
-          series[key].data = Object.entries(saleTotal)
-          series[key].data.forEach(element => {
-            element[0] = parseInt(element[0])
-          })
+          categories.push(totalsByEmployes[key].name)
+          series[0].data.push(totalsByEmployes[key].total)
         }
-        res.json({status: 'ok', series: series, totals: totalsByEmployes})
+        res.json({status: 'ok', series: series, categories: categories})
       }else{
         res.json({status: 'bad'})
       }
@@ -403,7 +399,11 @@ metrics.post('/commissionsByEmploye', protectRoute, async (req, res) => {
   const Sale = conn.model('sales', saleSchema)
   const Employe = conn.model('employes', employeSchema)
   var datess = req.body.dates
-  var series = []
+  var series = [{
+    name:"Comisión",
+    data: []
+  }]
+  var categories = []
   var totalsByEmployes = []
   try {
     const sales = await Sale.find({
@@ -420,31 +420,20 @@ metrics.post('/commissionsByEmploye', protectRoute, async (req, res) => {
       if (employes.length > 0) {
         for (const key in employes) {
           const employe = employes[key]
-          series.push({name: employe.firstName+' '+employe.lastName, data: []})
           totalsByEmployes.push({name: employe.firstName+' '+employe.lastName, total: 0})
-          saleTotal = {}
           for (const salee of sales) {
-            const dateFormat = formats.datesTime(salee.createdAt)
             for (const item of salee.items) {
               if (item.type == "service") {
                 if (item.employe.id == employe._id) {
-                  if (saleTotal[dateFormat]) {
-                    saleTotal[dateFormat] = saleTotal[dateFormat] + item.employe.commission
-                    totalsByEmployes[key].total = totalsByEmployes[key].total + item.employe.commission
-                  }else{
-                    saleTotal[dateFormat] = item.employe.commission
-                    totalsByEmployes[key].total = totalsByEmployes[key].total + item.employe.commission
-                  }
+                  totalsByEmployes[key].total = totalsByEmployes[key].total + item.employe.commission
                 }
               }
             }
           }
-          series[key].data = Object.entries(saleTotal)
-          series[key].data.forEach(element => {
-            element[0] = parseInt(element[0])
-          })
+          categories.push(totalsByEmployes[key].name)
+          series[0].data.push(totalsByEmployes[key].total)
         }
-        res.json({status: 'ok', series: series, totals: totalsByEmployes})
+        res.json({status: 'ok', series: series, categories: categories})
       }else{
         res.json({status: 'bad'})
       }
@@ -465,22 +454,11 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
 
   const Expense = conn.model('expenses', expenseSchema)
   var datess = req.body.dates
+  var categories = ['Bono', 'Mensual', 'Inventario', 'Comision']
   var series = [
     {
-      name:"Bono",
-      data: []
-    },
-    {
-      name:"Mensual",
-      data: []
-    },
-    {
-      name: "Inventario",
-      data: []
-    },
-    {
-      name: "Comision",
-      data: []
+      name:"Gastos",
+      data: [0, 0, 0, 0]
     }
   ]
   var totalsByExpense = []
@@ -493,30 +471,24 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
       ]
     })
     if (expenses.length > 0) {
-      for (const key in series) {
-        const serie = series[key]
+      for (const key in categories) {
+        const serie = categories[key]
         var dict = {}
-        totalsByExpense.push({type: serie.name, total: 0})
+        totalsByExpense.push({type: serie, total: 0})
         for (const expense of expenses) {
           const dateFormat = expense.createdAt.getTime()
           totalExpeses = key == 0 ? totalExpeses + expense.amount : totalExpeses
-          if (serie.name == expense.type) {
-            if (dict[dateFormat]) {
-              dict[dateFormat] = dict[dateFormat] + expense.amount
-              totalsByExpense[key].total = totalsByExpense[key].total + expense.amount
-            }else{
-              dict[dateFormat] = expense.amount
-              totalsByExpense[key].total = totalsByExpense[key].total + expense.amount
-            }
+          if (serie == expense.type) {
+            totalsByExpense[key].total = totalsByExpense[key].total + expense.amount
           }
         }
-        serie.data = Object.entries(dict)
-        serie.data.forEach(element => {
-          element[0] = parseInt(element[0])
-        })
       }
       
-      res.json({status: 'ok', series: series, totalsByExpense: totalsByExpense, totalExpeses: totalExpeses})
+      for (const total in series[0].data) {
+        console.log(totalsByExpense[total].total)
+        series[0].data[total] = totalsByExpense[total].total
+      }
+      res.json({status: 'ok', series: series, totalExpeses: totalExpeses, categories: categories})
     }else{
       res.json({status: 'bad'})
     }
@@ -564,6 +536,204 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
       }
     }
 
+    res.json({status: 'ok', series: series, categories: categories})
+  }catch(err){
+    res.send(err)
+  }
+})
+
+//charts by years
+
+metrics.post('/anualProduction', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Sale = conn.model('sales', saleSchema)
+  const dates = formats.anualDates()
+  const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+  const series = [
+    {
+      name: "Año actual",
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      name: 'Año pasado',
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ]
+  console.log(dates)
+  try {
+    const thisYear = await Sale.find({
+      $and: [
+        {branch: req.body.branch},
+        {createdAt: { $gte: dates.formatThisYear[0], $lte: dates.formatThisYear[1] }},
+        {status: true}
+      ]
+    })
+    try {
+      const prevYear = await Sale.find({
+        $and: [
+          {branch: req.body.branch},
+          {createdAt: { $gte: dates.formatPrevYear[0], $lte: dates.formatPrevYear[1] }},
+          {status: true}
+        ]
+      })
+
+      for (const sale of thisYear) {
+        const monthAndYear = sale.createdAt.getMonth()
+        series[0].data[monthAndYear] = series[0].data[monthAndYear] + sale.totals.total   
+      }
+
+      for (const sale of prevYear) {
+        const monthAndYear = sale.createdAt.getMonth()
+        series[1].data[monthAndYear] = series[1].data[monthAndYear] + sale.totals.total   
+      }
+
+      res.json({status: 'ok', series: series, categories: categories})
+    }catch(err){
+      res.send(err)
+    }
+  }catch(err){
+    res.send(err)
+  }
+})
+
+
+metrics.post('/anualServices', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Sale = conn.model('sales', saleSchema)
+  const dates = formats.anualDates()
+  const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+  const series = [
+    {
+      name: "Servicios",
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ]
+
+  try {
+    const thisYear = await Sale.find({
+      $and: [
+        {branch: req.body.branch},
+        {createdAt: { $gte: dates.formatThisYear[0], $lte: dates.formatThisYear[1] }},
+        {status: true}
+      ]
+    })
+
+    for (const sale of thisYear) {
+      const monthAndYear = sale.createdAt.getMonth()
+      for (const item of sale.items) {
+        if (item.type == "service") {
+          if (item.item._id == req.body.id) {
+            series[0].data[monthAndYear] = series[0].data[monthAndYear] + 1
+          }
+        }
+      }  
+    }
+
+    res.json({status: 'ok', series: series, categories: categories})
+  }catch(err){
+    res.send(err)
+  }
+})
+
+
+metrics.post('/dataEmploye', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Sale = conn.model('sales', saleSchema)
+  const Employe = conn.model('employes', employeSchema)
+  const dates = formats.anualDates()
+  const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+  const series = [
+    {
+      name: "Producción",
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      name: "Comisión",
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      name: "Servicios",
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ]
+  
+  try {
+    const thisYear = await Sale.find({
+      $and: [
+        {branch: req.body.branch},
+        {createdAt: { $gte: dates.formatThisYear[0], $lte: dates.formatThisYear[1] }},
+        {status: true}
+      ]
+    })
+
+    for (const sale of thisYear) {
+      const monthAndYear = sale.createdAt.getMonth()
+      for (const item of sale.items) {
+        if (item.type == "service") {
+          if (item.employe.id == req.body.id) {
+            series[0].data[monthAndYear] = series[0].data[monthAndYear] + item.totalItem
+            series[1].data[monthAndYear] = series[1].data[monthAndYear] + item.employe.commission
+            series[2].data[monthAndYear] = series[2].data[monthAndYear] + 1
+          }
+        }
+      }
+    }
+    res.json({status: 'ok', series: series, categories: categories})
+  }catch(err){
+    res.send(err)
+  }
+})
+
+metrics.post('/dataExpense', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
+  const dates = formats.anualDates()
+  const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+  const series = [
+    {
+      name: "Gastos",
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      name: "Ganancia",
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ]
+  
+  try {
+    const thisYear = await HistoryExpense.find({
+      $and: [
+        {branch: req.body.branch},
+        {createdAt: { $gte: dates.formatThisYear[0], $lte: dates.formatThisYear[1] }}
+      ]
+    })
+
+    for (const history of thisYear) {
+      const monthAndYear = history.createdAt.getMonth()
+      console.log(monthAndYear)
+      series[0].data[monthAndYear] = series[0].data[monthAndYear] + history.totals.expenses
+      series[1].data[monthAndYear] = series[1].data[monthAndYear] + history.totals.totalFinal
+    }
     res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
     res.send(err)

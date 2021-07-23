@@ -22,6 +22,23 @@ formats.datesTime = (value) => {
     return time
 }
 
+formats.anualDates = () => {
+    let thisYear = new Date()
+    let prevYear = new Date()
+    prevYear.setFullYear(prevYear.getFullYear() - 1)
+    const formatYear = {
+        formatThisYear: [
+            "01-01-"+thisYear.getFullYear()+' 00:00',
+            "12-31-"+thisYear.getFullYear()+' 24:00',
+        ],
+        formatPrevYear: [
+            "01-01-"+prevYear.getFullYear()+' 00:00',
+            "12-31-"+prevYear.getFullYear()+' 24:00',
+        ] 
+    }
+    return formatYear
+}
+
 formats.datesMonth = () => {
     const thisMonth = new Date()
     const prevMonth = new Date()
