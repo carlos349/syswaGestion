@@ -7,6 +7,7 @@ const dateSchema = require('../models/Dates')
 const employeSchema = require('../models/Employes')
 const expenseSchema = require('../models/Expenses')
 const historyExpensesSchema = require('../models/HistoryExpenses')
+const closureSchema = require('../models/Closures')
 const formats = require('../formats')
 const cors = require('cors')
 metrics.use(cors())
@@ -53,6 +54,56 @@ metrics.get('/compareSales/:branch', protectRoute, async (req, res) => {
     }catch(err){
       res.send(err)
     }
+  }catch(err){
+    res.send(err)
+  }
+})
+
+metrics.get('/getDays/:branch', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Closure = conn.model('closures', closureSchema)
+  const dates = formats.datesMonth()
+
+  try {
+    const closures = await Closure.find({
+      $and: [
+        {branch: req.params.branch},
+        {createdAt: { $gte: dates.thisMonth.since+' 00:00', $lte: dates.thisMonth.until+' 24:00' }}
+      ]
+    }).count()
+    res.json({status: 'ok', quantity: closures})
+  }catch(err){
+    res.send(err)
+  }
+})
+
+metrics.get('/getExpensesTotal/:branch', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Expense = conn.model('expenses', expenseSchema)
+  const dates = formats.datesMonth()
+
+  try {
+    const expenses = await Expense.find({
+      $and: [
+        {branch: req.params.branch},
+        {createdAt: { $gte: dates.thisMonth.since+' 00:00', $lte: dates.thisMonth.until+' 24:00' }}
+      ]
+    })
+    var total = 0
+    for (const expense of expenses) {
+      total = total + expense.amount
+    }
+    res.json({status: 'ok', total: total})
   }catch(err){
     res.send(err)
   }
@@ -333,6 +384,92 @@ metrics.post('/totalByEmploye', protectRoute, async (req, res) => {
   }
 })
 
+metrics.post('/totalPerService', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Sale = conn.model('sales', saleSchema)
+  var datess = req.body.dates
+  var series = []
+  var labels = []
+  try {
+    const sales = await Sale.find({
+      $and: [
+        {branch: req.body.branch},
+        {createdAt: { $gte: datess[0]+' 00:00', $lte: datess[1]+' 24:00' }},
+        {status: true}
+      ]
+    })
+    // console.log(sales)
+    var dataService = {}
+    for (const sale of sales) {
+      for (const item of sale.items) {
+        if (item.type == "service") {
+          if (dataService[item.item.name]) {
+            dataService[item.item.name] = dataService[item.item.name] + 1
+          }else{
+            dataService[item.item.name] = 1
+          }
+        }
+      }
+    }
+    const dataServiceArray = Object.entries(dataService)
+    for (const service of dataServiceArray) {
+      labels.push(service[0])
+      series.push(service[1])
+    }
+    res.json({status: 'ok', series:series, labels: labels})
+  }catch(err){
+    res.send(err)
+  }
+})
+
+metrics.post('/totalPerProducts', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Sale = conn.model('sales', saleSchema)
+  var datess = req.body.dates
+  var series = []
+  var labels = []
+  try {
+    const sales = await Sale.find({
+      $and: [
+        {branch: req.body.branch},
+        {createdAt: { $gte: datess[0]+' 00:00', $lte: datess[1]+' 24:00' }},
+        {status: true}
+      ]
+    })
+    // console.log(sales)
+    var dataService = {}
+    for (const sale of sales) {
+      for (const item of sale.items) {
+        if (item.type == "product") {
+          if (dataService[item.item.name]) {
+            dataService[item.item.name] = dataService[item.item.name] + parseInt(item.quantityProduct)
+          }else{
+            dataService[item.item.name] = parseInt(item.quantityProduct)
+          }
+        }
+      }
+    }
+    const dataServiceArray = Object.entries(dataService)
+    for (const service of dataServiceArray) {
+      labels.push(service[0])
+      series.push(service[1])
+    }
+    res.json({status: 'ok', series:series, labels: labels})
+  }catch(err){
+    res.send(err)
+  }
+})
+
 metrics.post('/servicesByEmploye', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -497,6 +634,49 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
   }
 })
 
+metrics.post('/diaryTotals', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Sale = conn.model('sales', saleSchema)
+  let categories = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+  let series = [
+    {
+      name: "Producción",
+      data:[0, 0, 0, 0, 0, 0, 0],
+    },
+    {
+      name: "Servicios",
+      data:[0, 0, 0, 0, 0, 0, 0],
+    }
+  ]
+  const datess = req.body.dates
+  try {
+    const sales = await Sale.find({
+      $and: [
+        {branch: req.body.branch},
+        {createdAt: { $gte: datess[0]+' 00:00', $lte: datess[1]+' 24:00' }},
+        {status: true}
+      ]
+    })
+    for (const salee of sales) {
+      const date = salee.createdAt.getDay()
+      series[0].data[date] = series[0].data[date] + salee.totals.total
+      for (const item of salee.items) {
+        if (item.type == "service") {
+          series[1].data[date]++
+        }
+      }
+    }
+    res.json({status: 'ok', series: series, categories: categories})
+  }catch(err){
+    res.send(err)
+  }
+})
+
 metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -525,14 +705,23 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
         {status: true}
       ]
     })
-
+    var days = [0, 0, 0, 0, 0, 0, 0]
     for (const salee of sales) {
       const date = salee.createdAt.getDay()
       series[0].data[date] = series[0].data[date] + salee.totals.total
+      days[date] = days[date] + 1
       for (const item of salee.items) {
         if (item.type == "service") {
           series[1].data[date]++
         }
+      }
+    }
+    
+    for (const key in days) {
+      if (days[key] > 0 && series[0].data[key] > 0) {
+        series[0].data[key] = series[0].data[key] / days[key]
+        series[1].data[key] = series[1].data[key] / days[key]
+        series[1].data[key] = parseFloat(series[1].data[key].toFixed(2))
       }
     }
 
