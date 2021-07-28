@@ -706,17 +706,24 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
       ]
     })
     var days = [0, 0, 0, 0, 0, 0, 0]
+    var getTime = {}
     for (const salee of sales) {
       const date = salee.createdAt.getDay()
+      const dateRepeat = salee.createdAt.getDate()+''+salee.createdAt.getMonth()+''+salee.createdAt.getFullYear()
       series[0].data[date] = series[0].data[date] + salee.totals.total
-      days[date] = days[date] + 1
+      if (getTime[dateRepeat]) {
+        getTime[dateRepeat] = true
+      }else{
+        days[date] = days[date] + 1
+        getTime[dateRepeat] = true
+      }
       for (const item of salee.items) {
         if (item.type == "service") {
           series[1].data[date]++
         }
       }
     }
-    
+    console.log(days)
     for (const key in days) {
       if (days[key] > 0 && series[0].data[key] > 0) {
         series[0].data[key] = series[0].data[key] / days[key]
