@@ -7,6 +7,7 @@ const dateSchema = require('../models/Dates')
 const employeSchema = require('../models/Employes')
 const expenseSchema = require('../models/Expenses')
 const historyExpensesSchema = require('../models/HistoryExpenses')
+const projectionSchema = require('../models/ProjectionDays')
 const closureSchema = require('../models/Closures')
 const formats = require('../formats')
 const cors = require('cors')
@@ -77,6 +78,37 @@ metrics.get('/getDays/:branch', protectRoute, async (req, res) => {
       ]
     }).count()
     res.json({status: 'ok', quantity: closures})
+  }catch(err){
+    res.send(err)
+  }
+})
+
+metrics.get('/getProjection/:branch', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Projection = conn.model('projectiondays', projectionSchema)
+
+  try {
+    const projection = await Projection.findOne({
+      branch: req.params.branch
+    })
+    if(projection){
+      res.json({status: 'ok', data: projection})
+    }else{
+      try {
+        const projectionCreate = await Projection.create({
+          branch: req.params.branch,
+          days: 0
+        })
+        res.json({status: 'ok', data: projectionCreate})
+      }catch(err){
+        res.send(err)
+      }
+    }
   }catch(err){
     res.send(err)
   }
@@ -623,8 +655,9 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
       
       for (const total in series[0].data) {
         console.log(totalsByExpense[total].total)
-        series[0].data[total] = totalsByExpense[total].total
+        series[0].data[total] = totalsByExpense[total].total.toFixed(2)
       }
+      
       res.json({status: 'ok', series: series, totalExpeses: totalExpeses, categories: categories})
     }else{
       res.json({status: 'bad'})
@@ -728,6 +761,7 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
       if (days[key] > 0 && series[0].data[key] > 0) {
         series[0].data[key] = series[0].data[key] / days[key]
         series[1].data[key] = series[1].data[key] / days[key]
+        series[0].data[key] = parseFloat(series[0].data[key].toFixed(2))
         series[1].data[key] = parseFloat(series[1].data[key].toFixed(2))
       }
     }
@@ -931,6 +965,27 @@ metrics.post('/dataExpense', protectRoute, async (req, res) => {
       series[1].data[monthAndYear] = series[1].data[monthAndYear] + history.totals.totalFinal
     }
     res.json({status: 'ok', series: series, categories: categories})
+  }catch(err){
+    res.send(err)
+  }
+})
+
+metrics.put('/updateProjection/:id', protectRoute, async (req, res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+
+  const Projection = conn.model('projectiondays', projectionSchema)
+
+  try {
+    const projection = await Projection.findByIdAndUpdate(req.params.id, {
+      $set: {
+        days: req.body.days
+      }
+    })
+    res.json({status: 'ok'})
   }catch(err){
     res.send(err)
   }
