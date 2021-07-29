@@ -695,7 +695,8 @@ sales.post('/process', protectRoute, (req, res) => {
       quantityProduct: item.quantityProduct,
       totalItem: item.total,
       employe: item.employe,
-      type: item.tag
+      type: item.tag,
+      id:new Date().getTime()
     })
   }
   

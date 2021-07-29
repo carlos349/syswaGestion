@@ -178,9 +178,64 @@ employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
 
     const Sale = conn.model('sales', saleSchema)
     try{
-        const findSalesById = await Sale.find({'employe.id': req.params.id})
-        if (findSalesById){
-            res.json({status: 'ok', data: findSalesById, token: req.requestToken})
+        var month = new Date().getMonth()
+        var year = new Date().getFullYear()
+        const findSales = await Sale.find({createdAt:{
+            $gte: new Date(year, month, 1),
+            $lte: new Date(year, month+1, 0, 23, 59)
+        }})
+        if (findSales){
+            let salesOfEmploye = []
+            for (let i = 0; i < findSales.length; i++) {
+                const element = findSales[i];
+                for (let e = 0; e < element.items.length; e++) {
+                    const sale = element.items[e];
+                    if (sale.employe.id == req.params.id && element.status) {
+                        salesOfEmploye.push({createdAt: element.createdAt, client: element.client.firstName + ' ' + element.client.lastName, commission: sale.employe.commission, total: element.totals.total, service: sale.item.name,id: sale.id, saleData: element})
+                    }
+                }
+            }
+            res.json({status: 'ok', data: salesOfEmploye, token: req.requestToken})
+        }else{
+            res.json({status: 'sales not found'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//Fin de la api. (Retorna ventas del empleado) -- Api end (output employe's sales)
+
+//----------------------------------------------------------------------------------
+
+// Api que anula una venta de un empleado específico por su id. (Ingreso: ObjectId)
+
+employes.put('/nullsale/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Sale = conn.model('sales', saleSchema)
+    try{
+        const findSale = await Sale.findById(req.params.id)
+        if (findSale){
+            for (let e = 0; e < findSale.items.length; e++) {
+                const sale = findSale.items[e];
+                if (sale.id == req.body.id) {
+                    findSale.items.splice(e, 1)
+                    if (findSale.items.length == 0) {
+                        findSale.status = false
+                    }
+                }
+            }
+            Sale.findByIdAndUpdate(req.params.id, {
+                $set: {items: findSale.items, status: findSale.status}
+            }).then(update =>{
+                res.json({status: 'ok', data: update, token: req.requestToken})
+            })
+            
         }else{
             res.json({status: 'sales not found'})
         }
@@ -516,7 +571,7 @@ employes.put('/regAdvancement/:id', protectRoute, async (req,res) => {
 
 //Api que cierra a un empleado (Ingreso: ObjectId del empleado) -- Api that close an employe (Input: employe´s ObjectId)
 
-employes.put('/closeemploye', protectRoute, async (req, res) => {
+employes.put('/closeemploye/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -525,7 +580,7 @@ employes.put('/closeemploye', protectRoute, async (req, res) => {
 
     const Employe = conn.model('employes', employeSchema)
 
-    Employe.findByIdAndUpdate(req.body.id, {
+    Employe.findByIdAndUpdate(req.params.id, {
         $set: {
             commission:0,
             advancement:0,

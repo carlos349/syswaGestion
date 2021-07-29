@@ -6,6 +6,8 @@ const expenseSchema = require('../models/Expenses')
 const reinvestmentSchema = require('../models/Reinvestment')
 const employeSchema = require('../models/Employes')
 const saleSchema = require('../models/Sales')
+const inventorySchema = require('../models/Inventory')
+const cashfundSchema = require('../models/CashFunds')
 const formats = require('../formats')
 const pdf = require("pdf-creator-node");
 const fs = require("fs");
@@ -285,6 +287,66 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
         .catch((error) => {
             console.error(error);
         });
+    }catch(err){
+        res.send(err)
+    }
+})
+
+// Api to valid close
+expenses.post('/validclose', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Employe = conn.model('employes', employeSchema)
+    const Inventory = conn.model('inventories', inventorySchema)
+    const CashFund = conn.model('cashfunds', cashfundSchema)
+
+    try {
+        const findEmployes = await Employe.find({branch: req.body.branch})
+        if (findEmployes) {
+            var validEmployes = true
+            findEmployes.forEach(element => {
+                if (element.commission > 0) {
+                    validEmployes = false
+                }
+            });
+            if (validEmployes == false) {
+                res.json({status:'bad employes', token: req.requestToken})
+            }else{
+                try{
+                    const findInventories = await Inventory.find({branch: req.body.branch})
+                    if (findInventories) {
+                        var validInventories = true
+                        findInventories.forEach(element => {
+                            if (element.entry > 0 || element.consume > 0) {
+                                validInventories = false
+                            }
+                        })
+                        if (validInventories == false) {
+                            res.json({status:'bad inventories', token: req.requestToken})
+                        }else{
+                            try{
+                                const findCashFound = await CashFund.find({branch: req.body.branch})
+                                if (findCashFound) {
+                                    if (findCashFound[0].validator) {
+                                        res.json({status:'bad cashfound', token: req.requestToken})
+                                    }else{
+                                        res.json({status:'ok',data:findEmployes, data2:findInventories, data3:findCashFound,  token: req.requestToken})
+                                    }
+                                }
+                            }catch(err){
+                                res.send(err)
+                            }
+                        }
+                    }
+                }catch(err){
+                    res.send(err)
+                }
+            }
+        }
     }catch(err){
         res.send(err)
     }

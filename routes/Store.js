@@ -454,11 +454,34 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
         })
         if (add) {
             try{
-                console.log("entro")
                 const addHistory = await History.create(historical)
                 console.log(addHistory)
                 if (addHistory) {
-                    res.json({status: 'added', data: addHistory, token: req.requestToken })
+                    try{
+                        const calculatePrice = await History.find({id:req.params.id})
+                        if (calculatePrice) {
+                            var price = 0
+                            var many = 0
+                            calculatePrice.forEach(element => {
+                                if (element.price != 'Abastecimiento') {
+                                    price = price + parseFloat(element.price)
+                                    many++
+                                }
+                            });
+                            try{
+                                const addNewPrice = await Store.findByIdAndUpdate(req.params.id, {
+                                    $set: {price: price / many},
+                                })
+                                if (addNewPrice) {
+                                    res.json({status: 'added', data: addHistory, token: req.requestToken })
+                                }
+                            }catch(err){
+                                res.send(err)
+                            }
+                        }
+                    }catch(err){
+                        res.send(err)
+                    }
                 }  
             }catch(err){
                 res.send(err)
@@ -905,7 +928,7 @@ stores.delete('/deleteinventoryproduct/:id', protectRoute, async (req, res) => {
             const branch = deleteProduct.branch
             try {
                 const storeBalance = await Store.findByIdAndUpdate(deleteProduct.storeId, {
-                    $inc:{entry: total}
+                    $inc:{consume: -total}
                 })
                 if (storeBalance) {
                     try{
@@ -1043,7 +1066,7 @@ stores.post('/nullsale', protectRoute, (req, res) => {
 
 //Api que cambia el tipo de producto en el inventario (Ingreso: ObjectId del producto, tipo de producto) -- Api that changes product´s type from inventory (Input: product´s ObjectId, product type)
 
-stores.put('/changetype/:id', protectRoute, (req, res) => {
+stores.put('/changetype/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -1051,10 +1074,48 @@ stores.put('/changetype/:id', protectRoute, (req, res) => {
     })
 
     const Inventory = conn.model('inventories', inventorySchema)
+    
     Inventory.findByIdAndUpdate(req.params.id, {
         $set: {productType:req.body.productType}
     })
     .then(ready => {res.json({status:'ok', token: req.requestToken})})  
+})
+
+//Final de la api. (Retorna: Respuesta simple) -- Api end. (Return: Simple response)
+
+//--------------------------------------------------------------------------------------
+
+//Api que retorna una cantidad especifica de un producto desde el inventario a la bodega (Ingreso: ObjectId del producto)
+
+stores.put('/returntostore/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Inventory = conn.model('inventories', inventorySchema)
+    const Store = conn.model('stores', storeSchema)
+
+    try{
+        const update = await Inventory.findByIdAndUpdate(req.params.id, {
+            $inc: {entry:-req.body.less}
+        })
+        if (update) {
+            try{
+                const updateStore = await Store.findByIdAndUpdate(update.storeId, {
+                    $inc: {consume:-req.body.less}
+                })
+                if (updateStore) {
+                    res.json({status:'ok', token: req.requestToken})
+                }
+            }catch(err){
+                res.send(err)
+            }
+        }
+    }catch(err){
+        res.send(err)
+    } 
  
 })
 
