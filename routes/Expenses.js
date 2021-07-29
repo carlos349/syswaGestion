@@ -92,7 +92,7 @@ expenses.get('/findReinvestment/:branch', protectRoute, async (req, res) => {
     const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
 
     try {
-        const findReinvesment = await Reinvestment.findOne({branch: req.body.branch})
+        const findReinvesment = await Reinvestment.findOne({branch: req.params.branch})
         if (findReinvesment) {
             if (findReinvesment.validator) {
                 res.json({status: 'ok', data: findReinvesment, token: req.requestToken})
@@ -101,7 +101,7 @@ expenses.get('/findReinvestment/:branch', protectRoute, async (req, res) => {
             }
         }else{
             const data = {
-                branch: req.body.branch,
+                branch: req.params.branch,
                 amount: 0,
                 amountEgress: 0,
                 validator: false
