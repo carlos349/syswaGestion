@@ -3,6 +3,7 @@ const dates = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const dateSchema = require('../models/dates')
+const dateBlockingSchema = require('../models/DateBlocking')
 const employeSchema = require('../models/Employes')
 const clientSchema = require('../models/Clients')
 const endingDateSchema = require('../models/EndingDates')
@@ -85,6 +86,33 @@ dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
 
     try{
         const find = await EndingDates.find({branch: req.params.branch})
+        if (find.length > 0) {
+            res.json({status:'ok', data: find, token: req.requestToken})
+        }else{
+            res.json({status: 'nothing found', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//Fin de la api (Retorna: Datos de las horas bloqueadas) -- Api end (Return: hours blocking data)
+
+//----------------------------------------------------------------------------------
+
+//Api de la api (Retorna: Datos de las horas bloqueadas) llega (branch como parametro) -- Api end (Return: hours blocking data) input (branch as param)
+
+dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+
+    try{
+        const find = await HourBlocking.find({branch: req.params.branch})
         if (find.length > 0) {
             res.json({status:'ok', data: find, token: req.requestToken})
         }else{
@@ -272,6 +300,65 @@ dates.delete('/:id', protectRoute, async (req, res) => {
 //Fin de la api (Retorna: Respuesta simple) -- Api end (Return: Simple response)
 
 // -----------------------------------------------------------------------------
+
+dates.post('/createBlockingHour', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+
+    const data = {
+        branch: req.body.branch,
+        dateBlocking: req.body.dateBlocking,
+        employe: req.body.employe,
+        start: req.body.start,
+        end: req.body.end
+    }
+
+    try {
+        const findDay = await dateBlock.findOne({
+            $and: [
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': data.dateBlocking}
+            ]
+        })
+        if (findDay) {
+            var valid = false
+            for (const block of findDay.blocks) {
+                if (block.hour == req.body.start) {
+                    valid = true
+                }
+                if (valid) {
+                    for (const key in block.employes) {
+                        const employe = block.employes[key]
+                        if (employe.id == data.employe.id) {
+                            block.employes.splice(key, 1)
+                        }
+                    }
+                }
+                if (block.hour == req.body.end) {
+                    valid = false
+                    break
+                }
+            }
+            try {
+                const createHour = await HourBlocking.create(data)
+                res.json({status: 'ok'})
+            }catch(err){
+                res.send(err)
+            }
+        }else{
+            res.json({status: 'bad'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 
 //Api que busca y crea los bloques de horario de un empleado (Ingreso: date, restHour, timedate, branch, employe) -- api that find and create an employe´s time block (Input: date, restHour, timedate, branch, employe)
 
