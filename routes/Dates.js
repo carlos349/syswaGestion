@@ -3,6 +3,7 @@ const dates = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const dateSchema = require('../models/dates')
+const dateBlockingSchema = require('../models/DateBlocking')
 const employeSchema = require('../models/Employes')
 const clientSchema = require('../models/Clients')
 const endingDateSchema = require('../models/EndingDates')
@@ -85,6 +86,33 @@ dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
 
     try{
         const find = await EndingDates.find({branch: req.params.branch})
+        if (find.length > 0) {
+            res.json({status:'ok', data: find, token: req.requestToken})
+        }else{
+            res.json({status: 'nothing found', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//Fin de la api (Retorna: Datos de las horas bloqueadas) -- Api end (Return: hours blocking data)
+
+//----------------------------------------------------------------------------------
+
+//Api de la api (Retorna: Datos de las horas bloqueadas) llega (branch como parametro) -- Api end (Return: hours blocking data) input (branch as param)
+
+dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+
+    try{
+        const find = await HourBlocking.find({branch: req.params.branch})
         if (find.length > 0) {
             res.json({status:'ok', data: find, token: req.requestToken})
         }else{
@@ -272,6 +300,250 @@ dates.delete('/:id', protectRoute, async (req, res) => {
 //Fin de la api (Retorna: Respuesta simple) -- Api end (Return: Simple response)
 
 // -----------------------------------------------------------------------------
+
+dates.post('/createBlockingHour', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
+    const splitDate = req.body.dateBlocking.split('-')
+    const Day = new Date(req.body.dateBlocking+' 10:00').getDay()
+    const employes = req.body.employes
+    const data = {
+        branch: req.body.branch,
+        dateBlocking: splitDate[1]+'-'+splitDate[0]+'-'+splitDate[2],
+        employe: req.body.employe,
+        start: req.body.start,
+        end: req.body.end
+    }
+    console.log(data)
+    try {
+        const findDay = await dateBlock.findOne({
+            $and: [
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': data.dateBlocking}
+            ]
+        })
+        if (findDay) {
+            var valid = false
+            for (const block of findDay.blocks) {
+                if (block.hour == req.body.start) {
+                    valid = true
+                }
+                if (block.hour == req.body.end) {
+                    valid = false
+                    break
+                }
+                if (valid) {
+                    for (const key in block.employes) {
+                        const employe = block.employes[key]
+                        if (employe.id == data.employe.id) {
+                            data.employe = employe
+                            block.employes.splice(key, 1)
+                        }
+                    }
+                }
+            }
+            try {
+                const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
+                    $set: {blocks: findDay.blocks}
+                })
+                try {
+                    const createHour = await HourBlocking.create(data)
+                    res.json({status: 'ok'})
+                }catch(err){
+                    res.send(err)
+                }    
+            }catch(err){
+                res.send(err)
+            }
+        }else{
+            //create a dateBlock register to block hour
+            try {
+                const findConfiguration = await Configuration.findOne({branch: req.body.branch})
+                const getDay = findConfiguration.blockHour.filter(day => day.day == Day)[0]
+                var blocksFirst = []
+                var splitHour = parseFloat(getDay.start.split(':')[0])
+                var splitMinutes = getDay.start.split(':')[1]
+                for (let i = 0; i < getDay.time / 15 + 1; i++) {
+                    if (i == 0) {
+                        blocksFirst.push({
+                            hour: getDay.start,
+                            validator: true,
+                            employes: []
+                        })
+                        splitMinutes = parseFloat(splitMinutes) + 15
+                        splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
+                        splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                    }else{
+                        blocksFirst.push({
+                            hour: splitHour+':'+splitMinutes,
+                            validator: true,
+                            employes: []
+                        })
+                        splitMinutes = parseFloat(splitMinutes) + 15
+                        splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
+                        splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                    }
+                }
+                for (let i = 0; i < employes.length; i++) {
+                    const element = employes[i];
+                    const restInit = element.restTime.split('/')[0]
+                    const restEnd = element.restTime.split('/')[1]
+                    var inspector = false
+                    var hourInit = restInit.split(':')[0]+restInit.split(':')[1]
+                    for (let u = 0; u < blocksFirst.length; u++) {
+                        const elementTwo = blocksFirst[u];
+                        var hour = elementTwo.hour.split(':')[0]+elementTwo.hour.split(':')[1]
+                        if (parseFloat(hourInit) <= parseFloat(hour)) {
+                            inspector = true
+                            if (restEnd == elementTwo.hour) {
+                                inspector = false
+                                hourInit = 15432154451
+                            }
+                        }
+                        if(!inspector){
+                            elementTwo.employes.push({name: element.name, id: element.id, class: element.class, position: i, valid: false, img: element.img})
+                        }
+                    }
+                }
+
+                for (let i = 0; i < blocksFirst.length; i++) {
+                    const element = blocksFirst[i];
+                    if (element.employes.length == 0) {
+                        element.validator = false
+                    }
+                }
+
+                const thisDate = new Date()
+                const dateSelected = new Date(req.body.date)
+                if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
+                    const hour = thisDate.getHours() - findConfiguration.datesPolitics.minTypeDate
+                    for (const key in blocksFirst) {
+                        const element = blocksFirst[key]
+                        
+                        if (element.hour.split(':')[0] == hour) {
+                            break
+                        }
+                        element.validator = 'unavailable'
+                    }
+                }
+                
+                const dataConfiguration = {
+                    dateData: {
+                        branch: req.body.branch,
+                        date: data.dateBlocking,
+                        dateFormat: new Date(data.dateBlocking+' 10:00'),
+                        dateDay: new Date(data.dateBlocking+' 10:00').getDay()
+                    },
+                    blocks: blocksFirst
+                }
+                try {
+                    const createBlockdate = await dateBlock.create(dataConfiguration)
+                    if (createBlockdate) {
+                        var valid = false
+                        for (const block of blocksFirst) {
+                            if (block.hour == req.body.start) {
+                                valid = true
+                            }
+                            if (block.hour == req.body.end) {
+                                valid = false
+                                break
+                            }
+                            if (valid) {
+                                for (const key in block.employes) {
+                                    const employe = block.employes[key]
+                                    if (employe.id == data.employe.id) {
+                                        data.employe = employe
+                                        block.employes.splice(key, 1)
+                                    }
+                                }
+                            }
+                        }
+                        try {
+                            const editBlockDate = await dateBlock.findByIdAndUpdate(createBlockdate._id, {
+                                $set: {blocks: blocksFirst}
+                            })
+                            try {
+                                const createHour = await HourBlocking.create(data)
+                                res.json({status: 'ok'})
+                            }catch(err){
+                                res.send(err)
+                            }    
+                        }catch(err){
+                            res.send(err)
+                        }
+                    }
+                }catch(err){res.send(err)}
+            }catch(err){res.send(err)}
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    
+    const data = {
+        branch: req.body.branch,
+        dateBlocking: req.body.dateBlocking,
+        employe: req.body.employe,
+        start: req.body.start,
+        end: req.body.end
+    }
+    console.log(data)
+    try {
+        const findDay = await dateBlock.findOne({
+            $and: [
+                {'dateData.branch': req.body.branch},
+                {'dateData.date': data.dateBlocking}
+            ]
+        })
+        console.log(findDay)
+        var valid = false
+        for (const block of findDay.blocks) {
+            if (block.hour == req.body.start) {
+                valid = true
+
+            }
+            if (block.hour == req.body.end) {
+                valid = false
+                break
+            }
+            if (valid) {
+                block.employes.unshift(data.employe)
+            }
+        }
+        try {
+            const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
+                $set: {blocks: findDay.blocks}
+            })
+            try {
+                const createHour = await HourBlocking.findByIdAndRemove(req.body.id)
+                res.json({status: 'ok'})
+            }catch(err){
+                res.send(err)
+            }    
+        }catch(err){
+            res.send(err)
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
 
 //Api que busca y crea los bloques de horario de un empleado (Ingreso: date, restHour, timedate, branch, employe) -- api that find and create an employe´s time block (Input: date, restHour, timedate, branch, employe)
 
