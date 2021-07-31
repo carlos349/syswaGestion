@@ -312,7 +312,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const dateBlock = conn.model('datesblocks', datesBlockSchema)
     const Configuration = conn.model('configurations', configurationSchema)
     const splitDate = req.body.dateBlocking.split('-')
-    const Day = new Date(req.body.dateBlocking+' 10:00').getDay()
+    const Day = new Date(splitDate[1]+'-'+splitDate[0]+'-'+splitDate[2]+' 10:00').getDay()
     const employes = req.body.employes
     const data = {
         branch: req.body.branch,
@@ -329,6 +329,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 {'dateData.date': data.dateBlocking}
             ]
         })
+        console.log(findDay)
         if (findDay) {
             var valid = false
             for (const block of findDay.blocks) {
@@ -366,7 +367,9 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
             //create a dateBlock register to block hour
             try {
                 const findConfiguration = await Configuration.findOne({branch: req.body.branch})
+                console.log(Day)
                 const getDay = findConfiguration.blockHour.filter(day => day.day == Day)[0]
+                // console.log(findConfiguration)
                 var blocksFirst = []
                 var splitHour = parseFloat(getDay.start.split(':')[0])
                 var splitMinutes = getDay.start.split(':')[1]
