@@ -15,10 +15,9 @@ app.set('trust proxy', true);
 
 //middlewares
 app.use(morgan('dev'))
-app.use(express.json())
-app.use(bodyParser.json())
 app.use(cors())
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json({ limit: "50mb" }))
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }))
 // verify()
 
 //Websockets

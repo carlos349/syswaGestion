@@ -733,7 +733,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     }
                 }
                 if (valid == false && blocks[e-1]) {
-                    for (let u = 1; u <= hoursdate / 15; u++) {
+                    for (let u = 1; u <= hoursdate / 15 - 1; u++) {
                         if (blocks[e - u]) {
                             for (let r = 0; r < blocks[e - u].employes.length; r++) {
                                 if (blocks[e - u].employes[r].id  == employeService.id) {
@@ -776,6 +776,20 @@ dates.post('/editBlocksFirst', async (req, res) => {
                             blocks[e - u].validator = 'unavailable'
                         }
                     }
+                }
+            }
+        }
+
+        for (const block of blocks) {
+            if (block.employes.length > 0) {
+                var valid = true
+                block.employes.forEach(element => {
+                    if (element.valid) {
+                        valid = false
+                    }
+                })  
+                if (valid) {
+                    block.validator = 'unavailable'
                 }
             }
         }
@@ -880,7 +894,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         if (valid == false && blocksFirst[e-1]) {
-                            for (let u = 1; u <= hoursdate / 15; u++) {
+                            for (let u = 0; u <= hoursdate / 15 - 1; u++) {
                                 if (blocksFirst[e - u]) {
                                     for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
                                         if (blocksFirst[e - u].employes[r].id  == employeService.id) {
@@ -911,7 +925,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
-                            for (let u = 1; u <= hoursdate / 15; u++) {
+                            for (let u = 0; u <= hoursdate / 15; u++) {
                                 if (blocksFirst[e - u]) {
                                     blocksFirst[e - u].validator = 'unavailable'
                                 }
@@ -923,6 +937,20 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                     blocksFirst[e - u].validator = 'unavailable'
                                 }
                             }
+                        }
+                    }
+                }
+
+                for (const block of blocksFirst) {
+                    if (block.employes.length > 0) {
+                        var valid = true
+                        block.employes.forEach(element => {
+                            if (element.valid) {
+                                valid = false
+                            }
+                        })  
+                        if (valid) {
+                            block.validator = 'unavailable'
                         }
                     }
                 }
@@ -1053,7 +1081,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                     }
                                 }
                                 if (valid == false && blocksFirst[e-1]) {
-                                    for (let u = 1; u <= hoursdate / 15; u++) {
+                                    for (let u = 1; u <= hoursdate / 15 - 1; u++) {
                                         if (blocksFirst[e - u]) {
                                             for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
                                                 if (blocksFirst[e - u].employes[r].id  == employeService.id) {
@@ -1099,6 +1127,21 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
+
+                        for (const block of blocksFirst) {
+                            if (block.employes.length > 0) {
+                                var valid = true
+                                block.employes.forEach(element => {
+                                    if (element.valid) {
+                                        valid = false
+                                    }
+                                })  
+                                if (valid) {
+                                    block.validator = 'unavailable'
+                                }
+                            }
+                        }
+
                         res.json({status: 'ok', data: blocksFirst, id: createBlockdate._id})
                     }
                 }catch(err){res.send(err)}
