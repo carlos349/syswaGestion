@@ -10,6 +10,7 @@ const endingDateSchema = require('../models/EndingDates')
 const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const configurationSchema = require('../models/Configurations')
+const uploadS3 = require('../common-midleware/index')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
@@ -840,6 +841,64 @@ dates.post('/editBlocksFirst', async (req, res) => {
 })
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
+dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const date = conn.model('dates', dateSchema)
+
+    const images = []
+    for (let index = 0; index < req.files.length; index++) {
+      const element = req.files[index];
+      images.push(element.location)
+    }
+    if (req.body.imagePrev != '') {
+      const split = req.body.imagePrev.split(',')
+      for (let indexTwo = 0; indexTwo < split.length; indexTwo++) {
+        const elementTwo = split[indexTwo];
+        images.push(elementTwo)
+      }
+    }
+    date.findByIdAndUpdate(req.params.id, {
+      $set: {
+        imgDesign: images
+      }
+    })
+    .then(change => {
+      res.json({status: 'ok', image: images})
+    })
+    .catch(err => {
+      res.send(err)
+      console.log(err)
+    })
+})
+
+dates.put('/removeImage/:id', protectRoute, (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const date = conn.model('dates', dateSchema)
+
+    const images = req.body.images
+    date.findByIdAndUpdate(req.params.id, {
+      $set: {
+        image: images
+      }
+    })
+    .then(change => {
+      res.json({status: 'ok'})
+    })
+    .catch(err => {
+      res.send(err)
+    })
+})
 
 // -----------------------------------------------------------------------------
 
