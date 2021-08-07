@@ -10,6 +10,7 @@ const endingDateSchema = require('../models/EndingDates')
 const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const configurationSchema = require('../models/Configurations')
+const uploadS3 = require('../common-midleware/index')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
@@ -312,7 +313,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const dateBlock = conn.model('datesblocks', datesBlockSchema)
     const Configuration = conn.model('configurations', configurationSchema)
     const splitDate = req.body.dateBlocking.split('-')
-    const Day = new Date(req.body.dateBlocking+' 10:00').getDay()
+    const Day = new Date(splitDate[1]+'-'+splitDate[0]+'-'+splitDate[2]+' 10:00').getDay()
     const employes = req.body.employes
     const data = {
         branch: req.body.branch,
@@ -329,6 +330,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 {'dateData.date': data.dateBlocking}
             ]
         })
+        console.log(findDay)
         if (findDay) {
             var valid = false
             for (const block of findDay.blocks) {
@@ -366,7 +368,9 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
             //create a dateBlock register to block hour
             try {
                 const findConfiguration = await Configuration.findOne({branch: req.body.branch})
+                console.log(Day)
                 const getDay = findConfiguration.blockHour.filter(day => day.day == Day)[0]
+                // console.log(findConfiguration)
                 var blocksFirst = []
                 var splitHour = parseFloat(getDay.start.split(':')[0])
                 var splitMinutes = getDay.start.split(':')[1]
@@ -730,7 +734,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     }
                 }
                 if (valid == false && blocks[e-1]) {
-                    for (let u = 1; u <= hoursdate / 15; u++) {
+                    for (let u = 1; u <= hoursdate / 15 - 1; u++) {
                         if (blocks[e - u]) {
                             for (let r = 0; r < blocks[e - u].employes.length; r++) {
                                 if (blocks[e - u].employes[r].id  == employeService.id) {
@@ -773,6 +777,20 @@ dates.post('/editBlocksFirst', async (req, res) => {
                             blocks[e - u].validator = 'unavailable'
                         }
                     }
+                }
+            }
+        }
+
+        for (const block of blocks) {
+            if (block.employes.length > 0) {
+                var valid = true
+                block.employes.forEach(element => {
+                    if (element.valid) {
+                        valid = false
+                    }
+                })  
+                if (valid) {
+                    block.validator = 'unavailable'
                 }
             }
         }
@@ -823,6 +841,64 @@ dates.post('/editBlocksFirst', async (req, res) => {
 })
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
+dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const date = conn.model('dates', dateSchema)
+
+    const images = []
+    for (let index = 0; index < req.files.length; index++) {
+      const element = req.files[index];
+      images.push(element.location)
+    }
+    if (req.body.imagePrev != '') {
+      const split = req.body.imagePrev.split(',')
+      for (let indexTwo = 0; indexTwo < split.length; indexTwo++) {
+        const elementTwo = split[indexTwo];
+        images.push(elementTwo)
+      }
+    }
+    date.findByIdAndUpdate(req.params.id, {
+      $set: {
+        imgDesign: images
+      }
+    })
+    .then(change => {
+      res.json({status: 'ok', image: images})
+    })
+    .catch(err => {
+      res.send(err)
+      console.log(err)
+    })
+})
+
+dates.put('/removeImage/:id', protectRoute, (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const date = conn.model('dates', dateSchema)
+
+    const images = req.body.images
+    date.findByIdAndUpdate(req.params.id, {
+      $set: {
+        image: images
+      }
+    })
+    .then(change => {
+      res.json({status: 'ok'})
+    })
+    .catch(err => {
+      res.send(err)
+    })
+})
 
 // -----------------------------------------------------------------------------
 
@@ -877,7 +953,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         if (valid == false && blocksFirst[e-1]) {
-                            for (let u = 1; u <= hoursdate / 15; u++) {
+                            for (let u = 0; u <= hoursdate / 15 - 1; u++) {
                                 if (blocksFirst[e - u]) {
                                     for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
                                         if (blocksFirst[e - u].employes[r].id  == employeService.id) {
@@ -908,7 +984,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         if (element.validator == false && blocksFirst[e-1].validator == true && e > 0) {
-                            for (let u = 1; u <= hoursdate / 15; u++) {
+                            for (let u = 0; u <= hoursdate / 15; u++) {
                                 if (blocksFirst[e - u]) {
                                     blocksFirst[e - u].validator = 'unavailable'
                                 }
@@ -920,6 +996,20 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                     blocksFirst[e - u].validator = 'unavailable'
                                 }
                             }
+                        }
+                    }
+                }
+
+                for (const block of blocksFirst) {
+                    if (block.employes.length > 0) {
+                        var valid = true
+                        block.employes.forEach(element => {
+                            if (element.valid) {
+                                valid = false
+                            }
+                        })  
+                        if (valid) {
+                            block.validator = 'unavailable'
                         }
                     }
                 }
@@ -1050,7 +1140,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                     }
                                 }
                                 if (valid == false && blocksFirst[e-1]) {
-                                    for (let u = 1; u <= hoursdate / 15; u++) {
+                                    for (let u = 1; u <= hoursdate / 15 - 1; u++) {
                                         if (blocksFirst[e - u]) {
                                             for (let r = 0; r < blocksFirst[e - u].employes.length; r++) {
                                                 if (blocksFirst[e - u].employes[r].id  == employeService.id) {
@@ -1096,6 +1186,21 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
+
+                        for (const block of blocksFirst) {
+                            if (block.employes.length > 0) {
+                                var valid = true
+                                block.employes.forEach(element => {
+                                    if (element.valid) {
+                                        valid = false
+                                    }
+                                })  
+                                if (valid) {
+                                    block.validator = 'unavailable'
+                                }
+                            }
+                        }
+
                         res.json({status: 'ok', data: blocksFirst, id: createBlockdate._id})
                     }
                 }catch(err){res.send(err)}
