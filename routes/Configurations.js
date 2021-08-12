@@ -192,6 +192,7 @@ configurations.post('/', protectRoute, async (req, res) => {
         businessLocation: req.body.businessLocation,
         bussinessLogo: req.body.file,
         businessEmail: req.body.email,
+        bussinessRoute: req.body.route,
         typesPay: req.body.typesPay,
         currency: req.body.currency,
         datesPolitics: {
@@ -247,6 +248,7 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                 businessLocation: req.body.businessLocation,
                 businessEmail: req.body.email,
                 bussinessLogo: '',
+                bussinessRoute: req.body.route,
                 typesPay: req.body.typesPay,
                 currency: req.body.currency,
                 datesPolitics: {

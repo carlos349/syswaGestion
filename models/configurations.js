@@ -29,6 +29,9 @@ const configurationSchema = new Schema({
     businessEmail: {
         type: String
     },
+    bussinessRoute: {
+        type: String
+    },
     typesPay: {
         type: Array
     },

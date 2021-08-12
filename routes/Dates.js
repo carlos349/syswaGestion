@@ -877,6 +877,47 @@ dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, r
     })
 })
 
+//Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
+dates.put('/confirmDate/:id', (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const date = conn.model('dates', dateSchema)
+    console.log(req.body.id)
+    date.findByIdAndUpdate(req.body.id, {
+        $set: {
+            confirmation: true
+        }
+    })
+    .then(confirmDate => {
+        res.json({status: 'ok', data: confirmDate})
+    })
+    .catch(err => res.send(err))
+})
+
+//Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
+
+dates.put('/removeDate/:id', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const date = conn.model('dates', dateSchema)
+
+    try {
+        const confirmDate = await date.findByIdAndRemove(req.body.id)
+        res.json({status: 'ok'})
+    }catch(err){
+        res.send(err)
+    }
+})
+
 dates.put('/removeImage/:id', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -1586,7 +1627,14 @@ dates.post('/noOneLender',  (req, res) => {
             blocks: blocks
         }
     }).then(edit => {
-        res.json({status: 'ok', id: id})
+        console.log({confirmationId: id})
+        setTimeout(() => {
+            dates.find({confirmationId: id})
+            .then(dataID => {
+                res.json({status: 'ok', id: dataID})
+            })
+            .catch(err => res.send(err))
+        }, 500);
     })
 })
 
