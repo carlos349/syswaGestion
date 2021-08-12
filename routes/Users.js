@@ -134,7 +134,7 @@ users.post('/createUserCertificate', async (req, res, next) => {
                             "cerrar",
                             "visualizar",
                             "editar",
-                            "Reporte"
+                            "reporte"
                         ]
                 },
                 {

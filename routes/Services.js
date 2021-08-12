@@ -160,6 +160,10 @@ services.post('/', protectRoute, async (req,res) => {
         commission: req.body.commission,
         discount: req.body.discount,
         category: req.body.category,
+        prepayment: {
+            ifPrepayment: req.body.prepayment,
+            amount: req.body.prepayment ? req.body.prepaymentAmount : 0
+        },
         active: true
     }
     try{
@@ -226,7 +230,10 @@ services.put('/:id', protectRoute, async (req, res) => {
     })
     const Service = conn.model('services', serviceSchema)
     console.log(req.body.employes)
-    
+    const prepayment = {
+        ifPrepayment: req.body.prepayment,
+        amount: req.body.prepayment ? req.body.prepaymentAmount : 0
+    }
     try{
         const editService = await Service.findByIdAndUpdate(req.params.id, {
             $set: {
@@ -238,7 +245,8 @@ services.put('/:id', protectRoute, async (req, res) => {
                 commission: req.body.commission,
                 discount: req.body.discount,
                 category: req.body.category,
-                employes: req.body.employes
+                employes: req.body.employes,
+                prepayment: prepayment
             }
         })
         if (editService) {

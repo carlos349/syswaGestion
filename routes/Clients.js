@@ -7,6 +7,7 @@ const key = require('../private/key-jwt');
 const protectRoute = require('../securityToken/verifyToken')
 const clientSchema = require('../models/Clients')
 const dateSchema = require('../models/Dates')
+const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
@@ -263,7 +264,63 @@ clients.post('/datesperclient', protectRoute, async (req, res) => {
     }
 })
 
-//input - form with user and pass . formulario con user y pass
+
+//input - none - nada
+//output - status
+clients.post('/verifyBlackList', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Configuration = conn.model('configurations', configurationSchema)
+
+    try {
+        const findConfiguration = await Configuration.findOne({branch:req.body.branch})
+        var valid = false
+        for (const blackList of findConfiguration.blackList) {
+            if (blackList.clientId == req.body.clientId) {
+                valid = true
+                break
+            }
+        }
+        if (valid) {
+            const getDay = findConfiguration.blockHour.filter(day => day.day == new Date().getDay())[0]
+            var blocksFirst = []
+            var splitHour = parseFloat(getDay.start.split(':')[0])
+            var splitMinutes = getDay.start.split(':')[1]
+            for (let i = 0; i < getDay.time / 15 + 1; i++) {
+                if (i == 0) {
+                    blocksFirst.push({
+                        hour: getDay.start,
+                        validator: false,
+                        employes: []
+                    })
+                    splitMinutes = parseFloat(splitMinutes) + 15
+                    splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
+                    splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                }else{
+                    blocksFirst.push({
+                        hour: splitHour+':'+splitMinutes,
+                        validator: false,
+                        employes: []
+                    })
+                    splitMinutes = parseFloat(splitMinutes) + 15
+                    splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
+                    splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
+                }
+            }
+            res.json({status: 'in black list', data: blocksFirst})
+        }else{
+            res.json({status: 'not in black list'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+//input - form with user and pass. formulario con user y pass
 //output - status and token
 clients.post('/loginClient', async (req, res) => {
     const database = req.headers['x-database-connect'];

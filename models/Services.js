@@ -29,6 +29,9 @@ const serviceSchema = new Schema({
     category: {
         type: String
     },
+    prepayment: {
+        type: Object
+    },
     active: {
         type: Boolean
     }

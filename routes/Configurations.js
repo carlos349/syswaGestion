@@ -245,6 +245,8 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                 businessPhone: req.body.businessPhone,
                 businessType: req.body.businessType,
                 businessLocation: req.body.businessLocation,
+                businessEmail: req.body.email,
+                bussinessLogo: '',
                 typesPay: req.body.typesPay,
                 currency: req.body.currency,
                 datesPolitics: {
@@ -458,6 +460,8 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
         businessPhone: req.body.businessPhone,
         businessType: req.body.businessType,
         businessLocation: req.body.businessLocation,
+        businessEmail: req.body.businessEmail,
+        bussinessLogo: req.body.bussinessLogo,
         currency: req.body.currency,
         typesPay: req.body.typesPay,
         datesPolitics: req.body.datesPolitics,
