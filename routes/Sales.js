@@ -307,7 +307,6 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
       rangeExcel: req.body.rangeExcel,  
       clientSelect: req.body.clientSelect
     }
-    console.log(data)
     var dataTable = []
     if (data.clientSelect.length == 0) {
       try {

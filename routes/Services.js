@@ -229,7 +229,6 @@ services.put('/:id', protectRoute, async (req, res) => {
         useFindAndModify: false
     })
     const Service = conn.model('services', serviceSchema)
-    console.log(req.body.employes)
     const prepayment = {
         ifPrepayment: req.body.prepayment,
         amount: req.body.prepayment ? req.body.prepaymentAmount : 0

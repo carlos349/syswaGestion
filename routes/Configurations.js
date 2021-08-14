@@ -310,7 +310,7 @@ configurations.post('/addFirstProfile', async (req, res) => {
                             ]
                         },
                         {
-                            "ruta" : "metricas",
+                            "ruta" : "reportes",
                             "validaciones" : [
                                 "filtrar"
                             ]
@@ -398,7 +398,7 @@ configurations.post('/addFirstProfile', async (req, res) => {
                                 "cerrar",
                                 "visualizar",
                                 "editar",
-                                "Reporte"
+                                "reporte"
                             ]
                         },
                         {

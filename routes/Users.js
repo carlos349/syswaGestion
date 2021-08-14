@@ -46,9 +46,9 @@ users.post('/createUserCertificate', async (req, res, next) => {
                         ]
                 },
                 {
-                        "ruta" : "metricas",
+                        "ruta" : "reportes",
                         "validaciones" : [
-                                "filtrar"
+                            "filtrar"
                         ]
                 },
                 {
