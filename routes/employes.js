@@ -259,6 +259,7 @@ employes.post('/', async (req, res) => {
     })
 
     const Employe = conn.model('employes', employeSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
 
     Employe.find({document:req.body.document})
     .then(findEmploye => {
@@ -285,6 +286,52 @@ employes.post('/', async (req, res) => {
                 }
                 Employe.create(dataEmploye)
                 .then(employeCreated => {
+                    const employeForBlock = {
+                        name: req.body.firstName + ' ' + req.body.lastName,
+                        id: employeCreated._id,
+                        class: employeCreated.class,
+                        valid: false,
+                        img: employeCreated.img 
+                    }
+                    for (let n = 0; n < req.body.days.length; n++) {
+                        const element = req.body.days[n];
+                            
+                            dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                            .then(res => {
+                                if (res.length > 0) {
+                                    
+                                    for (let e = 0; e < res.length; e++) {
+                                        const blocks = res[e].blocks
+                                        for (let w = 0; w < blocks.length; w++) {
+                                                blocks[w].employes.push(employeForBlock)
+                                        }
+
+                                        for (let j = 0; j < blocks.length; j++) {
+                                            if (blocks[j].hour == element.hours[0]) {
+                                                for (let q = 0; q < 120; q++) {
+                                                    if (blocks[j + q].hour == element.hours[1]) {
+                                                        break
+                                                    }
+                                                    for (let indexB = 0; indexB < blocks[j + q].employes.length; indexB++) {
+                                                        const elementB = blocks[j + q].employes[indexB];
+                                                        
+                                                        if (elementB.id == employeCreated._id) {
+                                                            blocks[j + q].employes.splice(indexB, 1)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        dateBlock.findByIdAndUpdate(res[e]._id,{
+                                            $set:{
+                                                blocks:blocks
+                                            }
+                                        }).then(resEdit=>{}) 
+                                    }
+                                }
+                            })
+                    }
                     res.json({status: 'employe created', data: employeCreated, token: req.requestToken})
                 }).catch(err => {
                     res.send(err)
