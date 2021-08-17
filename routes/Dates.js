@@ -192,15 +192,12 @@ dates.post('/availableslenders', (req, res) => {
                         }
                     }
                     arrayLenders.sort((a, b) => {
-                        return a.comission - b.comission;
-                    });
-                    arrayLenders.sort((a, b) => {
-                        return a.sort - b.sort;
+                        return a.commission - b.commission;
                     });
                     res.json({array: arrayLenders, day: day})
                 }else{
                     arrayLenders.sort((a, b) => {
-                        return a.comission - b.comission;
+                        return a.commission - b.commission;
                     });
                     res.json({array: arrayLenders, day: day})
                 }
@@ -930,11 +927,11 @@ dates.put('/removeImage/:id', protectRoute, (req, res) => {
     const images = req.body.images
     date.findByIdAndUpdate(req.params.id, {
       $set: {
-        image: images
+        imgDesign: images
       }
     })
     .then(change => {
-      res.json({status: 'ok'})
+        res.json({status: 'ok', change: change})
     })
     .catch(err => {
       res.send(err)
@@ -989,6 +986,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         var valid = false
                         for (let r = 0; r < block.employes.length; r++) {
                             const employeBlock = block.employes[r];
+                            employeBlock.commission = employeService.commission
                             if (employeBlock.id  == employeService.id) {
                                 valid = true
                             }
@@ -1039,6 +1037,22 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                     }
+                }
+
+                for (const employe of employes) {
+                    for (const block of blocksFirst) {
+                        for (const blockEmploye of block.employes) {
+                            if (employe.id == blockEmploye.id) {
+                                blockEmploye.commission = employe.commission
+                            }
+                        }
+                    }
+                }
+                
+                for (const block of blocksFirst) {
+                    block.employes.sort((a, b) => {
+                        return a.commission - b.commission;
+                    });
                 }
 
                 for (const block of blocksFirst) {
