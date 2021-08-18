@@ -195,22 +195,6 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
     const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
     const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
 
-    const dict = {
-        0: 'Enero',
-        1: 'Febrero',
-        2: 'Marzo',
-        3: 'Abril',
-        4: 'Mayp',
-        5: 'Junio',
-        6: 'Julio',
-        7: 'Agosto',
-        8: 'Septiembre',
-        9: 'Octubre',
-        10: 'Noviembre',
-        11: 'Diciembre'
-    }
-    const month = dict[new Date().getMonth()]
-    const year = new Date().getFullYear()
     const gain = ((req.body.totalFinal - req.body.reinvestment) / req.body.totalFinal) * 100
     const data = {
         reinvestment: formats.price(req.body.reinvestment),
@@ -225,17 +209,7 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
         branch: req.body.branch,
         createdAt: new Date()
     }
-    const options = {
-        format: "A3",
-        orientation: "portrait",
-        border: "10mm",
-        footer: {
-            height: "10mm",
-            contents: {
-                default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
-            }
-        }
-    };
+    
     try {
         const findExpenses = await Expense.find({
             $and: [
@@ -259,24 +233,15 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
                 amount: expense.amount
             })
         }
-        const document = {
-            html: html,
-            data: {
-                expenses: expenses,
-                data: data,
-                datee: {
-                    month: month,
-                    year: year
-                }
-            },
-            path: "./public/reportExpenses.pdf",
-            type: "",
-        };
         historyData.expenses = expensesNumber
         historyData.totals = data
-        pdf
-        .create(document, options)
-        .then(async (respon) => {
+        try {
+            const editSales = await Sale.updateMany({ closeExpense: true },
+            {
+                $set: {
+                    closeExpense: false
+                }
+            })
             try {
                 const findExpenses = await Expense.updateMany({
                     $and: [
@@ -302,10 +267,7 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
                     }catch(err){res.send(err)}
                 }catch(err){res.send(err)}
             }catch(err){res.send(err)}
-        })
-        .catch((error) => {
-            console.error(error);
-        });
+        }catch(err){res.send(err)}
     }catch(err){
         res.send(err)
     }
