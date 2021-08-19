@@ -7,6 +7,7 @@ const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const serviceSchema = require('../models/Services')
 const expenseSchema = require('../models/Expenses')
+const historyEmployeSchema = require('../models/HistoryEmployeClosed')
 const saleSchema = require('../models/Sales')
 const cors = require('cors')
 const { QLDB } = require('aws-sdk')
@@ -71,6 +72,30 @@ employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
         res.send(err)
     }
 })
+
+employes.get('/historyCloses/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+
+    try {
+        const getHistory = await HistoryEmploye.find({
+            "employe.id": req.params.id
+        })
+        if (getHistory.length > 0) {
+            res.json({status: 'ok', data: getHistory})  
+        }else{
+            res.json({status: 'bad'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 // Fin de la api. (Retorna datos de los empeados) -- Api end (output employes' data)
 
 //----------------------------------------------------------------------------------
@@ -762,42 +787,54 @@ employes.put('/closeemploye/:id', protectRoute, (req, res) => {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
-
+    
     const Employe = conn.model('employes', employeSchema)
     const Sale = conn.model('sales', saleSchema)
-        
+    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+    const dataHistory = {
+        sales: req.body.sales,
+        bonus: req.body.bonus,
+        advancement: req.body.advancement,
+        commission: req.body.commission,
+        employe: req.body.employe,
+        createdAt: new Date()
+    }
     var month = new Date().getMonth()
     var year = new Date().getFullYear()
-    Sale.find({
-        createdAt:{
-            $gte: new Date(year, month, 1),
-            $lte: new Date(year, month+1, 0, 23, 59)
-        }
-    })
-    .then(findSales => {
-        for (let i = 0; i < findSales.length; i++) {
-            const element = findSales[i];
-            for (let e = 0; e < element.items.length; e++) {
-                const sale = element.items[e];
-                if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
-                    sale.statusClose = false
-                }
-            }
-            Sale.findByIdAndUpdate(element._id, {
-                $set: {
-                    items: element.items
-                }
-            }).then(update => {})
-        }
-        Employe.findByIdAndUpdate(req.params.id, {
-            $set: {
-                commission:0,
-                advancement:0,
-                bonus:0
+    HistoryEmploye.create(dataHistory)
+    .then(createHistory => {
+        Sale.find({
+            createdAt:{
+                $gte: new Date(year, month, 1),
+                $lte: new Date(year, month+1, 0, 23, 59)
             }
         })
-        .then(employeClosed => {
-            res.json({status: 'employe closed', data: employeClosed, token: req.requestToken})
+        .then(findSales => {
+            for (let i = 0; i < findSales.length; i++) {
+                const element = findSales[i];
+                for (let e = 0; e < element.items.length; e++) {
+                    const sale = element.items[e];
+                    if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
+                        sale.statusClose = false
+                    }
+                }
+                Sale.findByIdAndUpdate(element._id, {
+                    $set: {
+                        items: element.items
+                    }
+                }).then(update => {})
+            }
+            Employe.findByIdAndUpdate(req.params.id, {
+                $set: {
+                    commission:0,
+                    advancement:0,
+                    bonus:0
+                }
+            })
+            .then(employeClosed => {
+                res.json({status: 'employe closed', data: employeClosed, token: req.requestToken})
+            })
+            .catch(err => res.send(err))
         })
         .catch(err => res.send(err))
     })

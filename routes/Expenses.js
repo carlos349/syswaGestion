@@ -82,6 +82,27 @@ expenses.get('/:branch', protectRoute, async (req, res) => {
     }
 })
 
+expenses.get('/historyExpenses/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    
+    const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
+
+    try {
+        const historyExpenses = await HistoryExpense.find({branch: req.params.branch})
+        if (historyExpenses.length > 0) {
+            res.json({status: 'ok', data: historyExpenses})
+        }else{
+            res.json({status: 'bad'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 // Api to find expenses by this month and after month
 //input null - output status, data, token
 expenses.get('/findReinvestment/:branch', protectRoute, async (req, res) => {
