@@ -12,7 +12,7 @@ const providerSchema = new Schema({
         type: String
     },
     contact: {
-        type: String
+        type: Object
     },
     contactPlus: {
         type: String
