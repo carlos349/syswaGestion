@@ -26,6 +26,9 @@ const saleSchema = new Schema({
     status: {
         type: Boolean
     },
+    closeExpense: {
+        type: Boolean
+    },
     uuid: {
         type: Number
     },

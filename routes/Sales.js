@@ -105,7 +105,8 @@ sales.get('/totalSales/:branch', protectRoute, async (req, res) => {
       $and: [
           {createdAt: { $gte: sinceActual, $lte: untilActual }},
           {branch: req.params.branch},
-          {status:true}
+          {status:true},
+          {closeExpense: true}
       ]
     })
     var totalSales = 0
@@ -655,6 +656,7 @@ sales.post('/process', protectRoute, (req, res) => {
     purchaseOrder: 0,
     count: 0,
     status: true,
+    closeExpense: true,
     totals: {
       total: total,
       totalPay: totalPay
@@ -685,10 +687,13 @@ sales.post('/process', protectRoute, (req, res) => {
       quantityProduct: item.quantityProduct,
       totalItem: item.total,
       employe: item.employe,
+      statusClose: true,
       type: item.tag,
       id:new Date().getTime()
     })
   }
+
+  console.log(dataSale.items)
   
   CashFund.findOne({branch: req.body.branch})
   .then(cashFund => {
@@ -734,12 +739,14 @@ sales.post('/process', protectRoute, (req, res) => {
                         commission: item.commissionEmploye
                       }
                     }).then(editEmploye => {})
-                    for (const product of item.item.products) {
-                      Inventory.findByIdAndUpdate(product.id,{
-                        $inc: {
-                          consume: parseInt(product.count)
-                        }
-                      }).then(editInventory => {})
+                    if (item.item.products || item.item.products.length > 0) {
+                      for (const product of item.item.products) {
+                        Inventory.findByIdAndUpdate(product.id,{
+                          $inc: {
+                            consume: parseInt(product.count)
+                          }
+                        }).then(editInventory => {})
+                      } 
                     }
                   }
                 }

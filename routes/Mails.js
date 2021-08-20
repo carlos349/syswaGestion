@@ -1093,7 +1093,7 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
         
         const mail = {
             from: "SYSWA",
-            to: "cristiansleonardo@gmail.com",
+            to: findSale.client.email,
             subject: 'Detalles de tu venta',
             html: `
             <!doctype html>
@@ -1261,9 +1261,13 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
               <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                 <tbody>
                   <tr>
-                    <td style="width:350px;">
+                    <td style="width:300px;">
                       
+<<<<<<< HEAD
               <img height="auto" src="${logo}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="600">
+=======
+              <img height="auto" src="https://s3-eu-west-1.amazonaws.com/topolio/uploads/6103493aae989/1627611592.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550">
+>>>>>>> a27e55e9ef4ac5537e1110c597cb2265769c951b
             
                     </td>
                   </tr>

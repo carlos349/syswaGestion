@@ -7,6 +7,7 @@ const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const serviceSchema = require('../models/Services')
 const expenseSchema = require('../models/Expenses')
+const historyEmployeSchema = require('../models/HistoryEmployeClosed')
 const saleSchema = require('../models/Sales')
 const cors = require('cors')
 const { QLDB } = require('aws-sdk')
@@ -71,6 +72,49 @@ employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
         res.send(err)
     }
 })
+
+employes.get('/historyCloses/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+
+    try {
+        const getHistory = await HistoryEmploye.find({
+            "employe.id": req.params.id
+        })
+        if (getHistory.length > 0) {
+            res.json({status: 'ok', data: getHistory})  
+        }else{
+            res.json({status: 'bad'})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
+employes.get('/getHistoryEmploye/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+
+    try {
+        const getHistory = await HistoryEmploye.findById(req.params.id)
+        if (getHistory) {
+            res.json({status: 'ok', data: getHistory})  
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 // Fin de la api. (Retorna datos de los empeados) -- Api end (output employes' data)
 
 //----------------------------------------------------------------------------------
@@ -191,7 +235,7 @@ employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
                 const element = findSales[i];
                 for (let e = 0; e < element.items.length; e++) {
                     const sale = element.items[e];
-                    if (sale.employe.id == req.params.id && element.status) {
+                    if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
                         salesOfEmploye.push({createdAt: element.createdAt, client: element.client.firstName + ' ' + element.client.lastName, commission: sale.employe.commission, total: element.totals.total, service: sale.item.name,id: sale.id, saleData: element})
                     }
                 }
@@ -756,27 +800,64 @@ employes.put('/regAdvancement/:id', protectRoute, async (req,res) => {
 
 //Api que cierra a un empleado (Ingreso: ObjectId del empleado) -- Api that close an employe (Input: employe´s ObjectId)
 
-employes.put('/closeemploye/:id', protectRoute, async (req, res) => {
+employes.put('/closeemploye/:id', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
-
+    
     const Employe = conn.model('employes', employeSchema)
-
-    Employe.findByIdAndUpdate(req.params.id, {
-        $set: {
-            commission:0,
-            advancement:0,
-            bonus:0
-        }
+    const Sale = conn.model('sales', saleSchema)
+    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+    const dataHistory = {
+        sales: req.body.sales,
+        bonus: req.body.bonus,
+        advancement: req.body.advancement,
+        commission: req.body.commission,
+        employe: req.body.employe,
+        createdAt: new Date()
+    }
+    var month = new Date().getMonth()
+    var year = new Date().getFullYear()
+    HistoryEmploye.create(dataHistory)
+    .then(createHistory => {
+        Sale.find({
+            createdAt:{
+                $gte: new Date(year, month, 1),
+                $lte: new Date(year, month+1, 0, 23, 59)
+            }
+        })
+        .then(findSales => {
+            for (let i = 0; i < findSales.length; i++) {
+                const element = findSales[i];
+                for (let e = 0; e < element.items.length; e++) {
+                    const sale = element.items[e];
+                    if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
+                        sale.statusClose = false
+                    }
+                }
+                Sale.findByIdAndUpdate(element._id, {
+                    $set: {
+                        items: element.items
+                    }
+                }).then(update => {})
+            }
+            Employe.findByIdAndUpdate(req.params.id, {
+                $set: {
+                    commission:0,
+                    advancement:0,
+                    bonus:0
+                }
+            })
+            .then(employeClosed => {
+                res.json({status: 'employe closed', data: employeClosed, token: req.requestToken})
+            })
+            .catch(err => res.send(err))
+        })
+        .catch(err => res.send(err))
     })
-    .then(employeClosed => {
-        res.json({status: 'employe closed', data: employeClosed, token: req.requestToken})
-    }).catch(err => {
-        res.send(err)
-    })
+    .catch(err => res.send(err))
 })
 
 //Fin de la api. (Retorna datos del empleado) -- Api end (output employe's data)
