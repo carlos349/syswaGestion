@@ -44,7 +44,7 @@ app.use('/clients', require('./routes/Clients.js'))
 app.use('/branches', require('./routes/Branch.js'))
 app.use('/stores', require('./routes/Store.js'))
 // app.use('/pedidos', require('./routes/Pedidos.js'))
-// app.use('/notifications', require('./routes/Notifications.js'))
+app.use('/notifications', require('./routes/Notifications.js'))
 
 
 //Static files

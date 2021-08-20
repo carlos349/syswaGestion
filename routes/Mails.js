@@ -7,8 +7,8 @@ const dateSchema = require('../models/Dates')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const saleSchema = require('../models/Sales')
-const Mails = new email(mailCredentials)
 const configurationSchema = require('../models/Configurations')
+const Mails = new email(mailCredentials)
 const cors = require('cors')
 
 mails.use(cors())
@@ -1028,10 +1028,22 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
   const Sale = conn.model('sales', saleSchema)
-  console.log(req.params.id)
+  const Configuration = conn.model('configurations', configurationSchema)
+  var logo = ''
+    
+  
   try{ 
       const findSale = await Sale.findById(req.params.id)
       if (findSale) {
+        try {
+            const getConfigurations = await Configuration.findOne({
+                branch: findSale.branch
+            })
+            logo = getConfigurations.bussinessLogo
+        }catch(err){
+            res.send(err)
+        }
+        console.log(logo)
         var vuelt = ((findSale.totals.total - findSale.totals.totalPay) * (-1))
 
         let dateFormat = new Date(findSale.createdAt)
@@ -1251,7 +1263,7 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
                   <tr>
                     <td style="width:350px;">
                       
-              <img height="auto" src="https://s3-eu-west-1.amazonaws.com/topolio/uploads/6103493aae989/1627611592.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="600">
+              <img height="auto" src="${logo}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="600">
             
                     </td>
                   </tr>
@@ -2031,7 +2043,7 @@ mails.post('/dateMail', async (req, res) => {
           }
           
           services = services + `
-              <div style="margin:0px auto; margin-top:5%;max-width:600px;">
+              <div style="margin:0px auto; margin-top:10px;max-width:600px;">
                           
               <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                 <tbody>
