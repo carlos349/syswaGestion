@@ -692,6 +692,8 @@ sales.post('/process', protectRoute, (req, res) => {
       id:new Date().getTime()
     })
   }
+
+  console.log(dataSale.items)
   
   CashFund.findOne({branch: req.body.branch})
   .then(cashFund => {
@@ -737,12 +739,14 @@ sales.post('/process', protectRoute, (req, res) => {
                         commission: item.commissionEmploye
                       }
                     }).then(editEmploye => {})
-                    for (const product of item.item.products) {
-                      Inventory.findByIdAndUpdate(product.id,{
-                        $inc: {
-                          consume: parseInt(product.count)
-                        }
-                      }).then(editInventory => {})
+                    if (item.item.products || item.item.products.length > 0) {
+                      for (const product of item.item.products) {
+                        Inventory.findByIdAndUpdate(product.id,{
+                          $inc: {
+                            consume: parseInt(product.count)
+                          }
+                        }).then(editInventory => {})
+                      } 
                     }
                   }
                 }

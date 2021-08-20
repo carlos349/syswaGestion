@@ -96,6 +96,25 @@ employes.get('/historyCloses/:id', protectRoute, async (req, res) => {
     }
 })
 
+employes.get('/getHistoryEmploye/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+
+    try {
+        const getHistory = await HistoryEmploye.findById(req.params.id)
+        if (getHistory) {
+            res.json({status: 'ok', data: getHistory})  
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 // Fin de la api. (Retorna datos de los empeados) -- Api end (output employes' data)
 
 //----------------------------------------------------------------------------------
