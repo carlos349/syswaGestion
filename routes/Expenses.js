@@ -235,81 +235,112 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
     const Expense = conn.model('expenses', expenseSchema)
     const Sale = conn.model('sales', saleSchema)
     const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
+    const Inventory = conn.model('inventories', inventorySchema)
     const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
 
-    const gain = ((req.body.totalFinal - req.body.reinvestment) / req.body.totalFinal) * 100
-    const data = {
-        reinvestment: formats.price(req.body.reinvestment),
-        sales: formats.price(req.body.sales),
-        expenses: formats.price(req.body.expenses),
-        totalFinal: formats.price(req.body.totalFinal),
-        gain: gain.toFixed(2)
-    }
-    const historyData = {
-        expenses: [],
-        totals: {},
-        branch: req.body.branch,
-        createdAt: new Date()
-    }
-    
     try {
-        const findExpenses = await Expense.find({
-            $and: [
-                {branch: req.body.branch},
-                {validator: true}
-            ]
-        })
-        var expenses = []
-        var expensesNumber = []
-        for (const expense of findExpenses) {
-            expenses.push({
-                detaill: expense.detail,
-                typee: expense.type,
-                createdAt: formats.dates(expense.createdAt),
-                amount: formats.price(expense.amount)
-            })
-            expensesNumber.push({
-                detaill: expense.detail,
-                typee: expense.type,
-                createdAt: formats.dates(expense.createdAt),
-                amount: expense.amount
-            })
+        const getInventory = await Inventory.find({branch: req.body.branch})
+        var totalInventory = 0
+        if (getInventory.length > 0) {
+            for (const product of getInventory) {
+                const total = (product.quantity - product.consume) * product.price
+                totalInventory = totalInventory + total
+            }
         }
-        historyData.expenses = expensesNumber
-        historyData.totals = data
+        const dataExpense = {
+            branch: req.body.branch,
+            detail: `Stock en inventario`,
+            amount: totalInventory > 0 ? -(totalInventory) : 0,
+            type: 'Inventario',
+            validator: true,
+            createdAt: new Date()
+        }
+
         try {
-            const editSales = await Sale.updateMany({ closeExpense: true },
-            {
-                $set: {
-                    closeExpense: false
-                }
-            })
-            try {
-                const findExpenses = await Expense.updateMany({
-                    $and: [
-                        {branch: req.body.branch},
-                        {validator: true}
-                    ]},
-                    {
-                    $set: {
-                        validator: false
-                    }
-                })
+            const getInventory = await Expense.create(dataExpense)
+            const totalFinal = parseFloat(req.body.totalFinal) + totalInventory
+            const gain = ((totalFinal - req.body.reinvestment) / totalFinal) * 100
+            const data = {
+                reinvestment: formats.price(req.body.reinvestment),
+                sales: formats.price(req.body.sales),
+                expenses: formats.price(req.body.expenses),
+                totalFinal: formats.price(totalFinal),
+                gain: gain.toFixed(2)
+            }
+            const historyData = {
+                expenses: [],
+                totals: {},
+                branch: req.body.branch,
+                createdAt: new Date()
+            }
+            if (getInventory) {
                 try {
-                    const updateReinvestment = await Reinvestment.findByIdAndUpdate(req.body.reinvestmentId, {
-                        $set: {
-                            amount: 0,
-                            amountEgress: 0,
-                            validator: false
-                        }
+                    const findExpenses = await Expense.find({
+                        $and: [
+                            {branch: req.body.branch},
+                            {validator: true}
+                        ]
                     })
+                    var expenses = []
+                    var expensesNumber = []
+                    for (const expense of findExpenses) {
+                        expenses.push({
+                            detaill: expense.detail,
+                            typee: expense.type,
+                            createdAt: formats.dates(expense.createdAt),
+                            amount: formats.price(expense.amount)
+                        })
+                        expensesNumber.push({
+                            detaill: expense.detail,
+                            typee: expense.type,
+                            createdAt: formats.dates(expense.createdAt),
+                            amount: expense.amount
+                        })
+                    }
+                    historyData.expenses = expensesNumber
+                    historyData.totals = data
                     try {
-                        const createHistory = await HistoryExpense.create(historyData)
-                        res.json({status: 'ok'})
+                        const editSales = await Sale.updateMany({ closeExpense: true },
+                        {
+                            $set: {
+                                closeExpense: false
+                            }
+                        })
+                        try {
+                            const findExpenses = await Expense.updateMany({
+                                $and: [
+                                    {branch: req.body.branch},
+                                    {validator: true}
+                                ]},
+                                {
+                                $set: {
+                                    validator: false
+                                }
+                            })
+                            try {
+                                const updateReinvestment = await Reinvestment.findByIdAndUpdate(req.body.reinvestmentId, {
+                                    $set: {
+                                        amount: 0,
+                                        amountEgress: 0,
+                                        validator: false
+                                    }
+                                })
+                                try {
+                                    const createHistory = await HistoryExpense.create(historyData)
+                                    dataExpense.amount = totalInventory
+                                    try {
+                                        const getInventory = await Expense.create(dataExpense)
+                                        res.json({status: 'ok'})
+                                    }catch(err){res.send(err)}
+                                }catch(err){res.send(err)}
+                            }catch(err){res.send(err)}
+                        }catch(err){res.send(err)}
                     }catch(err){res.send(err)}
-                }catch(err){res.send(err)}
-            }catch(err){res.send(err)}
-        }catch(err){res.send(err)}
+                }catch(err){res.send(err)}   
+            }
+        }catch(err){
+            res.send(err)
+        }
     }catch(err){
         res.send(err)
     }
