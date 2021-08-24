@@ -936,7 +936,7 @@ stores.delete('/deleteinventoryproduct/:id', protectRoute, async (req, res) => {
                             $inc:{productsCount:-1}
                         })
                         if (addCount) {
-                            res.json({status: 'product deleted',price: storeBalance.price, total:total, token: req.requestToken})
+                            res.json({status: 'product deleted',price: storeBalance.price, total:total, product:deleteProduct.product,  token: req.requestToken})
                         }
                     }catch(err){
                         res.send(err)
