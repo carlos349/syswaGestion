@@ -1516,29 +1516,33 @@ dates.post('/verifydate', async (req, res) => {
                     var validID = true
                     const elementTwo = finddate.blocks[key]
                     if (element.blocks[0].employes) {
-                        if (element.blocks[key].validator == 'select') {
-                            for (const employe of elementTwo.employes) {
-                                if (employe.id == element.employeId) {
-                                    validID = false
+                        if (element.blocks[key].validator == 'select' && element.blocks[key+1]) {
+                            if (element.blocks[key+1].validator == 'select') {
+                                for (const employe of elementTwo.employes) {
+                                    if (employe.id == element.employeId) {
+                                        validID = false
+                                    }
                                 }
-                            }
-                            if(validID){
-                                console.log('entre')
-                                validFinally = true
-                                break
+                                if(validID){
+                                    console.log('entre')
+                                    validFinally = true
+                                    break
+                                }
                             }
                         }
                     }else{
-                        if (element.blocksFirst[key].validator == 'select') {
-                            for (const employe of elementTwo.employes) {
-                                if (employe.id == element.employeId) {
-                                    validID = false
+                        if (element.blocksFirst[key].validator == 'select' && element.blocksFirst[key+1]) {
+                            if (element.blocksFirst[key+1].validator == 'select') {
+                                for (const employe of elementTwo.employes) {
+                                    if (employe.id == element.employeId) {
+                                        validID = false
+                                    }
                                 }
-                            }
-                            if(validID){
-                                console.log('entre')
-                                validFinally = true
-                                break
+                                if(validID){
+                                    console.log('entre')
+                                    validFinally = true
+                                    break
+                                }  
                             }
                         }
                     }
