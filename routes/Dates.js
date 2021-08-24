@@ -1061,6 +1061,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         block.employes.forEach(element => {
                             if (element.valid) {
                                 valid = false
+                                block.validator = true
                             }
                         })  
                         if (valid) {
@@ -1248,6 +1249,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 block.employes.forEach(element => {
                                     if (element.valid) {
                                         valid = false
+                                        block.validator = true
                                     }
                                 })  
                                 if (valid) {
