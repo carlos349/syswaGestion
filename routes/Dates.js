@@ -124,6 +124,36 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
     }
 })
 
+//Fin de la api (Retorna: Datos de las horas bloqueadas) -- Api end (Return: hours blocking data)
+
+//----------------------------------------------------------------------------------
+
+//Api de la api (Retorna: Datos de las horas bloqueadas) llega (branch como parametro) -- Api end (Return: hours blocking data) input (branch as param)
+
+dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+    const dates = formats.dayBack(new Date())
+    try{
+        const find = await HourBlocking.deleteMany({
+            $and: [
+                {dateBlockings: {$lte: dates+' 00:00'}},
+                {branch: req.params.branch}
+            ]
+        })
+        if (find) {
+            res.json({status:'ok', token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
+})
+
 //Fin de la api (Retorna: Datos de las citas del empleado) -- Api end (Return: Employe dates´s data)
 
 //----------------------------------------------------------------------------------
@@ -315,6 +345,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const data = {
         branch: req.body.branch,
         dateBlocking: splitDate[1]+'-'+splitDate[0]+'-'+splitDate[2],
+        dateBlockings: new Date(splitDate[1]+'-'+splitDate[0]+'-'+splitDate[2]),
         employe: req.body.employe,
         start: req.body.start,
         end: req.body.end
@@ -1073,10 +1104,10 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    const hour = thisDate.getHours() - findConfiguration.datesPolitics.minTypeDate
+                    const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
-                        
+                        console.log(element.hour.split(':')[0], hour)
                         if (element.hour.split(':')[0] == hour) {
                             break
                         }
