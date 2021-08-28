@@ -318,7 +318,7 @@ dates.delete('/:id', protectRoute, async (req, res) => {
     try{
         const deletedate = await date.findByIdAndRemove(req.params.id)
         if (deletedate) {
-            res.json({status:'deleted', token: req.requestToken})
+            res.json({status:'deleted', data:deletedate, token: req.requestToken})
         }
     }catch(err){
         res.send(err)

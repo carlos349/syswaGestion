@@ -36,7 +36,7 @@ notifications.get('/', protectRoute, async (req, res) => {
 
 //Api que busca todas las notificaciones que no ha visto un usuario (Ingreso: ObjectId del usuario) -- Api that search all the unview notifications for a user (Input: User´s ObjectId)
 
-notifications.get('/', protectRoute, async (req, res) => {
+notifications.get('/noviews/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -47,13 +47,15 @@ notifications.get('/', protectRoute, async (req, res) => {
     
     try{
         const getnotifications = await Notification.find().sort({createdAt: -1}).limit(150)
+        
         if (getnotifications.length > 0 ) {
+            console.log(getnotifications)
             let onlyYours = []
-            for (let i = 0; i < getNotifications.length; i++) {
-                const elementN = getNotifications[i];
+            for (let i = 0; i < getnotifications.length; i++) {
+                const elementN = getnotifications[i];
                 let inps = true
-                for (let e = 0; e < getNotifications[i].views.length; e++) {
-                    const element = getNotifications[i].views[e];
+                for (let e = 0; e < getnotifications[i].views.length; e++) {
+                    const element = getnotifications[i].views[e];
                     if (element == req.params.id) {
                         inps = false
                         break
@@ -63,6 +65,8 @@ notifications.get('/', protectRoute, async (req, res) => {
                     onlyYours.push(elementN)
                 }
             }
+            console.log("aqui:")
+            console.log(onlyYours)
             res.json({status: 'ok', data: onlyYours, token: req.requestToken})
         }else{
             res.json({status: 'nothing found'})
@@ -131,7 +135,7 @@ notifications.get('/getall', protectRoute, async (req, res) => {
     const Notification = conn.model('notifications', notificationSchema)
 
     try{
-        const getnotifications = await Notification.find().sort({date: -1}).limit(500)
+        const getnotifications = await Notification.find().sort({createdAt: -1}).limit(500)
         if (getnotifications.length > 0 ) {
             res.json({status: 'ok', data: getnotifications, token: req.requestToken})
         }else{
