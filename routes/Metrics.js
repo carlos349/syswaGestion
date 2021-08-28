@@ -321,7 +321,7 @@ metrics.post('/totalServices', protectRoute, async (req, res) => {
       })
       var servicesDate = {}
       for (const datee of dates) {
-        const dateFormat = datee.createdAt.getTime()
+        const dateFormat = formats.datesTime(datee.createdAt)
         if (servicesDate[dateFormat]) {
           servicesDate[dateFormat]++
         }else{

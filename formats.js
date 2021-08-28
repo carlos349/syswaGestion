@@ -15,6 +15,12 @@ formats.datesEdit = (value) => {
     return (dateFormat.getMonth()+1)+"-"+dateFormat.getDate()+"-"+dateFormat.getFullYear()
 }
 
+formats.dayBack = (value) => {
+    let dateFormat = new Date(value)
+    dateFormat.setDate(dateFormat.getDate() - 1)
+    return (dateFormat.getMonth()+1)+"-"+dateFormat.getDate()+"-"+dateFormat.getFullYear()
+}
+
 formats.datesTime = (value) => {
     let dateFormat = new Date(value)
     var format = (dateFormat.getMonth()+1)+"-"+dateFormat.getDate()+"-"+dateFormat.getFullYear()

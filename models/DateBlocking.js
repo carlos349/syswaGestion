@@ -8,6 +8,9 @@ const dateBlockingSchema = new Schema({
     dateBlocking: {
         type: String
     },
+    dateBlockings: {
+        type: Date
+    },
     employe: {
         type: Object
     },

@@ -510,7 +510,8 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
         const update = await User.findByIdAndUpdate(req.params.id, { 
             $set: {
                 status: status, 
-                access: routes
+                access: routes,
+                linkLender: employe
             }
         })
         if (update) {
