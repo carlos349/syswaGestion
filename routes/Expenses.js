@@ -265,7 +265,10 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
                 sales: formats.price(req.body.sales),
                 expenses: formats.price(req.body.expenses),
                 totalFinal: formats.price(totalFinal),
-                gain: gain.toFixed(2)
+                gain: gain.toFixed(2),
+                bonus: formats.price(req.body.bonus),
+                monthly: formats.price(req.body.monthly),
+                commission: formats.price(req.body.commission)
             }
             const historyData = {
                 expenses: [],

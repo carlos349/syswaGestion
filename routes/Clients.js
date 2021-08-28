@@ -8,11 +8,11 @@ const protectRoute = require('../securityToken/verifyToken')
 const clientSchema = require('../models/Clients')
 const dateSchema = require('../models/Dates')
 const configurationSchema = require('../models/Configurations')
+const clientsData = require('../clients.json')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const cors = require('cors')
-
 clients.use(cors())
 
 //input - none - nada
@@ -85,6 +85,30 @@ clients.get('/findOneWithoutToken/:email', async (req, res) => {
     }
 })
 
+clients.get('/getJson', (req, res) => {
+    // const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Client = conn.model('clients', clientSchema)
+    const Clientss = clientsData.data
+    
+    // Client.create(Clientss[0])
+    // .then(create => {
+    //     console.log(create)
+    //     res.json({data: 'ok'})
+    // })
+    // .catch(err => console.log(err))
+    for (const client of Clientss) {
+        // console.log(client)
+        Client.create(client)
+        .then(create => {})
+    }
+    res.json({data: 'ok'})
+})
+
 //input - none - nada
 //output - status
 clients.get('/countClients', protectRoute, async (req, res) => {
@@ -106,7 +130,29 @@ clients.get('/countClients', protectRoute, async (req, res) => {
     }catch(err){
         res.send(err)
     }
+})
 
+//KKprettynails Gets
+
+clients.get('/countClientsKK', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Client = conn.model('clients', clientSchema)
+
+    try {
+        const getClients = await Client.find().count()
+        if (getClients.length > 0) {
+            res.json({status: 'ok', data: getClients, token: req.requestToken})
+        }else{
+            res.json({status: 'bad', data: getClients, token: req.requestToken})
+        }
+    }catch(err){
+        res.send(err)
+    }
 })
 
 //input - pasar id . pasar id
