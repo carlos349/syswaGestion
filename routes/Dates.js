@@ -828,16 +828,20 @@ dates.post('/editBlocksFirst', async (req, res) => {
         const employeSelect = req.body.employeSelect
         const blockEmploye = []
         for (const block of blocks) {
-            var valid = false
-            for (const employe of block.employes) {
-                if (employe.id == employeSelect) {
-                    blockEmploye.push({hour: block.hour, validator: true, origin: true})
-                    valid = true
-                    break
+            if (block.sameDay) {
+                blockEmploye.push({hour: block.hour, validator: 'unavailable', origin: true})
+            }else{
+                var valid = false
+                for (const employe of block.employes) {
+                    if (employe.id == employeSelect) {
+                        blockEmploye.push({hour: block.hour, validator: true, origin: true})
+                        valid = true
+                        break
+                    }
                 }
-            }
-            if (!valid) {
-                blockEmploye.push({hour: block.hour, validator: false, origin: true})
+                if (!valid) {
+                    blockEmploye.push({hour: block.hour, validator: false, origin: true})
+                }  
             }
         }
 
@@ -862,6 +866,14 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
+
+        for (const block of blockEmploye) {
+            console.log(block.sameDay)
+            if (block.sameDay) {
+                block.validator = 'unavailable'
+            }
+        }
+        
         res.json({status: 'ok', data: blocks, blockEmploye: blockEmploye})
     }
 
@@ -1112,6 +1124,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             break
                         }
                         element.validator = 'unavailable'
+                        element.sameDay = true
                     }
                 }
 
@@ -1187,6 +1200,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             break
                         }
                         element.validator = 'unavailable'
+                        element.sameDay = true
                     }
                 }
                 
