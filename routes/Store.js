@@ -8,6 +8,7 @@ const branchSchema = require('../models/Branch')
 const providerSchema = require('../models/Providers')
 const historyInventorySchema = require('../models/HistoryInventories')
 const historyClosedInventorySchema = require('../models/HistoryClosedInventories')
+const formats = require('../formats')
 const cors = require('cors')
 
 stores.use(cors())
@@ -429,6 +430,7 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
 
     const Store = conn.model('stores', storeSchema)
     const History = conn.model('historyInventories', historyInventorySchema)
+    const Inventory = conn.model('inventories', inventorySchema)
 
     const historical = {
         id: req.params.id,
@@ -455,11 +457,17 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
         if (add) {
             try{
                 const addHistory = await History.create(historical)
-                console.log(addHistory)
+                var dates = formats.datesMonth()
                 if (addHistory) {
                     try{
-                        const calculatePrice = await History.find({id:req.params.id})
+                        const calculatePrice = await History.find({
+                            $and:[{
+                                id:req.params.id},
+                                {date: { $gte: dates.thisMonth.since+' 00:00', $lte: dates.thisMonth.until+' 24:00' }
+                            }]
+                        })
                         if (calculatePrice) {
+                            
                             var price = 0
                             var many = 0
                             calculatePrice.forEach(element => {
@@ -473,13 +481,22 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
                                     $set: {price: price / many},
                                 })
                                 if (addNewPrice) {
-                                    res.json({status: 'added', data: addHistory, token: req.requestToken })
+                                    try{
+                                        const addNewPriceInv = await Inventory.updateMany({storeId:req.params.id}, {
+                                            $set: {price: price / many},
+                                        })      
+                                        res.json({status: 'added', data: addHistory, token: req.requestToken })
+                                    }catch(err){
+                                        console.log(err)
+                                        res.send(err)
+                                    }
                                 }
                             }catch(err){
                                 res.send(err)
                             }
                         }
                     }catch(err){
+                        
                         res.send(err)
                     }
                 }  
@@ -565,6 +582,9 @@ stores.post('/addtobranch', protectRoute, async (req, res) => {
     const History = conn.model('historyInventories', historyInventorySchema)
     const Store = conn.model('stores', storeSchema)
 
+    var pric = req.body.inv ? 'Devolución' : 'Abastecimiento'
+    var prov = req.body.inv ? 'Inventario' : 'Bodega'
+
     const historical = {
         id: req.body.storeId,
         branch: req.body.branch,
@@ -575,13 +595,14 @@ stores.post('/addtobranch', protectRoute, async (req, res) => {
             lastName: req.body.lastNameUser,
             email: req.body.emailUser
         },
-        price: 'Abastecimiento',
-        provider: 'Bodega',
+        price: pric,
+        provider: prov,
         product: req.body.product,
         entry: req.body.entry,
         measure: req.body.measure,
         date: new Date()
     }
+    console.log("aqui")
     console.log(historical)
     try{
         const add = await Inventory.findByIdAndUpdate(req.body.id, {

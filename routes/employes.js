@@ -263,24 +263,33 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
     })
 
     const Sale = conn.model('sales', saleSchema)
+    const Employe = conn.model('employes', employeSchema)
+
     try{
         const findSale = await Sale.findById(req.params.id)
         if (findSale){
+            var commission = 0
             for (let e = 0; e < findSale.items.length; e++) {
                 const sale = findSale.items[e];
                 if (sale.id == req.body.id) {
+                    commission = sale.employe.commission
                     findSale.items.splice(e, 1)
                     if (findSale.items.length == 0) {
                         findSale.status = false
                     }
                 }
             }
+            commission = req.body.commission - commission
             Sale.findByIdAndUpdate(req.params.id, {
                 $set: {items: findSale.items, status: findSale.status}
             }).then(update =>{
-                res.json({status: 'ok', data: update, token: req.requestToken})
+                Employe.findByIdAndUpdate(req.body.idEmploye, {
+                    $set:{commission: commission}
+                })
+                .then(updateEmploye =>{
+                    res.json({status: 'ok', data: update, token: req.requestToken})
+                })
             })
-            
         }else{
             res.json({status: 'sales not found'})
         }
