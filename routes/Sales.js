@@ -673,11 +673,12 @@ sales.post('/process', protectRoute, (req, res) => {
     idTableSales: '',
     createdAt: req.body.date
   }
-  
+  var timeItem = new Date().getTime()
   for (const item of items) {
     dataSale.localGain = dataSale.localGain + item.totalLocal
     item.employe.commission = item.tag == 'service' ? item.commissionEmploye : ''
     item.employe = item.tag == 'service' ? item.employe : 'none'
+    timeItem++
     dataSale.items.push({
       item: item.item,
       price: item.price,
@@ -689,7 +690,7 @@ sales.post('/process', protectRoute, (req, res) => {
       employe: item.employe,
       statusClose: true,
       type: item.tag,
-      id:new Date().getTime()
+      id:timeItem
     })
   }
 

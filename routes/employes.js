@@ -274,6 +274,8 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
                 if (sale.id == req.body.id) {
                     commission = sale.employe.commission
                     findSale.items.splice(e, 1)
+                    findSale.totals.total = findSale.totals.total - sale.price
+                    findSale.typesPay[0].total = findSale.typesPay[0].total - sale.price
                     if (findSale.items.length == 0) {
                         findSale.status = false
                     }
@@ -281,7 +283,7 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
             }
             commission = req.body.commission - commission
             Sale.findByIdAndUpdate(req.params.id, {
-                $set: {items: findSale.items, status: findSale.status}
+                $set: {items: findSale.items,'totals.total':findSale.totals.total,typesPay:findSale.typesPay, 'totals.totalPay':findSale.typesPay[0].total, status:findSale.status}
             }).then(update =>{
                 Employe.findByIdAndUpdate(req.body.idEmploye, {
                     $set:{commission: commission}
