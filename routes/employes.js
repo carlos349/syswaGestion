@@ -6,6 +6,7 @@ const employeSchema = require('../models/Employes')
 const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const serviceSchema = require('../models/Services')
+const daySaleSchema = require('../models/DaySales')
 const expenseSchema = require('../models/Expenses')
 const historyEmployeSchema = require('../models/HistoryEmployeClosed')
 const saleSchema = require('../models/Sales')
@@ -260,19 +261,22 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useFindAndModify: false
     })
 
     const Sale = conn.model('sales', saleSchema)
     const Employe = conn.model('employes', employeSchema)
-
+    const DaySale = conn.model('daySales', daySaleSchema)
     try{
         const findSale = await Sale.findById(req.params.id)
         if (findSale){
             var commission = 0
+            var total = 0
             for (let e = 0; e < findSale.items.length; e++) {
                 const sale = findSale.items[e];
                 if (sale.id == req.body.id) {
                     commission = sale.employe.commission
+                    total = sale.totalItem
                     findSale.items.splice(e, 1)
                     findSale.totals.total = findSale.totals.total - sale.price
                     findSale.typesPay[0].total = findSale.typesPay[0].total - sale.price
@@ -282,14 +286,47 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
                 }
             }
             commission = req.body.commission - commission
+            findSale.typesPay[0].total = findSale.typesPay[0].total - parseFloat(total)
             Sale.findByIdAndUpdate(req.params.id, {
-                $set: {items: findSale.items,'totals.total':findSale.totals.total,typesPay:findSale.typesPay, 'totals.totalPay':findSale.typesPay[0].total, status:findSale.status}
+                $set: {
+                    items: findSale.items, 
+                    status: findSale.status,
+                    'totals.total': findSale.totals.total - parseFloat(total),
+                    'totals.totalPay': findSale.totals.totalPay - parseFloat(total),
+                    typesPay: findSale.typesPay
+                }
             }).then(update =>{
                 Employe.findByIdAndUpdate(req.body.idEmploye, {
-                    $set:{commission: commission}
+                    $set: {commission: commission}
                 })
                 .then(updateEmploye =>{
-                    res.json({status: 'ok', data: update, token: req.requestToken})
+                    DaySale.findOne({idTableSales: req.params.id})
+                    .then(DaySales => {
+                        DaySales.total = DaySales.total - parseFloat(total)
+                        DaySales.typesPay[0].total = DaySales.typesPay[0].total - parseFloat(total)
+                        console.log(DaySales.total == 0)
+                        console.log(DaySales.total)
+                        console.log(DaySales.typesPay)
+                        if(DaySales.total == 0){
+                            DaySale.findByIdAndRemove(DaySales._id)
+                            .then(deleteDaySale => {
+                                res.json({status: 'ok', data: update, token: req.requestToken})
+                            })
+                            .catch(err => res.send(err))
+                        }else{
+                            DaySale.findByIdAndUpdate(DaySales._id, {
+                                $set: {
+                                    total: DaySales.total,
+                                    typesPay: DaySales.typesPay
+                                }
+                            })
+                            .then(updateDaySale => {
+                                res.json({status: 'ok', data: update, token: req.requestToken})
+                            })
+                            .catch(err => res.send(err))
+                        }
+                    })
+                    .catch(err => res.send(err))
                 })
             })
         }else{
