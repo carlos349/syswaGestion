@@ -1051,6 +1051,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             ]
         })
         if (finddate) {
+            console.log(finddate.blocks)
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
                 const blocksFirst = finddate.blocks
