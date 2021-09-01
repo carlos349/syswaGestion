@@ -837,7 +837,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                         element.validator = 'unavailable'
                     }
                 }
-                if (element.validator == false && blocks[e - 1].validator == true && blocks[e - 1].validator == 'unavailable' && e > 0) {
+                if (element.validator == false && blocks[e - 1].validator == true || 'unavailable' && e > 0) {
                     for (let u = 0; u <= hoursdate / 15; u++) {
                         if (blocks[e - u]) {
                             blocks[e - u].validator = 'unavailable'
