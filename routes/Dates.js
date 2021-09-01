@@ -902,7 +902,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     }
                 }
                 if (blockEmploye.length - 1 == e) {
-                    for (let u = 0; u < hoursdate / 15; u++) {
+                    for (let u = 0; u < hoursdate / 15 + 1; u++) {
                         if (blockEmploye[e - u]) {
                             blockEmploye[e - u].validator = 'unavailable'
                             blockEmploye[e - u].origin = 'unavailable'
@@ -913,6 +913,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
         }
 
         for (const block of blockEmploye) {
+            console.log(block.sameDay)
             if (block.sameDay) {
                 block.validator = 'unavailable'
             }
