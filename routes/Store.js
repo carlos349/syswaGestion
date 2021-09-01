@@ -8,6 +8,7 @@ const branchSchema = require('../models/Branch')
 const providerSchema = require('../models/Providers')
 const historyInventorySchema = require('../models/HistoryInventories')
 const historyClosedInventorySchema = require('../models/HistoryClosedInventories')
+const expenseSchema = require('../models/Expenses')
 const formats = require('../formats')
 const cors = require('cors')
 
@@ -898,7 +899,7 @@ stores.post('/addprovider', protectRoute, async (req, res) => {
 
 //Api que elimina un producto de la bodega (Input: ObjectId del producto) -- Api that delete a product from the store (Input: Product´s ObjectId)
 
-stores.delete('/deletestoreproduct/:id', protectRoute, async (req, res) => {
+stores.post('/deletestoreproduct', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -907,18 +908,84 @@ stores.delete('/deletestoreproduct/:id', protectRoute, async (req, res) => {
 
     const Store = conn.model('stores', storeSchema)
     const Inventory = conn.model('inventories', inventorySchema)
+    const History = conn.model('historyInventories', historyInventorySchema)
+    const Expense = conn.model('expenses', expenseSchema)
 
     try{
-        const deleteProduct = await Store.findByIdAndRemove(req.params.id)
+        const deleteProduct = await Store.findByIdAndRemove(req.body.id)
         if (deleteProduct) {
+            const historicalStore = {
+                id: deleteProduct._id,
+                branchName: 'Descarte',
+                user: {
+                    id: req.body.idUser,
+                    firstName: req.body.firstNameUser,
+                    lastName: req.body.lastNameUser,
+                    email: req.body.emailUser
+                },
+                price: 'Descartamiento',
+                provider: 'Bodega',
+                product: deleteProduct.product,
+                entry: -(deleteProduct.entry),
+                measure: deleteProduct.measure,
+                date: new Date()
+            }
             try{
-                const deleteFromBranches = await Inventory.deleteMany({storeId:req.params.id})
-                if (deleteFromBranches) {
-                    res.json({status: 'product deleted', data: deleteProduct, token: req.requestToken})
+                const addHistory = await History.create(historicalStore)
+                if (addHistory) {
+                    try{
+                        const findInv = await Inventory.find({storeId:req.body.id})
+                        if (findInv) {
+                            findInv.forEach(element => {
+                                var total = ((element.quantity + element.entry) - element.consume) * element.price
+                                const data = {
+                                    branch: element.branch,
+                                    detail: `Producto (${element.product}) eliminado del inventario`,
+                                    amount: total,
+                                    type: 'Inventario',
+                                    validator: true,
+                                    createdAt: new Date()
+                                }
+                                Expense.create(data)
+                                .then(res =>{})
+
+                                const historicalInventory = {
+                                    id: element.storeId,
+                                    branchName: 'Descarte',
+                                    user: {
+                                        id: req.body.idUser,
+                                        firstName: req.body.firstNameUser,
+                                        lastName: req.body.lastNameUser,
+                                        email: req.body.emailUser
+                                    },
+                                    price: 'Descartamiento',
+                                    provider: 'Inventario',
+                                    product: element.product,
+                                    entry: -(((element.quantity + element.entry) - element.consume)),
+                                    measure: element.measure,
+                                    date: new Date()
+                                }
+                                History.create(historicalInventory)
+                                .then(resh =>{})
+                            });
+                            
+                            try{
+                                const deleteFromBranches = await Inventory.deleteMany({storeId:req.body.id})
+                                if (deleteFromBranches) {
+                                    console.log(deleteFromBranches)
+                                    res.json({status: 'product deleted', data: deleteProduct, token: req.requestToken})
+                                }
+                            }catch(err){
+                                res.send(err)
+                            }
+                        }
+                    }catch(err){
+                        res.send(err)
+                    }
                 }
             }catch(err){
                 res.send(err)
-            }
+            } 
         }
     }catch(err){
         res.send(err)
@@ -931,7 +998,7 @@ stores.delete('/deletestoreproduct/:id', protectRoute, async (req, res) => {
 
 //Api que elimina un producto del inventario (Input: ObjectId del producto) -- Api that delete a product from the inventory (Input: Product´s ObjectId)
 
-stores.delete('/deleteinventoryproduct/:id', protectRoute, async (req, res) => {
+stores.post('/deleteinventoryproduct', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -941,9 +1008,28 @@ stores.delete('/deleteinventoryproduct/:id', protectRoute, async (req, res) => {
     const Inventory = conn.model('inventories', inventorySchema)
     const Store = conn.model('stores', storeSchema)
     const Branch = conn.model('branches', branchSchema)
+    const History = conn.model('historyInventories', historyInventorySchema)
+
+    const historical = {
+        id: req.body.storeId,
+        branch: req.body.branch,
+        branchName: req.body.branchName,
+        user: {
+            id: req.body.idUser,
+            firstName: req.body.firstNameUser,
+            lastName: req.body.lastNameUser,
+            email: req.body.emailUser
+        },
+        price: req.body.price,
+        provider: 'Inventario',
+        product: req.body.product,
+        entry: -(req.body.entry),
+        measure: req.body.measure,
+        date: new Date()
+    }
 
     try {
-        const deleteProduct = await Inventory.findByIdAndRemove(req.params.id)
+        const deleteProduct = await Inventory.findByIdAndRemove(req.body.id)
         if (deleteProduct) {
             var total = (deleteProduct.quantity + deleteProduct.entry) - deleteProduct.consume
             const branch = deleteProduct.branch
@@ -957,7 +1043,15 @@ stores.delete('/deleteinventoryproduct/:id', protectRoute, async (req, res) => {
                             $inc:{productsCount:-1}
                         })
                         if (addCount) {
-                            res.json({status: 'product deleted',price: storeBalance.price, total:total, product:deleteProduct.product,  token: req.requestToken})
+                            try{
+                                const addHistory = await History.create(historical)
+                                if (addHistory) {
+                                    res.json({status: 'product deleted',price: storeBalance.price, total:total, product:deleteProduct.product,  token: req.requestToken})
+                                }
+                            }catch(err){
+                                res.send(err)
+                            } 
+                            
                         }
                     }catch(err){
                         res.send(err)
