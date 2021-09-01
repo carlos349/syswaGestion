@@ -894,7 +894,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
             const element = blockEmploye[e];
             if (blockEmploye[e - 1]) {
                 if (element.validator == false && blockEmploye[e - 1].validator == true && e > 0) {
-                    for (let u = 1; u < hoursdate / 15; u++) {
+                    for (let u = 1; u < hoursdate / 15 + 1; u++) {
                         if (blockEmploye[e - u]) {
                             blockEmploye[e - u].validator = 'unavailable'
                             blockEmploye[e - u].origin = 'unavailable'
