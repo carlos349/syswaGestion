@@ -913,7 +913,6 @@ dates.post('/editBlocksFirst', async (req, res) => {
         }
 
         for (const block of blockEmploye) {
-            console.log(block.sameDay)
             if (block.sameDay) {
                 block.validator = 'unavailable'
             }
@@ -1239,10 +1238,12 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    const hour = thisDate.getHours() - findConfiguration.datesPolitics.minTypeDate
+                    const hour = (thisDate.getHours() - 4) - findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
-
+                        if (blocksFirst[0].hour.split(':')[0] >= hour) {
+                            break
+                        }
                         if (element.hour.split(':')[0] == hour) {
                             break
                         }
