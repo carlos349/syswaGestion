@@ -2445,8 +2445,6 @@ mails.post('/dateMail', async (req, res) => {
           branch: branchId
       })
       if (getConfigurations) {
-        console.log(getConfigurations.bussinessRoute)
-        console.log(IDS)
         var services = ''
 
         for (const key in data.serviceSelectds) {

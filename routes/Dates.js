@@ -351,8 +351,6 @@ dates.delete('/:id', protectRoute, async (req, res) => {
                         break
                     }
                 }
-                console.log(findDateBlock[0])
-
                 try {
                     const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
                         $set: {

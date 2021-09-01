@@ -278,8 +278,6 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
                     commission = sale.employe.commission
                     total = sale.totalItem
                     findSale.items.splice(e, 1)
-                    findSale.totals.total = findSale.totals.total - sale.price
-                    findSale.typesPay[0].total = findSale.typesPay[0].total - sale.price
                     if (findSale.items.length == 0) {
                         findSale.status = false
                     }
