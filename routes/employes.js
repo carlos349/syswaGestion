@@ -587,16 +587,22 @@ employes.put('/', protectRoute, async (req,res) => {
                                                     const blocks = res[e].blocks
                                                     for (let w = 0; w < blocks.length; w++) {
                                                         let validEmployeDay = true
+                                                        let val2 = true
                                                         blocks[w].employes.forEach(elementE => {
                                                             if (elementE.id == employeForBlock.id) {
                                                                 validEmployeDay = false
                                                             }
                                                         });
-                                                        if (validEmployeDay) {
-                                                            console.log("pushie")
+                                                        if (blocks[w].employeBlocked) {
+                                                            blocks[w].employeBlocked.forEach(elementB => {
+                                                                if (elementB == employeForBlock.id) {
+                                                                    val2 = false
+                                                                }
+                                                            });
+                                                        }
+                                                        
+                                                        if (validEmployeDay && val2) {
                                                             blocks[w].employes.push(employeForBlock)
-                                                            
-                                                            
                                                         }
                                                     }
                                                     
@@ -641,28 +647,30 @@ employes.put('/', protectRoute, async (req,res) => {
                                     const element = normalDays[n];
                                     
                                     if (element.day == days) {
-                                        
                                         dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
                                         .then(res => {
                                             if (res.length > 0) {
-                                                
                                                 for (let e = 0; e < res.length; e++) {
                                                     const blocks = res[e].blocks
                                                     for (let w = 0; w < blocks.length; w++) {
                                                         let validEmployeDay = true
+                                                        let val3 = true
                                                         blocks[w].employes.forEach(elementE => {
                                                             if (elementE.id == employeForBlock.id) {
                                                                 validEmployeDay = false
                                                             }
                                                         });
-                                                        if (validEmployeDay) {
-                                                            console.log("pushie")
+                                                        if (blocks[w].employeBlocked) {
+                                                            blocks[w].employeBlocked.forEach(elementB => {
+                                                                if (elementB == employeForBlock.id) {
+                                                                    val3 = false
+                                                                }
+                                                            });
+                                                        }
+                                                        if (validEmployeDay && val3) {
                                                             blocks[w].employes.push(employeForBlock)
-                                                            
-                                                            
                                                         }
                                                     }
-                                                    
                                                     dateBlock.findByIdAndUpdate(res[e]._id,{
                                                         $set:{
                                                             blocks:blocks
@@ -697,7 +705,6 @@ employes.put('/', protectRoute, async (req,res) => {
                                     })
                                 }
                             }
-                                console.log("dayvail")
                                 let iO = null
                                 setTimeout(() => {
                                     for (let i = 0; i < normalDays.length; i++) {
@@ -720,6 +727,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                                             
                                                             for (let q = 0; q < 120; q++) {
                                                                 var validB = true
+                                                                var valid4 = true
                                                                 if (blocks[w + q].hour == originalDays[iO].hours[1]) {
                                                                     break
                                                                 }
@@ -728,7 +736,14 @@ employes.put('/', protectRoute, async (req,res) => {
                                                                         validB = false
                                                                     }
                                                                 });
-                                                                if (validB) {
+                                                                if (blocks[w +q].employeBlocked) {
+                                                                    blocks[w +q].employeBlocked.forEach(elementB => {
+                                                                        if (elementB == employeForBlock.id) {
+                                                                            valid4 = false
+                                                                        }
+                                                                    });
+                                                                }
+                                                                if (validB && valid4) {
                                                                     blocks[w + q].employes.push(employeForBlock)
                                                                 }
                                                                 

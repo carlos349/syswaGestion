@@ -1432,7 +1432,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     for (let e = 0; e < blocks[i + u].employes.length; e++) {
                         if (blocks[i + u].employes[e].id == employe) {
                             blocks[i + u].employes.splice(e, 1)
-                            blocks[i + u].employeBlocked.push({id: employe})
+                            blocks[i + u].employeBlocked.push(employe)
                         }
                     }
                     if (blocks[i + u].employes.length == 0) {
@@ -1496,7 +1496,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     for (let e = 0; e < blockFirst[i + u].employes.length; e++) {
                         if (blockFirst[i + u].employes[e].id == employe) {
                             blockFirst[i + u].employes.splice(e, 1)
-                            blockFirst[i + u].employeBlocked.push({id: employe})
+                            blockFirst[i + u].employeBlocked.push(employe)
                         }
                     }
                     if (blockFirst[i + u].employes.length == 0) {
