@@ -2,7 +2,7 @@ const express = require('express')
 const dates = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
-const dateSchema = require('../models/dates')
+const dateSchema = require('../models/Dates')
 const dateBlockingSchema = require('../models/DateBlocking')
 const employeSchema = require('../models/Employes')
 const clientSchema = require('../models/Clients')
@@ -351,8 +351,6 @@ dates.delete('/:id', protectRoute, async (req, res) => {
                         break
                     }
                 }
-                console.log(findDateBlock[0])
-
                 try {
                     const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
                         $set: {
@@ -839,8 +837,8 @@ dates.post('/editBlocksFirst', async (req, res) => {
                         element.validator = 'unavailable'
                     }
                 }
-                if (element.validator == false && blocks[e - 1].validator == true && e > 0) {
-                    for (let u = 1; u <= hoursdate / 15; u++) {
+                if (element.validator == false && blocks[e - 1].validator == true || blocks[e - 1].validator == 'unavailable' && e > 0) {
+                    for (let u = 1; u < hoursdate / 15; u++) {
                         if (blocks[e - u]) {
                             blocks[e - u].validator = 'unavailable'
                         }
@@ -904,7 +902,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     }
                 }
                 if (blockEmploye.length - 1 == e) {
-                    for (let u = 0; u < hoursdate / 15; u++) {
+                    for (let u = 0; u < hoursdate / 15 + 1; u++) {
                         if (blockEmploye[e - u]) {
                             blockEmploye[e - u].validator = 'unavailable'
                             blockEmploye[e - u].origin = 'unavailable'
@@ -1054,6 +1052,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             ]
         })
         if (finddate) {
+            console.log(finddate.blocks)
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
                 const blocksFirst = finddate.blocks
@@ -1163,10 +1162,12 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
+                    const hour = (thisDate.getHours() - 4) + findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
-                        console.log(element.hour.split(':')[0], hour)
+                        if (blocksFirst[0].hour.split(':')[0] >= hour) {
+                            break
+                        }
                         if (element.hour.split(':')[0] == hour) {
                             break
                         }
@@ -1239,10 +1240,12 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    const hour = thisDate.getHours() - findConfiguration.datesPolitics.minTypeDate
+                    const hour = (thisDate.getHours() - 4) - findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
-
+                        if (blocksFirst[0].hour.split(':')[0] >= hour) {
+                            break
+                        }
                         if (element.hour.split(':')[0] == hour) {
                             break
                         }
