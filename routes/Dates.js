@@ -752,7 +752,6 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
 dates.post('/editBlocksFirst', async (req, res) => {
     const hoursdate = req.body.timedate
     const blocks = req.body.block
-    console.log(req.body.firstBlock)
     if (req.body.firstBlock) {
         const employesServices = req.body.employesServices
 
@@ -807,7 +806,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     }
                 }
                 if (valid == false && blocks[e - 1]) {
-                    for (let u = 1; u <= hoursdate / 15 - 1; u++) {
+                    for (let u = 1; u < hoursdate / 15; u++) {
                         if (blocks[e - u]) {
                             for (let r = 0; r < blocks[e - u].employes.length; r++) {
                                 if (blocks[e - u].employes[r].id == employeService.id) {
@@ -837,7 +836,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                         element.validator = 'unavailable'
                     }
                 }
-                if (element.validator == false && blocks[e - 1].validator == true || blocks[e - 1].validator == 'unavailable' && e > 0) {
+                if (element.validator == false && blocks[e - 1].validator == true && e > 0) {
                     for (let u = 1; u < hoursdate / 15; u++) {
                         if (blocks[e - u]) {
                             blocks[e - u].validator = 'unavailable'
@@ -889,12 +888,12 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-
+        
         for (let e = 0; e < blockEmploye.length; e++) {
             const element = blockEmploye[e];
             if (blockEmploye[e - 1]) {
                 if (element.validator == false && blockEmploye[e - 1].validator == true && e > 0) {
-                    for (let u = 1; u < hoursdate / 15 + 1; u++) {
+                    for (let u = 1; u < hoursdate / 15; u++) {
                         if (blockEmploye[e - u]) {
                             blockEmploye[e - u].validator = 'unavailable'
                             blockEmploye[e - u].origin = 'unavailable'
@@ -902,7 +901,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                     }
                 }
                 if (blockEmploye.length - 1 == e) {
-                    for (let u = 0; u < hoursdate / 15 + 1; u++) {
+                    for (let u = 0; u < hoursdate / 15; u++) {
                         if (blockEmploye[e - u]) {
                             blockEmploye[e - u].validator = 'unavailable'
                             blockEmploye[e - u].origin = 'unavailable'
@@ -913,7 +912,6 @@ dates.post('/editBlocksFirst', async (req, res) => {
         }
 
         for (const block of blockEmploye) {
-            console.log(block.sameDay)
             if (block.sameDay) {
                 block.validator = 'unavailable'
             }
@@ -1052,7 +1050,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             ]
         })
         if (finddate) {
-            console.log(finddate.blocks)
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
                 const blocksFirst = finddate.blocks
@@ -1112,12 +1109,13 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                         }
                         if (element.validator == false && blocksFirst[e - 1].validator == true && e > 0) {
-                            for (let u = 0; u <= hoursdate / 15; u++) {
+                            for (let u = 1; u <= hoursdate / 15; u++) {
                                 if (blocksFirst[e - u]) {
                                     blocksFirst[e - u].validator = 'unavailable'
                                 }
                             }
                         }
+                        // console.log(blocksFirst.length - 1, e)
                         if (blocksFirst.length - 1 == e) {
                             for (let u = 0; u < hoursdate / 15; u++) {
                                 if (blocksFirst[e - u]) {
@@ -1143,8 +1141,9 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         return a.commission - b.commission;
                     });
                 }
-
+                var index = 0
                 for (const block of blocksFirst) {
+                    
                     if (block.employes.length > 0) {
                         var valid = true
                         block.employes.forEach(element => {
@@ -1157,6 +1156,14 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             block.validator = 'unavailable'
                         }
                     }
+                    if (blocksFirst.length - 1 == index) {
+                        for (let u = 0; u < hoursdate / 15; u++) {
+                            if (blocksFirst[index - u]) {
+                                blocksFirst[index - u].validator = 'unavailable'
+                            }
+                        }
+                    }
+                    index++
                 }
 
                 const thisDate = new Date()
@@ -1226,6 +1233,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         }
                         if (!inspector) {
                             elementTwo.employes.push({ name: element.name, id: element.id, class: element.class, position: i, valid: false, img: element.img })
+                            elementTwo.employeBlocked = []
                         }
                     }
                 }
@@ -1408,6 +1416,11 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 if (element.validator == 'select') {
                     element.validator = true
                     blocks[i].employes.unshift(employe)
+                    for (const employeFor in element.employeBlocked) {
+                        if (element.employeBlocked[employeFor].id == employe) {
+                            element.employeBlocked.splice(employeFor, 1)
+                        }
+                    }
                 }
             }
         }
@@ -1419,6 +1432,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     for (let e = 0; e < blocks[i + u].employes.length; e++) {
                         if (blocks[i + u].employes[e].id == employe) {
                             blocks[i + u].employes.splice(e, 1)
+                            blocks[i + u].employeBlocked.push({id: employe})
                         }
                     }
                     if (blocks[i + u].employes.length == 0) {
@@ -1457,6 +1471,11 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 if (element.validator == 'select') {
                     element.validator = true
                     blockFirst[i].employes.unshift(employe)
+                    for (const employeFor in element.employeBlocked) {
+                        if (element.employeBlocked[employeFor].id == employe) {
+                            element.employeBlocked.splice(employeFor, 1)
+                        }
+                    }
                 }
             }
         }
@@ -1477,6 +1496,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     for (let e = 0; e < blockFirst[i + u].employes.length; e++) {
                         if (blockFirst[i + u].employes[e].id == employe) {
                             blockFirst[i + u].employes.splice(e, 1)
+                            blockFirst[i + u].employeBlocked.push({id: employe})
                         }
                     }
                     if (blockFirst[i + u].employes.length == 0) {
@@ -1603,17 +1623,22 @@ dates.post('/verifydate', async (req, res) => {
             ]
         })
         if (finddate) {
-            console.log(datadate.serviceSelectds)
+            // console.log(datadate.serviceSelectds)
             for (let i = 0; i < datadate.serviceSelectds.length; i++) {
                 var validFinally = false
                 const element = datadate.serviceSelectds[i];
+                var index = 0
                 for (const key in finddate.blocks) {
                     var validID = true
                     const elementTwo = finddate.blocks[key]
                     if (element.blocks[0].employes) {
-                        if (element.blocks[key].validator == 'select' && element.blocks[key + 1]) {
-                            if (element.blocks[key + 1].validator == 'select') {
+                        // console.log(element.blocks[key].validator)
+                        if (element.blocks[key].validator == 'select' && element.blocks[index + 1]) {
+                            if (element.blocks[index + 1].validator == 'select') {
+                                console.log(elementTwo.hour)
+                                console.log(elementTwo.employes)
                                 for (const employe of elementTwo.employes) {
+                                    // console.log(employe.id == element.employeId)
                                     if (employe.id == element.employeId) {
                                         validID = false
                                     }
@@ -1625,9 +1650,10 @@ dates.post('/verifydate', async (req, res) => {
                                 }
                             }
                         }
+                        index++
                     } else {
-                        if (element.blocksFirst[key].validator == 'select' && element.blocksFirst[key + 1]) {
-                            if (element.blocksFirst[key + 1].validator == 'select') {
+                        if (element.blocksFirst[key].validator == 'select' && element.blocksFirst[index + 1]) {
+                            if (element.blocksFirst[index + 1].validator == 'select') {
                                 for (const employe of elementTwo.employes) {
                                     if (employe.id == element.employeId) {
                                         validID = false
@@ -1640,13 +1666,17 @@ dates.post('/verifydate', async (req, res) => {
                                 }
                             }
                         }
+                        index++
                     }
                 }
+                console.log(validFinally)
                 if (validFinally) {
                     break
                 }
             }
             res.json({ status: validFinally })
+        }else{
+            res.json({ status: false })
         }
     } catch (err) { res.send(err) }
 })
