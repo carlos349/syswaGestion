@@ -152,7 +152,7 @@ notifications.get('/getall', protectRoute, async (req, res) => {
 
 //Api que crea una nueva notificación (Ingreso: branch, userName, userImg, detail, link) -- Api that create a new notification (Input: branch, userName, userImg, detail, link)
 
-notifications.post('/', protectRoute, async (req, res) => {
+notifications.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
