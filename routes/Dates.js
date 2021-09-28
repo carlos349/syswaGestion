@@ -171,7 +171,6 @@ dates.post('/availableslenders', (req, res) => {
     const Employe = conn.model('employes', employeSchema)
     const User = conn.model('users', userSchema)
 
-    console.log(req.body.date)
     const dateNow = new Date(req.body.date)
     const day = dateNow.getDay()
     const formatdate = dateNow.getFullYear() + "-" + (dateNow.getMonth() + 1) + "-" + dateNow.getDate()
@@ -190,7 +189,6 @@ dates.post('/availableslenders', (req, res) => {
                     User.populate(lenders, { path: "users" })
                         .then(EmployeUserData => {
                             const Lenders = EmployeUserData
-                            console.log(Lenders)
                             for (let index = 0; index < Lenders.length; index++) {
                                 const element = Lenders[index];
                                 var valid = false
@@ -323,7 +321,6 @@ dates.delete('/:id', protectRoute, async (req, res) => {
             const hour = deletedate.start.split(' ')[1]
             const end = deletedate.end.split(' ')[1]
             const employe = deletedate.employe
-            console.log(dateFind, branch,hour,end,employe)
             try {
                 const findDateBlock = await dateBlock.find({
                     $and: [
@@ -395,7 +392,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
         start: req.body.start,
         end: req.body.end
     }
-    console.log(data)
     try {
         const findDay = await dateBlock.findOne({
             $and: [
@@ -403,7 +399,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 { 'dateData.date': data.dateBlocking }
             ]
         })
-        console.log(findDay)
         if (findDay) {
             var valid = false
             for (const block of findDay.blocks) {
@@ -418,6 +413,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     for (const key in block.employes) {
                         const employe = block.employes[key]
                         if (employe.id == data.employe.id) {
+                            block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                             data.employe = employe
                             block.employes.splice(key, 1)
                         }
@@ -441,7 +437,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
             //create a dateBlock register to block hour
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
-                console.log(Day)
                 const getDay = findConfiguration.blockHour.filter(day => day.day == Day)[0]
                 // console.log(findConfiguration)
                 var blocksFirst = []
@@ -536,6 +531,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 for (const key in block.employes) {
                                     const employe = block.employes[key]
                                     if (employe.id == data.employe.id) {
+                                        block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                                         data.employe = employe
                                         block.employes.splice(key, 1)
                                     }
@@ -581,7 +577,6 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
         start: req.body.start,
         end: req.body.end
     }
-    console.log(data)
     try {
         const findDay = await dateBlock.findOne({
             $and: [
@@ -589,7 +584,6 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                 { 'dateData.date': data.dateBlocking }
             ]
         })
-        console.log(findDay)
         var valid = false
         for (const block of findDay.blocks) {
             if (block.hour == req.body.start) {
@@ -601,7 +595,26 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                 break
             }
             if (valid) {
-                block.employes.unshift(data.employe)
+                
+                if (block.employeBlocked && block.employeBlocked.length > 0) {
+                    block.employeBlocked.forEach((element,index) => {
+                        if (element.employe == data.employe.id && element.type == 'blocking') {
+                            block.employeBlocked.splice(index, 1)
+                            block.employes.unshift(data.employe)
+                        }
+                        if (element.employe == data.employe.id && element.type == 'date') {
+                            for (let indexB = 0; indexB < block.employes.length; indexB++) {
+                                const elementB = block.employes[indexB];
+                                
+                                if (elementB.id == req.body.id) {
+                                    block.employes.splice(indexB, 1)
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                console.log("hasta aqui bien")
             }
         }
         try {
@@ -970,7 +983,6 @@ dates.put('/confirmDate/:id', (req, res) => {
     })
 
     const date = conn.model('dates', dateSchema)
-    console.log(req.body.id)
     date.findByIdAndUpdate(req.body.id, {
         $set: {
             confirmation: true
@@ -1115,7 +1127,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-                        // console.log(blocksFirst.length - 1, e)
                         if (blocksFirst.length - 1 == e) {
                             for (let u = 0; u < hoursdate / 15; u++) {
                                 if (blocksFirst[e - u]) {
@@ -1199,7 +1210,8 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         blocksFirst.push({
                             hour: getDay.start,
                             validator: true,
-                            employes: []
+                            employes: [],
+                            employeBlocked: []
                         })
                         splitMinutes = parseFloat(splitMinutes) + 15
                         splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
@@ -1208,7 +1220,8 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         blocksFirst.push({
                             hour: splitHour + ':' + splitMinutes,
                             validator: true,
-                            employes: []
+                            employes: [],
+                            employeBlocked: []
                         })
                         splitMinutes = parseFloat(splitMinutes) + 15
                         splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
@@ -1417,7 +1430,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     element.validator = true
                     blocks[i].employes.unshift(employe)
                     for (const employeFor in element.employeBlocked) {
-                        if (element.employeBlocked[employeFor].id == employe) {
+                        if (element.employeBlocked[employeFor].employe == employe) {
                             element.employeBlocked.splice(employeFor, 1)
                         }
                     }
@@ -1432,7 +1445,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     for (let e = 0; e < blocks[i + u].employes.length; e++) {
                         if (blocks[i + u].employes[e].id == employe) {
                             blocks[i + u].employes.splice(e, 1)
-                            blocks[i + u].employeBlocked.push(employe)
+                            blocks[i + u].employeBlocked.push({employe: employe, type: 'date'})
                         }
                     }
                     if (blocks[i + u].employes.length == 0) {
@@ -1472,14 +1485,13 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     element.validator = true
                     blockFirst[i].employes.unshift(employe)
                     for (const employeFor in element.employeBlocked) {
-                        if (element.employeBlocked[employeFor].id == employe) {
+                        if (element.employeBlocked[employeFor].employe == employe) {
                             element.employeBlocked.splice(employeFor, 1)
                         }
                     }
                 }
             }
         }
-        // console.log(blocks)
         for (let e = 0; e < blocks.length; e++) {
             const block = blocks[e]
             if (block.hour == hourSelect) {
@@ -1496,7 +1508,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     for (let e = 0; e < blockFirst[i + u].employes.length; e++) {
                         if (blockFirst[i + u].employes[e].id == employe) {
                             blockFirst[i + u].employes.splice(e, 1)
-                            blockFirst[i + u].employeBlocked.push(employe)
+                            blockFirst[i + u].employeBlocked.push({employe: employe, type: 'date'})
                         }
                     }
                     if (blockFirst[i + u].employes.length == 0) {
@@ -1635,8 +1647,6 @@ dates.post('/verifydate', async (req, res) => {
                         // console.log(element.blocks[key].validator)
                         if (element.blocks[key].validator == 'select' && element.blocks[index + 1]) {
                             if (element.blocks[index + 1].validator == 'select') {
-                                console.log(elementTwo.hour)
-                                console.log(elementTwo.employes)
                                 for (const employe of elementTwo.employes) {
                                     // console.log(employe.id == element.employeId)
                                     if (employe.id == element.employeId) {
@@ -1644,7 +1654,6 @@ dates.post('/verifydate', async (req, res) => {
                                     }
                                 }
                                 if (validID) {
-                                    console.log('entre')
                                     validFinally = true
                                     break
                                 }
@@ -1660,7 +1669,6 @@ dates.post('/verifydate', async (req, res) => {
                                     }
                                 }
                                 if (validID) {
-                                    console.log('entre')
                                     validFinally = true
                                     break
                                 }
@@ -1669,7 +1677,6 @@ dates.post('/verifydate', async (req, res) => {
                         index++
                     }
                 }
-                console.log(validFinally)
                 if (validFinally) {
                     break
                 }
@@ -1772,7 +1779,6 @@ dates.post('/noOneLender', (req, res) => {
             blocks: blocks
         }
     }).then(edit => {
-        console.log({ confirmationId: id })
         setTimeout(() => {
             dates.find({ confirmationId: id })
                 .then(dataID => {
@@ -1935,7 +1941,6 @@ dates.post('/editdate', async (req, res) => {
 
     const blocks = req.body.blocks
     const dataEdit = req.body.data
-    console.log()
     try {
         const editDate = await Dates.findByIdAndUpdate(dataEdit._id, {
             $set: {

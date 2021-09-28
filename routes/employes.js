@@ -57,9 +57,9 @@ employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
                 const sendData =  []
                 for (const employe of users) {
                     if (employe.users) {
-                        sendData.push({name: employe.firstName + ' '+ employe.lastName, img: employe.users.userImage != '' ? employe.users.userImage : 'no', days: employe.days, class: employe.class, _id: employe._id})
+                        sendData.push({name: employe.firstName + ' '+ employe.lastName, img: employe.users.userImage != '' ? employe.users.userImage : 'no', days: employe.days, class: employe.class, _id: employe._id, document: employe.document})
                     }else{
-                        sendData.push({name: employe.firstName + ' '+ employe.lastName, img: 'no', days: employe.days, class: employe.class, _id: employe._id})
+                        sendData.push({name: employe.firstName + ' '+ employe.lastName, img: 'no', days: employe.days, class: employe.class, _id: employe._id, document: employe.document})
                     }
                 }
                 res.json({status: 'ok', data: sendData, token: req.requestToken})
@@ -532,12 +532,18 @@ employes.put('/', protectRoute, async (req,res) => {
     const dateBlock = conn.model('datesblocks', datesBlockSchema)
 
     const dayValid = req.body.dayValid
-    const normalDays = req.body.days
+    const validBloked = req.body.validBlocked
+    var normalDays = ''
     Employe.findById(req.body.id)
     .then(found => {
         Employe.find({document:req.body.document})
         .then(employeFind => {
             const originalDays = found.days
+            if (validBloked) {
+                normalDays = found.days
+            }else{
+                normalDays = req.body.days
+            }
             if (found.document != req.body.document && employeFind.length > 0) {
                 res.json({status: 'document already in use'})
             }else{
@@ -595,7 +601,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                                         });
                                                         if (blocks[w].employeBlocked) {
                                                             blocks[w].employeBlocked.forEach(elementB => {
-                                                                if (elementB == employeForBlock.id) {
+                                                                if (elementB.employe == employeForBlock.id) {
                                                                     val2 = false
                                                                 }
                                                             });
@@ -662,7 +668,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                                         });
                                                         if (blocks[w].employeBlocked) {
                                                             blocks[w].employeBlocked.forEach(elementB => {
-                                                                if (elementB == employeForBlock.id) {
+                                                                if (elementB.employe == employeForBlock.id) {
                                                                     val3 = false
                                                                 }
                                                             });
@@ -738,7 +744,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                                                 });
                                                                 if (blocks[w +q].employeBlocked) {
                                                                     blocks[w +q].employeBlocked.forEach(elementB => {
-                                                                        if (elementB == employeForBlock.id) {
+                                                                        if (elementB.employe == employeForBlock.id) {
                                                                             valid4 = false
                                                                         }
                                                                     });
@@ -776,8 +782,81 @@ employes.put('/', protectRoute, async (req,res) => {
                                             }
                                         })
                                     }
+                                    
                                 }, 1000);
-                            
+                                
+                                setTimeout(() => {
+                                    for (let i = 0; i < normalDays.length; i++) {
+                                        const element = normalDays[i]
+                                        
+                                        dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                        .then(res => {
+                                            for (let t = 0; t < originalDays.length; t++) {
+                                                const elementO = originalDays[t];
+                                                if (element.day == elementO.day) {
+                                                    iO = t
+                                                    break
+                                                }
+                                            }
+                                            if (res.length > 0) {
+                                                for (let e = 0; e < res.length; e++) {
+                                                    const blocks = res[e].blocks
+                                                    for (let w = 0; w < blocks.length; w++) {
+                                                        if (blocks[w].hour == originalDays[iO].hours[0]) {
+                                                            
+                                                            for (let q = 0; q < 120; q++) {
+                                                                var validB = true
+                                                                var valid4 = true
+                                                                if (blocks[w + q].hour == originalDays[iO].hours[1]) {
+                                                                    break
+                                                                }
+                                                                blocks[w + q].employes.forEach(element => {
+                                                                    if (element.id == employeForBlock.id) {
+                                                                        validB = false
+                                                                    }
+                                                                });
+                                                                if (blocks[w +q].employeBlocked) {
+                                                                    blocks[w +q].employeBlocked.forEach(elementB => {
+                                                                        if (elementB.employe == employeForBlock.id) {
+                                                                            valid4 = false
+                                                                        }
+                                                                    });
+                                                                }
+                                                                if (validB && valid4) {
+                                                                    blocks[w + q].employes.push(employeForBlock)
+                                                                }
+                                                                
+                                                                
+                                                            }
+                                                        }
+                                                    }
+                                                    for (let j = 0; j < blocks.length; j++) {
+                                                        if (blocks[j].hour == element.hours[0]) {
+                                                            for (let q = 0; q < 120; q++) {
+                                                                if (blocks[j + q].hour == element.hours[1]) {
+                                                                    break
+                                                                }
+                                                                for (let indexB = 0; indexB < blocks[j + q].employes.length; indexB++) {
+                                                                    const elementB = blocks[j + q].employes[indexB];
+                                                                    
+                                                                    if (elementB.id == req.body.id) {
+                                                                        blocks[j + q].employes.splice(indexB, 1)
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    dateBlock.findByIdAndUpdate(res[e]._id,{
+                                                        $set:{
+                                                            blocks:blocks
+                                                        }
+                                                    }).then(resEdit=>{}) 
+                                                }
+                                            }
+                                        })
+                                    }
+                                    
+                                }, 2000);
                         res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
                     }).catch(err => res.send(err))
                 }).catch(err => {
