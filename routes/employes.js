@@ -49,7 +49,7 @@ employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
     const User = conn.model('users', userSchema)
 
     try{
-        const getEmployes = await Employe.find()
+        const getEmployes = await Employe.find({branch: req.params.branch})
         if (getEmployes.length > 0) {
             try {
                 const users = await User.populate(getEmployes, {path: "users"})

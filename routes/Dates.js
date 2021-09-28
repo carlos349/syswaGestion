@@ -481,6 +481,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         }
                         if (!inspector) {
                             elementTwo.employes.push({ name: element.name, id: element.id, class: element.class, position: i, valid: false, img: element.img })
+                            elementTwo.employeBlocked = []
                         }
                     }
                 }
@@ -1065,6 +1066,13 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
                 const blocksFirst = finddate.blocks
+                console.log(employesServices)
+                console.log(blocksFirst[0].employes)
+                for (const block of blocksFirst) {
+                    for (const employe of block.employes) {
+                        employe.valid = false
+                    }
+                }
                 for (let i = 0; i < employesServices.length; i++) {
                     const element = employesServices[i];
                     for (let u = 0; u < blocksFirst.length; u++) {
@@ -1180,7 +1188,8 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    const hour = (thisDate.getHours() - 4) + findConfiguration.datesPolitics.minTypeDate
+                    console.log('entry')
+                    const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
                         if (blocksFirst[0].hour.split(':')[0] >= hour) {

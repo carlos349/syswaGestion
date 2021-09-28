@@ -111,7 +111,7 @@ clients.get('/getJson', (req, res) => {
 
 //input - none - nada
 //output - status
-clients.get('/countClients', protectRoute, async (req, res) => {
+clients.get('/getEmails', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
         useNewUrlParser: true,
@@ -121,11 +121,16 @@ clients.get('/countClients', protectRoute, async (req, res) => {
     const Client = conn.model('clients', clientSchema)
 
     try {
-        const getClients = await Client.find().count()
+        const getClients = await Client.find()
         if (getClients.length > 0) {
-            res.json({status: 'ok', data: getClients, token: req.requestToken})
+            const emails = []
+            for (const client of getClients) {
+                emails.push(client.email)
+            }
+            const emailsString = emails.join(', ')
+            res.json({status: 'ok', data: emailsString, token: req.requestToken})
         }else{
-            res.json({status: 'bad', data: getClients, token: req.requestToken})
+            res.json({status: 'bad', token: req.requestToken})
         }
     }catch(err){
         res.send(err)
@@ -310,6 +315,22 @@ clients.post('/datesperclient', protectRoute, async (req, res) => {
     }
 })
 
+clients.post('/sendPromotionEmail', protectRoute, (req, res) => {
+
+    const mail = {
+        from: req.body.email,
+        bcc: req.body.clients,
+        subject: req.body.subject,
+        html: req.body.html
+    }
+
+    try {
+        Mails.sendMail(mail)
+        res.json({status: 'ok'})
+    }catch(err){
+        res.send(err)
+    }
+})
 
 //input - none - nada
 //output - status

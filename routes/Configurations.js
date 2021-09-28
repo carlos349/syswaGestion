@@ -531,7 +531,7 @@ configurations.post('/editblockhour', async (req,res) => {
                             splitMinutes = '00'
                         }
                         hour = splitHour+':'+splitMinutes
-                        blocks.unshift({hour: hour, validator:true, employes: employesArray})
+                        blocks.unshift({hour: hour, validator:true, employes: employesArray, employeBlocked: []})
                         if (hour == element.start) {
                             break
                         }
@@ -557,7 +557,7 @@ configurations.post('/editblockhour', async (req,res) => {
                         splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
                         
                         hour = splitHour+':'+splitMinutes
-                        blocks.push({hour: hour, validator:true, employes: employesArray})
+                        blocks.push({hour: hour, validator:true, employes: employesArray, employeBlocked: []})
                         if (hour == element.end) {
                             break
                         }
