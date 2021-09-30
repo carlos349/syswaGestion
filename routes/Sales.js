@@ -740,7 +740,7 @@ sales.post('/process', protectRoute, (req, res) => {
                         commission: item.commissionEmploye
                       }
                     }).then(editEmploye => {})
-                    if (item.item.products || item.item.products.length > 0) {
+                    if (item.item.products && item.item.products.length > 0) {
                       for (const product of item.item.products) {
                         Inventory.findByIdAndUpdate(product.id,{
                           $inc: {
