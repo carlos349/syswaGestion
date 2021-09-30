@@ -2037,6 +2037,11 @@ dates.post('/editdate', async (req, res) => {
             for (const block of blocks) {
                 if (block.validator == 'select') {
                     if (block.employes.length > 0) {
+                        block.employes.forEach((element, index) => {
+                            if (element.id == dataEdit.employe.id) {
+                                block.employes.splice(index, 1)
+                            }
+                        });
                         block.validator = true
                     } else {
                         block.validator = false
