@@ -401,38 +401,83 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
         })
         if (findDay) {
             var valid = false
-            for (const block of findDay.blocks) {
+            var valid2 = true
+            var validAll = true
+            findDay.blocks.forEach((block,index) => {
+                if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0])) {
+                    valid = true
+                    if (valid2) {
+                        findDay.blocks[0].employeBlocked.forEach(v1 => {
+                            if (v1.employe == data.employe.id && v1.type == "blocking") {
+                                validAll = false
+                            }
+                        });
+                        findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                        valid2 = false
+                    }
+                }
+                
+                if (parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
+                    valid = true
+                    if (valid2) {
+                        findDay.blocks[0].employeBlocked.forEach(v1 => {
+                            if (v1.employe == data.employe.id && v1.type == "blocking") {
+                                validAll = false
+                            }
+                        });
+                        findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                        valid2 = false
+                    }
+                }
                 if (block.hour == req.body.start) {
+                    if (index == 0 && valid2) {
+                        findDay.blocks[0].employeBlocked.forEach(v1 => {
+                            if (v1.employe == data.employe.id && v1.type == "blocking") {
+                                validAll = false
+                            }
+                        });
+                        findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                    }
                     valid = true
                 }
                 if (block.hour == req.body.end) {
                     valid = false
-                    break
+                    
                 }
                 if (valid) {
                     for (const key in block.employes) {
                         const employe = block.employes[key]
                         if (employe.id == data.employe.id) {
+                            block.employeBlocked.forEach(v1 => {
+                                if (v1.employe == data.employe.id && v1.type == "blocking") {
+                                    validAll = false
+                                }
+                            });
                             block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                             data.employe = employe
                             block.employes.splice(key, 1)
                         }
                     }
                 }
-            }
-            try {
-                const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
-                    $set: { blocks: findDay.blocks }
-                })
+            });
+            if (validAll) {
                 try {
-                    const createHour = await HourBlocking.create(data)
-                    res.json({ status: 'ok' })
-                } catch (err) {
+                    const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
+                        $set: { blocks: findDay.blocks }
+                    })
+                    try {
+                        const createHour = await HourBlocking.create(data)
+                        res.json({ status: 'ok' })
+                    } catch (err) {
+                        res.send(err)
+                    }
+                }catch (err) {
                     res.send(err)
                 }
-            } catch (err) {
-                res.send(err)
+            }else{
+                res.json({ status: 'busy' })
             }
+            
         } else {
             //create a dateBlock register to block hour
             try {
@@ -521,7 +566,26 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     if (createBlockdate) {
                         var valid = false
                         for (const block of blocksFirst) {
+                            if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0])) {
+                                valid = true
+                                if (valid2) {
+                                    blocksFirst.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    valid2 = false
+                                }
+                            }
+                            
+                            if (parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
+                                valid = true
+                                if (valid2) {
+                                    blocksFirst.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    valid2 = false
+                                }
+                            }
                             if (block.hour == req.body.start) {
+                                if (blocksFirst.blocks[0] == req.body.start) {
+                                    blocksFirst.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    valid2 = false
+                                }
                                 valid = true
                             }
                             if (block.hour == req.body.end) {
@@ -587,9 +651,17 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
         })
         var valid = false
         for (const block of findDay.blocks) {
+            if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0])) {
+                valid = true
+                console.log("entre aqui1")
+            }
+            
+            if (parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
+                valid = true
+                console.log("entre aqui2")
+            }
             if (block.hour == req.body.start) {
                 valid = true
-
             }
             if (block.hour == req.body.end) {
                 valid = false
