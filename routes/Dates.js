@@ -304,7 +304,7 @@ dates.post('/', async (req, res) => {
 
 //Api que elimina una cita (Ingreso: ObejctId de la cita) -- Api that delete a date (Input: date´s ObjectId)
 
-dates.delete('/:id', protectRoute, async (req, res) => {
+dates.delete('/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/' + database, {
         useNewUrlParser: true,
@@ -989,10 +989,10 @@ dates.put('/confirmDate/:id', (req, res) => {
             confirmation: true
         }
     })
-        .then(confirmDate => {
-            res.json({ status: 'ok', data: confirmDate })
-        })
-        .catch(err => res.send(err))
+    .then(confirmDate => {
+        res.json({ status: 'ok', data: confirmDate })
+    })
+    .catch(err => res.send(err))
 })
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
