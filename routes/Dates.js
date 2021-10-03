@@ -127,7 +127,7 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
 })
 
 
-dates.get('/yentonces/:branch', (req, res) => {
+dates.get('/addData/:branch', (req, res) => {
     // const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
         useNewUrlParser: true,
