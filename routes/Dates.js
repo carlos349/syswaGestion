@@ -129,7 +129,7 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
 
 dates.get('/yentonces/:branch', (req, res) => {
     // const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa4', {
+    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
@@ -160,7 +160,7 @@ dates.get('/yentonces/:branch', (req, res) => {
         date.branch = "612f185da6a0df026bb599c5"
         Employe.create(date).then(aja => {})
     }
-    
+
     res.json({status: 'ok'})
 })
 
