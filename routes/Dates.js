@@ -261,7 +261,6 @@ dates.post('/', async (req, res) => {
                 {
                     'client.id': req.body.client.id,
                     'employe.id': req.body.employe.id,
-                    createdAt: req.body.date,
                     branch: req.body.branch,
                     start: req.body.start,
                     end: req.body.end
@@ -1123,7 +1122,7 @@ dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, r
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
 
-dates.put('/confirmDate/:id', (req, res) => {
+dates.put('/confirmDate/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/' + database, {
         useNewUrlParser: true,
@@ -1137,7 +1136,13 @@ dates.put('/confirmDate/:id', (req, res) => {
         }
     })
     .then(confirmDate => {
-        res.json({ status: 'ok', data: confirmDate })
+        const Configuration = conn.model('configurations', configurationSchema)
+        Configuration.findOne({
+            branch: confirmDate.branch
+        })
+        .then(getConfigurations => {
+            res.json({ status: 'ok', data: confirmDate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
+        })
     })
     .catch(err => res.send(err))
 })
@@ -1155,7 +1160,13 @@ dates.put('/removeDate/:id', async (req, res) => {
 
     try {
         const confirmDate = await date.findByIdAndRemove(req.body.id)
-        res.json({ status: 'ok' })
+        const Configuration = conn.model('configurations', configurationSchema)
+        Configuration.findOne({
+            branch: confirmDate.branch
+        })
+        .then(getConfigurations => {
+            res.json({ status: 'ok', data: confirmDate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
+        })
     } catch (err) {
         res.send(err)
     }
@@ -1879,7 +1890,6 @@ dates.post('/noOneLender', (req, res) => {
             title: element.name,
             content: req.body.client.name,
             split: element.employeId,
-            createdAt: date,
             services: {
                 name: element.name,
                 commission: element.commission,
@@ -2100,7 +2110,6 @@ dates.post('/editdate', async (req, res) => {
     try {
         const editDate = await Dates.findByIdAndUpdate(dataEdit._id, {
             $set: {
-                createdAt: dataEdit.createdAt,
                 start: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.startEdit,
                 end: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.endEdit,
                 split: dataEdit.employe.id,
