@@ -9,12 +9,14 @@ const clientSchema = require('../models/Clients')
 const endingDateSchema = require('../models/EndingDates')
 const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
+const serviceSchema = require('../models/Services')
 const configurationSchema = require('../models/Configurations')
 const uploadS3 = require('../common-midleware/index')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const formats = require('../formats')
+const datesJson = require('../dates.json')
 const cors = require('cors')
 
 
@@ -122,6 +124,44 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
     } catch (err) {
         res.send(err)
     }
+})
+
+
+dates.get('/yentonces/:branch', (req, res) => {
+    // const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa4', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+    const datee = conn.model('dates', dateSchema)
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Service = conn.model('services', serviceSchema)
+    const Employe = conn.model('employes', employeSchema)
+    
+    for (const date of datesJson.blockingHours) {
+        date.branch = "612f185da6a0df026bb599c5"
+        HourBlocking.create(date).then(aja => {})
+    }
+    for (const date of datesJson.blocks) {
+        date.dateData.branch = "612f185da6a0df026bb599c5"
+        dateBlock.create(date).then(aja => {})
+    }
+    for (const date of datesJson.Dates) {
+        date.branch = "612f185da6a0df026bb599c5"
+        datee.create(date).then(aja => {})
+    }
+    for (const date of datesJson.Services) {
+        date.branch = "612f185da6a0df026bb599c5"
+        Service.create(date).then(aja => {})
+    }
+    for (const date of datesJson.Employes) {
+        date.branch = "612f185da6a0df026bb599c5"
+        Employe.create(date).then(aja => {})
+    }
+    
+    res.json({status: 'ok'})
 })
 
 //Fin de la api (Retorna: Datos de las horas bloqueadas) -- Api end (Return: hours blocking data)
