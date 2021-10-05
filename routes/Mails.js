@@ -3272,7 +3272,7 @@ mails.post('/responseDate', (req, res) => {
     subject = req.body.client + ' Cancelo su cita para el: ' + req.body.date
     textAlt = '<em><strong><span style="color: #e03e2d;">cancelado</span></strong></em>'
   }
-  
+  console.log(req.body.email)
   const mail = {
       from: "SYSWA GESTION",
       to: req.body.email,

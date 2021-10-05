@@ -16,7 +16,6 @@ const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const formats = require('../formats')
-const datesJson = require('../dates.json')
 const cors = require('cors')
 
 
@@ -367,39 +366,45 @@ dates.delete('/:id', async (req, res) => {
                         { 'dateData.branch': branch }
                     ]
                 })
-                var valid = false
-                for (const block of findDateBlock[0].blocks) {
-                    if (block.hour == hour) {
-                        valid = true
-                    }
-                    if (valid) {
-                        block.employes.push({
-                            name: employe.name,
-                            id: employe.id,
-                            class: employe.class,
-                            position: 20,
-                            valid: false,
-                            img: employe.img
-                        })
-                    }
-                    if (block.hour == end) {
-                        valid = false
-                        break
-                    }
-                }
-                try {
-                    const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
-                        $set: {
-                            blocks: findDateBlock[0].blocks
+                if(findDateBlock[0]){
+                    var valid = false
+                    for (const block of findDateBlock[0].blocks) {
+                        if (block.hour == hour) {
+                            valid = true
                         }
-                    })
-                    res.json({ status: 'deleted', data: deletedate, token: req.requestToken })
-                }catch(err){
-                    res.send(err)
+                        if (valid) {
+                            block.employes.push({
+                                name: employe.name,
+                                id: employe.id,
+                                class: employe.class,
+                                position: 20,
+                                valid: false,
+                                img: employe.img
+                            })
+                        }
+                        if (block.hour == end) {
+                            valid = false
+                            break
+                        }
+                    }
+                    try {
+                        const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
+                            $set: {
+                                blocks: findDateBlock[0].blocks
+                            }
+                        })
+                        res.json({ status: 'deleted', data: deletedate, token: req.requestToken })
+                    }catch(err){
+                        res.send(err)
+                    }
+                }else{
+                    res.json({ status: 'deleted', token: req.requestToken })
                 }
             } catch (err) {
                 res.send(err)
             }
+        }else{
+            res.json({ status: 'deleted', token: req.requestToken })
         }
     } catch (err) {
         res.send(err)
