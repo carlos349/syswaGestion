@@ -351,6 +351,7 @@ dates.delete('/:id', async (req, res) => {
 
     const date = conn.model('dates', dateSchema)
     const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
     try {
         const deletedate = await date.findByIdAndRemove(req.params.id)
         if (deletedate) {
@@ -393,7 +394,13 @@ dates.delete('/:id', async (req, res) => {
                                 blocks: findDateBlock[0].blocks
                             }
                         })
-                        res.json({ status: 'deleted', data: deletedate, token: req.requestToken })
+                        
+                        Configuration.findOne({
+                            branch: deletedate.branch
+                        })
+                        .then(getConfigurations => {
+                            res.json({ status: 'deleted', data: deletedate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
+                        })
                     }catch(err){
                         res.send(err)
                     }
