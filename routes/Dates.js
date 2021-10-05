@@ -372,6 +372,10 @@ dates.delete('/:id', async (req, res) => {
                         if (block.hour == hour) {
                             valid = true
                         }
+                        if (block.hour == end) {
+                            valid = false
+                            break
+                        }
                         if (valid) {
                             block.employes.push({
                                 name: employe.name,
@@ -381,10 +385,6 @@ dates.delete('/:id', async (req, res) => {
                                 valid: false,
                                 img: employe.img
                             })
-                        }
-                        if (block.hour == end) {
-                            valid = false
-                            break
                         }
                     }
                     try {

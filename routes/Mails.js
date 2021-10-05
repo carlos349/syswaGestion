@@ -2428,7 +2428,7 @@ mails.post('/dateMail', async (req, res) => {
   const branchId = req.body.branchId
   var data = req.body.data
   const IDS = req.body.id
-  const date = req.body.date
+  const date = req.body.date.split('-')[1]+'-'+req.body.date.split('-')[0]+'-'+req.body.date.split('-')[2]
 
   
 
