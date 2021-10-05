@@ -11,7 +11,7 @@ const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
-const dataClient = require('../lastClients.json')
+const dataClient = require('../lastClients')
 const cors = require('cors')
 clients.use(cors())
 
