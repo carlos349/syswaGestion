@@ -11,6 +11,7 @@ const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
+const dataClient = require('../lastClients.json')
 const cors = require('cors')
 clients.use(cors())
 
@@ -111,6 +112,26 @@ clients.get('/getEmails', protectRoute, async (req, res) => {
         res.send(err)
     }
 })
+
+//input - params id, pasar id
+//output - status, data and token
+clients.get('/restoreClients', (req, res) => {
+    // const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Client = conn.model('clients', clientSchema)
+    const clients = dataClient
+    
+    for (const client of clients) {
+        Client.create(client)
+        .then(ready => {})
+    }
+    res.json({status: 'ok'})
+})
+
 
 //KKprettynails Gets
 
