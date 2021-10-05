@@ -3,6 +3,7 @@ const clients = express.Router()
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const dataClient = require('../lastClients.json')
 const key = require('../private/key-jwt');
 const protectRoute = require('../securityToken/verifyToken')
 const clientSchema = require('../models/Clients')
@@ -11,7 +12,6 @@ const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
-// const dataClient = require('../lastClients')
 const cors = require('cors')
 clients.use(cors())
 
@@ -115,22 +115,22 @@ clients.get('/getEmails', protectRoute, async (req, res) => {
 
 //input - params id, pasar id
 //output - status, data and token
-// clients.get('/restoreClients', (req, res) => {
-//     // const database = req.headers['x-database-connect'];
-//     const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
-//         useNewUrlParser: true,
-//         useUnifiedTopology: true,
-//     })
+clients.get('/restoreClients', (req, res) => {
+    // const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
 
-//     const Client = conn.model('clients', clientSchema)
-//     const clients = dataClient
+    const Client = conn.model('clients', clientSchema)
+    const clients = dataClient.data
     
-//     for (const client of clients) {
-//         Client.create(client)
-//         .then(ready => {})
-//     }
-//     res.json({status: 'ok'})
-// })
+    for (const client of clients) {
+        Client.create(client)
+        .then(ready => {})
+    }
+    res.json({status: 'ok'})
+})
 
 
 //KKprettynails Gets
