@@ -336,6 +336,63 @@ dates.post('/', async (req, res) => {
     }
 })
 
+dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const dataEmploye = {
+        name: req.body.name,
+        id: req.body.id,
+        class: req.body.class,
+        position: 0,
+        valid: false,
+        img: "no",
+        commission: 0
+    }
+    console.log(dataEmploye)
+    try {
+        const datesBlocks = await dateBlock.find()
+        if(datesBlocks.length > 0){
+            console.log(datesBlocks.length)
+            for (const datesB of datesBlocks) {
+                for (const block of datesB.blocks) {
+                    for (const key in block.employes) {
+                        const employe = block.employes[key]
+                        if (employe.id == dataEmploye.id) {
+                            block.employes.splice(key, 1)
+                        }
+                        if (employe.name == null) {
+                            block.employes.splice(key, 1)
+                        }
+                    }
+                    var valid = true
+                    for (const employeBlock of block.employeBlocked) {
+                        if (employeBlock.employe == dataEmploye.id) {
+                            valid = false
+                        }
+                    }
+                    if (valid) {
+                        block.employes.push(dataEmploye)
+                    }
+                }
+                dateBlock.findByIdAndUpdate(datesB._id, {
+                    $set: {
+                        blocks: datesB.blocks
+                    }
+                }).then(ready => {})
+            }
+            res.json({status: 'ok'})
+        }
+    } catch (err) {
+        res.send(err)
+    }
+})
+
+
 //Fin de la api (Retorna: Datos de la cita) -- Api end (Return: date´s data)
 
 // -----------------------------------------------------------------------------
