@@ -1487,6 +1487,8 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         if (valid) {
                             block.validator = 'unavailable'
                         }
+                    }else{
+                        block.validator = false
                     }
                     if (blocksFirst.length - 1 == index) {
                         for (let u = 0; u < hoursdate / 15; u++) {
