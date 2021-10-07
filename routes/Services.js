@@ -40,8 +40,7 @@ services.get('/getCategoriesForClients/:branch', async (req, res) => {
     try{
         const getCategories = await Category.find({branch: req.params.branch})
         if (getCategories.length > 0) {
-            // res.json({status: 'ok', data: getCategories, token: req.requestToken})
-            res.json({status: 'ok', data: [], token: req.requestToken})
+            res.json({status: 'ok', data: getCategories, token: req.requestToken})
         }else{
             res.json({status: 'categories not found'})
         }
