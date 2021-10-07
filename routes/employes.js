@@ -585,17 +585,14 @@ employes.put('/', protectRoute, async (req,res) => {
                                                         }
                                                     });
                                                     if (blocks[w].employeBlocked) {
-                                                        console.log("CONSIGUIO EMPLOYEBLOCKEDEN ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
                                                         blocks[w].employeBlocked.forEach(elementB => {
                                                             if (elementB.employe == employeForBlock.id) {
-                                                                console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED <<<<<<<<")
                                                                 val2 = false
                                                             }
                                                         });
                                                     }
                                                     
                                                     if (validEmployeDay && val2) {
-                                                        console.log("HIZO PUSH DEL EMPLEADO ESTA HORA >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
                                                         blocks[w].employes.push(employeForBlock)
                                                     }
                                                 }
@@ -655,17 +652,13 @@ employes.put('/', protectRoute, async (req,res) => {
                                                         }
                                                     });
                                                     if (blocks[w].employeBlocked) {
-                                                        console.log("CONSIGUIO EMPLOYEBLOCKEDEN ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
                                                         blocks[w].employeBlocked.forEach(elementB => {
                                                             if (elementB.employe == employeForBlock.id) {
-                                                                console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED <<<<<<<<")
-                                                                val2 = false
+                                                                val3 = false
                                                             }
                                                         });
                                                     }
-                                                    
-                                                    if (validEmployeDay && val2) {
-                                                        console.log("HIZO PUSH DEL EMPLEADO ESTA HORA >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                    if (validEmployeDay && val3) {
                                                         blocks[w].employes.push(employeForBlock)
                                                     }
                                                 }
@@ -703,7 +696,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                 })
                             }
                         }
-                            let indexOriginalDate = 0
+                            let iO = null
                             setTimeout(() => {
                                 for (let i = 0; i < normalDays.length; i++) {
                                     const element = normalDays[i]
@@ -713,7 +706,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                         for (let t = 0; t < originalDays.length; t++) {
                                             const elementO = originalDays[t];
                                             if (element.day == elementO.day) {
-                                                indexOriginalDate = t
+                                                iO = t
                                                 break
                                             }
                                         }
@@ -721,32 +714,27 @@ employes.put('/', protectRoute, async (req,res) => {
                                             for (let e = 0; e < normalFind.length; e++) {
                                                 const blocks = normalFind[e].blocks
                                                 for (let w = 0; w < blocks.length; w++) {
-                                                    if (blocks[w].hour == originalDays[indexOriginalDate].hours[0]) {
+                                                    if (blocks[w].hour == originalDays[iO].hours[0]) {
                                                         
                                                         for (let q = 0; q < 120; q++) {
                                                             var validB = true
                                                             var valid4 = true
-                                                            if (blocks[w + q].hour == originalDays[indexOriginalDate].hours[1]) {
-                                                                console.log("HIZO EL BREAK DE ORIGINAL")
+                                                            if (blocks[w + q].hour == originalDays[iO].hours[1]) {
                                                                 break
                                                             }
                                                             blocks[w + q].employes.forEach(element => {
                                                                 if (element.id == employeForBlock.id) {
-                                                                    
                                                                     validB = false
                                                                 }
                                                             });
                                                             if (blocks[w +q].employeBlocked) {
-                                                                console.log("CONSIGUIO EMPLOYEBLOCKED EN ORIGINALDATE A ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
                                                                 blocks[w +q].employeBlocked.forEach(elementB => {
                                                                     if (elementB.employe == employeForBlock.id) {
-                                                                        console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED EN ORIGINALDATE <<<<<<<<")
                                                                         valid4 = false
                                                                     }
                                                                 });
                                                             }
                                                             if (validB && valid4) {
-                                                                console.log("HIZO PUSH DEL EMPLEADO ESTA HORA EN ORIGINALDATE >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
                                                                 blocks[w + q].employes.push(employeForBlock)
                                                             }
                                                             
@@ -791,7 +779,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                         for (let t = 0; t < originalDays.length; t++) {
                                             const elementO = originalDays[t];
                                             if (element.day == elementO.day) {
-                                                indexOriginalDate = t
+                                                iO = t
                                                 break
                                             }
                                         }
@@ -799,32 +787,27 @@ employes.put('/', protectRoute, async (req,res) => {
                                             for (let e = 0; e < res.length; e++) {
                                                 const blocks = res[e].blocks
                                                 for (let w = 0; w < blocks.length; w++) {
-                                                    if (blocks[w].hour == originalDays[indexOriginalDate].hours[0]) {
+                                                    if (blocks[w].hour == originalDays[iO].hours[0]) {
                                                         
                                                         for (let q = 0; q < 120; q++) {
                                                             var validB = true
                                                             var valid4 = true
-                                                            if (blocks[w + q].hour == originalDays[indexOriginalDate].hours[1]) {
-                                                                console.log("HIZO EL BREAK DE ORIGINAL")
+                                                            if (blocks[w + q].hour == originalDays[iO].hours[1]) {
                                                                 break
                                                             }
                                                             blocks[w + q].employes.forEach(element => {
                                                                 if (element.id == employeForBlock.id) {
-                                                                    
                                                                     validB = false
                                                                 }
                                                             });
                                                             if (blocks[w +q].employeBlocked) {
-                                                                console.log("CONSIGUIO EMPLOYEBLOCKED EN ORIGINALDATE A ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
                                                                 blocks[w +q].employeBlocked.forEach(elementB => {
                                                                     if (elementB.employe == employeForBlock.id) {
-                                                                        console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED EN ORIGINALDATE <<<<<<<<")
                                                                         valid4 = false
                                                                     }
                                                                 });
                                                             }
                                                             if (validB && valid4) {
-                                                                console.log("HIZO PUSH DEL EMPLEADO ESTA HORA EN ORIGINALDATE >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
                                                                 blocks[w + q].employes.push(employeForBlock)
                                                             }
                                                             
