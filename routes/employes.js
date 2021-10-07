@@ -533,7 +533,7 @@ employes.put('/', protectRoute, async (req,res) => {
 
     const dayValid = req.body.dayValid
     const validBloked = req.body.validBlocked
-    var normalDays = ''
+    var normalDays = []
     Employe.findById(req.body.id)
     .then(found => {
         Employe.find({document:req.body.document})
@@ -549,94 +549,58 @@ employes.put('/', protectRoute, async (req,res) => {
             }else{
                 Employe.findByIdAndUpdate(req.body.id, {
                     $set: {
-                        days: req.body.days,
+                        days: normalDays,
                         firstName: req.body.firstName,
                         lastName: req.body.lastName,
                         document: req.body.document
                     }
                 })
                 .then(employeEdited => {
-                    Service.find({branch: req.body.branch})
-                    .then(services => {
-                        for (const service of services) {
-                            for (const employe of service.employes) {
-                                if (employe.id == req.body.id) {
-                                    employe.days = req.body.days
-                                }
-                            }
-                            Service.findByIdAndUpdate(service._id, {
-                                $set: {
-                                    employes: service.employes
-                                }
-                            }).then(ready => {})
-                        }
-                        const employeForBlock = {
-                            name: req.body.firstName + ' ' + req.body.lastName,
-                            id: req.body.id,
-                            class: employeEdited.class,
-                            valid: false,
-                            img: employeEdited.img 
-                        }
-                        
-                            for (let days = 0; days <= 7; days++) {
-                                var validDay = true
-                                for (let n = 0; n < normalDays.length; n++) {
-                                    const element = normalDays[n];
+                    const employeForBlock = {
+                        name: req.body.firstName + ' ' + req.body.lastName,
+                        id: req.body.id,
+                        class: employeEdited.class,
+                        valid: false,
+                        img: employeEdited.img 
+                    }
+                    
+                        for (let days = 0; days <= 7; days++) {
+                            var validDay = true
+                            for (let n = 0; n < normalDays.length; n++) {
+                                const element = normalDays[n];
+                                
+                                if (element.day == days) {
                                     
-                                    if (element.day == days) {
-                                        
-                                        dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
-                                        .then(res => {
-                                            if (res.length > 0) {
-                                                
-                                                for (let e = 0; e < res.length; e++) {
-                                                    const blocks = res[e].blocks
-                                                    for (let w = 0; w < blocks.length; w++) {
-                                                        let validEmployeDay = true
-                                                        let val2 = true
-                                                        blocks[w].employes.forEach(elementE => {
-                                                            if (elementE.id == employeForBlock.id) {
-                                                                validEmployeDay = false
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                    .then(dateBlockFind => {
+                                        if (dateBlockFind.length > 0) {
+                                            for (let e = 0; e < dateBlockFind.length; e++) {
+                                                const blocks = dateBlockFind[e].blocks
+                                                for (let w = 0; w < blocks.length; w++) {
+                                                    let validEmployeDay = true
+                                                    let val2 = true
+                                                    blocks[w].employes.forEach(elementE => {
+                                                        if (elementE.id == employeForBlock.id) {
+                                                            validEmployeDay = false
+                                                        }
+                                                    });
+                                                    if (blocks[w].employeBlocked) {
+                                                        console.log("CONSIGUIO EMPLOYEBLOCKEDEN ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                        blocks[w].employeBlocked.forEach(elementB => {
+                                                            if (elementB.employe == employeForBlock.id) {
+                                                                console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED <<<<<<<<")
+                                                                val2 = false
                                                             }
                                                         });
-                                                        if (blocks[w].employeBlocked) {
-                                                            blocks[w].employeBlocked.forEach(elementB => {
-                                                                if (elementB.employe == employeForBlock.id) {
-                                                                    val2 = false
-                                                                }
-                                                            });
-                                                        }
-                                                        
-                                                        if (validEmployeDay && val2) {
-                                                            blocks[w].employes.push(employeForBlock)
-                                                        }
                                                     }
                                                     
-                                                    dateBlock.findByIdAndUpdate(res[e]._id,{
-                                                        $set:{
-                                                            blocks:blocks
-                                                        }
-                                                    }).then(resEdit=>{}) 
+                                                    if (validEmployeDay && val2) {
+                                                        console.log("HIZO PUSH DEL EMPLEADO ESTA HORA >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                        blocks[w].employes.push(employeForBlock)
+                                                    }
                                                 }
-                                            }
-                                        })
-                                        validDay = false
-                                    }
-                                }
-                                if (validDay) {
-                                    dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}]})
-                                    .then(res => {
-                                        if (res.length > 0) {
-                                            for (let e = 0; e < res.length; e++) {
-                                                const blocks = res[e].blocks
-                                                for (let w = 0; w < blocks.length; w++) {
-                                                    blocks[w].employes.forEach((element, index) => {
-                                                        if (element.id == employeForBlock.id) {
-                                                            blocks[w].employes.splice(index,1)
-                                                        }
-                                                    });
-                                                }
-                                                dateBlock.findByIdAndUpdate(res[e]._id,{
+                                                
+                                                dateBlock.findByIdAndUpdate(dateBlockFind[e]._id,{
                                                     $set:{
                                                         blocks:blocks
                                                     }
@@ -644,62 +608,245 @@ employes.put('/', protectRoute, async (req,res) => {
                                             }
                                         }
                                     })
+                                    validDay = false
                                 }
                             }
+                            if (validDay) {
+                                dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}]})
+                                .then(blockFindValid => {
+                                    if (blockFindValid.length > 0) {
+                                        for (let e = 0; e < blockFindValid.length; e++) {
+                                            const blocks = blockFindValid[e].blocks
+                                            for (let w = 0; w < blocks.length; w++) {
+                                                blocks[w].employes.forEach((element, index) => {
+                                                    if (element.id == employeForBlock.id) {
+                                                        blocks[w].employes.splice(index,1)
+                                                    }
+                                                });
+                                            }
+                                            dateBlock.findByIdAndUpdate(blockFindValid[e]._id,{
+                                                $set:{
+                                                    blocks:blocks
+                                                }
+                                            }).then(resEdit=>{}) 
+                                        }
+                                    }
+                                })
+                            }
+                        }
 
-                            for (let days = 0; days <= 7; days++) {
-                                var validDay = true
-                                for (let n = 0; n < normalDays.length; n++) {
-                                    const element = normalDays[n];
-                                    
-                                    if (element.day == days) {
-                                        dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
-                                        .then(res => {
-                                            if (res.length > 0) {
-                                                for (let e = 0; e < res.length; e++) {
-                                                    const blocks = res[e].blocks
-                                                    for (let w = 0; w < blocks.length; w++) {
-                                                        let validEmployeDay = true
-                                                        let val3 = true
-                                                        blocks[w].employes.forEach(elementE => {
-                                                            if (elementE.id == employeForBlock.id) {
-                                                                validEmployeDay = false
+                        for (let days = 0; days <= 7; days++) {
+                            var validDay = true
+                            for (let n = 0; n < normalDays.length; n++) {
+                                const element = normalDays[n];
+                                
+                                if (element.day == days) {
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                    .then(findBlockTwice => {
+                                        if (findBlockTwice.length > 0) {
+                                            for (let e = 0; e < findBlockTwice.length; e++) {
+                                                const blocks = findBlockTwice[e].blocks
+                                                for (let w = 0; w < blocks.length; w++) {
+                                                    let validEmployeDay = true
+                                                    let val3 = true
+                                                    blocks[w].employes.forEach(elementE => {
+                                                        if (elementE.id == employeForBlock.id) {
+                                                            validEmployeDay = false
+                                                        }
+                                                    });
+                                                    if (blocks[w].employeBlocked) {
+                                                        console.log("CONSIGUIO EMPLOYEBLOCKEDEN ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                        blocks[w].employeBlocked.forEach(elementB => {
+                                                            if (elementB.employe == employeForBlock.id) {
+                                                                console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED <<<<<<<<")
+                                                                val2 = false
                                                             }
                                                         });
-                                                        if (blocks[w].employeBlocked) {
-                                                            blocks[w].employeBlocked.forEach(elementB => {
-                                                                if (elementB.employe == employeForBlock.id) {
-                                                                    val3 = false
+                                                    }
+                                                    
+                                                    if (validEmployeDay && val2) {
+                                                        console.log("HIZO PUSH DEL EMPLEADO ESTA HORA >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                        blocks[w].employes.push(employeForBlock)
+                                                    }
+                                                }
+                                                dateBlock.findByIdAndUpdate(findBlockTwice[e]._id,{
+                                                    $set:{
+                                                        blocks:blocks
+                                                    }
+                                                }).then(resEdit=>{}) 
+                                            }
+                                        }
+                                    })
+                                    validDay = false
+                                }
+                            }
+                            if (validDay) {
+                                dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}]})
+                                .then(ValidFindBlocksTwice => {
+                                    if (ValidFindBlocksTwice.length > 0) {
+                                        for (let e = 0; e < ValidFindBlocksTwice.length; e++) {
+                                            const blocks = ValidFindBlocksTwice[e].blocks
+                                            for (let w = 0; w < blocks.length; w++) {
+                                                blocks[w].employes.forEach((element, index) => {
+                                                    if (element.id == employeForBlock.id) {
+                                                        blocks[w].employes.splice(index,1)
+                                                    }
+                                                });
+                                            }
+                                            dateBlock.findByIdAndUpdate(ValidFindBlocksTwice[e]._id,{
+                                                $set:{
+                                                    blocks:blocks
+                                                }
+                                            }).then(resEdit=>{}) 
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                            let indexOriginalDate = 0
+                            setTimeout(() => {
+                                for (let i = 0; i < normalDays.length; i++) {
+                                    const element = normalDays[i]
+                                    
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                    .then(normalFind => {
+                                        for (let t = 0; t < originalDays.length; t++) {
+                                            const elementO = originalDays[t];
+                                            if (element.day == elementO.day) {
+                                                indexOriginalDate = t
+                                                break
+                                            }
+                                        }
+                                        if (normalFind.length > 0) {
+                                            for (let e = 0; e < normalFind.length; e++) {
+                                                const blocks = normalFind[e].blocks
+                                                for (let w = 0; w < blocks.length; w++) {
+                                                    if (blocks[w].hour == originalDays[indexOriginalDate].hours[0]) {
+                                                        
+                                                        for (let q = 0; q < 120; q++) {
+                                                            var validB = true
+                                                            var valid4 = true
+                                                            if (blocks[w + q].hour == originalDays[indexOriginalDate].hours[1]) {
+                                                                console.log("HIZO EL BREAK DE ORIGINAL")
+                                                                break
+                                                            }
+                                                            blocks[w + q].employes.forEach(element => {
+                                                                if (element.id == employeForBlock.id) {
+                                                                    
+                                                                    validB = false
                                                                 }
                                                             });
-                                                        }
-                                                        if (validEmployeDay && val3) {
-                                                            blocks[w].employes.push(employeForBlock)
+                                                            if (blocks[w +q].employeBlocked) {
+                                                                console.log("CONSIGUIO EMPLOYEBLOCKED EN ORIGINALDATE A ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                                blocks[w +q].employeBlocked.forEach(elementB => {
+                                                                    if (elementB.employe == employeForBlock.id) {
+                                                                        console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED EN ORIGINALDATE <<<<<<<<")
+                                                                        valid4 = false
+                                                                    }
+                                                                });
+                                                            }
+                                                            if (validB && valid4) {
+                                                                console.log("HIZO PUSH DEL EMPLEADO ESTA HORA EN ORIGINALDATE >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                                blocks[w + q].employes.push(employeForBlock)
+                                                            }
+                                                            
+                                                            
                                                         }
                                                     }
-                                                    dateBlock.findByIdAndUpdate(res[e]._id,{
-                                                        $set:{
-                                                            blocks:blocks
-                                                        }
-                                                    }).then(resEdit=>{}) 
                                                 }
+                                                for (let j = 0; j < blocks.length; j++) {
+                                                    if (blocks[j].hour == element.hours[0]) {
+                                                        for (let q = 0; q < 120; q++) {
+                                                            if (blocks[j + q].hour == element.hours[1]) {
+                                                                break
+                                                            }
+                                                            for (let indexB = 0; indexB < blocks[j + q].employes.length; indexB++) {
+                                                                const elementB = blocks[j + q].employes[indexB];
+                                                                
+                                                                if (elementB.id == req.body.id) {
+                                                                    blocks[j + q].employes.splice(indexB, 1)
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                dateBlock.findByIdAndUpdate(normalFind[e]._id,{
+                                                    $set:{
+                                                        blocks:blocks
+                                                    }
+                                                }).then(resEdit=>{}) 
                                             }
-                                        })
-                                        validDay = false
-                                    }
+                                        }
+                                    })
                                 }
-                                if (validDay) {
-                                    dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}]})
+                                
+                            }, 1000);
+                            
+                            setTimeout(() => {
+                                for (let i = 0; i < normalDays.length; i++) {
+                                    const element = normalDays[i]
+                                    
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
                                     .then(res => {
+                                        for (let t = 0; t < originalDays.length; t++) {
+                                            const elementO = originalDays[t];
+                                            if (element.day == elementO.day) {
+                                                indexOriginalDate = t
+                                                break
+                                            }
+                                        }
                                         if (res.length > 0) {
                                             for (let e = 0; e < res.length; e++) {
                                                 const blocks = res[e].blocks
                                                 for (let w = 0; w < blocks.length; w++) {
-                                                    blocks[w].employes.forEach((element, index) => {
-                                                        if (element.id == employeForBlock.id) {
-                                                            blocks[w].employes.splice(index,1)
+                                                    if (blocks[w].hour == originalDays[indexOriginalDate].hours[0]) {
+                                                        
+                                                        for (let q = 0; q < 120; q++) {
+                                                            var validB = true
+                                                            var valid4 = true
+                                                            if (blocks[w + q].hour == originalDays[indexOriginalDate].hours[1]) {
+                                                                console.log("HIZO EL BREAK DE ORIGINAL")
+                                                                break
+                                                            }
+                                                            blocks[w + q].employes.forEach(element => {
+                                                                if (element.id == employeForBlock.id) {
+                                                                    
+                                                                    validB = false
+                                                                }
+                                                            });
+                                                            if (blocks[w +q].employeBlocked) {
+                                                                console.log("CONSIGUIO EMPLOYEBLOCKED EN ORIGINALDATE A ESTA HORA >>>> "+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                                blocks[w +q].employeBlocked.forEach(elementB => {
+                                                                    if (elementB.employe == employeForBlock.id) {
+                                                                        console.log("ENCONTRO EMPLEADO EN EMPLOYEBLOCKED EN ORIGINALDATE <<<<<<<<")
+                                                                        valid4 = false
+                                                                    }
+                                                                });
+                                                            }
+                                                            if (validB && valid4) {
+                                                                console.log("HIZO PUSH DEL EMPLEADO ESTA HORA EN ORIGINALDATE >>>"+ blocks[w].hour + "Y EL DIA:" + dateBlockFind[e].dateData.date)
+                                                                blocks[w + q].employes.push(employeForBlock)
+                                                            }
+                                                            
+                                                            
                                                         }
-                                                    });
+                                                    }
+                                                }
+                                                for (let j = 0; j < blocks.length; j++) {
+                                                    if (blocks[j].hour == element.hours[0]) {
+                                                        for (let q = 0; q < 120; q++) {
+                                                            if (blocks[j + q].hour == element.hours[1]) {
+                                                                break
+                                                            }
+                                                            for (let indexB = 0; indexB < blocks[j + q].employes.length; indexB++) {
+                                                                const elementB = blocks[j + q].employes[indexB];
+                                                                
+                                                                if (elementB.id == req.body.id) {
+                                                                    blocks[j + q].employes.splice(indexB, 1)
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                                 dateBlock.findByIdAndUpdate(res[e]._id,{
                                                     $set:{
@@ -710,155 +857,10 @@ employes.put('/', protectRoute, async (req,res) => {
                                         }
                                     })
                                 }
-                            }
-                                let iO = null
-                                setTimeout(() => {
-                                    for (let i = 0; i < normalDays.length; i++) {
-                                        const element = normalDays[i]
-                                        
-                                        dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
-                                        .then(res => {
-                                            for (let t = 0; t < originalDays.length; t++) {
-                                                const elementO = originalDays[t];
-                                                if (element.day == elementO.day) {
-                                                    iO = t
-                                                    break
-                                                }
-                                            }
-                                            if (res.length > 0) {
-                                                for (let e = 0; e < res.length; e++) {
-                                                    const blocks = res[e].blocks
-                                                    for (let w = 0; w < blocks.length; w++) {
-                                                        if (blocks[w].hour == originalDays[iO].hours[0]) {
-                                                            
-                                                            for (let q = 0; q < 120; q++) {
-                                                                var validB = true
-                                                                var valid4 = true
-                                                                if (blocks[w + q].hour == originalDays[iO].hours[1]) {
-                                                                    break
-                                                                }
-                                                                blocks[w + q].employes.forEach(element => {
-                                                                    if (element.id == employeForBlock.id) {
-                                                                        validB = false
-                                                                    }
-                                                                });
-                                                                if (blocks[w +q].employeBlocked) {
-                                                                    blocks[w +q].employeBlocked.forEach(elementB => {
-                                                                        if (elementB.employe == employeForBlock.id) {
-                                                                            valid4 = false
-                                                                        }
-                                                                    });
-                                                                }
-                                                                if (validB && valid4) {
-                                                                    blocks[w + q].employes.push(employeForBlock)
-                                                                }
-                                                                
-                                                                
-                                                            }
-                                                        }
-                                                    }
-                                                    for (let j = 0; j < blocks.length; j++) {
-                                                        if (blocks[j].hour == element.hours[0]) {
-                                                            for (let q = 0; q < 120; q++) {
-                                                                if (blocks[j + q].hour == element.hours[1]) {
-                                                                    break
-                                                                }
-                                                                for (let indexB = 0; indexB < blocks[j + q].employes.length; indexB++) {
-                                                                    const elementB = blocks[j + q].employes[indexB];
-                                                                    
-                                                                    if (elementB.id == req.body.id) {
-                                                                        blocks[j + q].employes.splice(indexB, 1)
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    dateBlock.findByIdAndUpdate(res[e]._id,{
-                                                        $set:{
-                                                            blocks:blocks
-                                                        }
-                                                    }).then(resEdit=>{}) 
-                                                }
-                                            }
-                                        })
-                                    }
-                                    
-                                }, 1000);
                                 
-                                setTimeout(() => {
-                                    for (let i = 0; i < normalDays.length; i++) {
-                                        const element = normalDays[i]
-                                        
-                                        dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
-                                        .then(res => {
-                                            for (let t = 0; t < originalDays.length; t++) {
-                                                const elementO = originalDays[t];
-                                                if (element.day == elementO.day) {
-                                                    iO = t
-                                                    break
-                                                }
-                                            }
-                                            if (res.length > 0) {
-                                                for (let e = 0; e < res.length; e++) {
-                                                    const blocks = res[e].blocks
-                                                    for (let w = 0; w < blocks.length; w++) {
-                                                        if (blocks[w].hour == originalDays[iO].hours[0]) {
-                                                            
-                                                            for (let q = 0; q < 120; q++) {
-                                                                var validB = true
-                                                                var valid4 = true
-                                                                if (blocks[w + q].hour == originalDays[iO].hours[1]) {
-                                                                    break
-                                                                }
-                                                                blocks[w + q].employes.forEach(element => {
-                                                                    if (element.id == employeForBlock.id) {
-                                                                        validB = false
-                                                                    }
-                                                                });
-                                                                if (blocks[w +q].employeBlocked) {
-                                                                    blocks[w +q].employeBlocked.forEach(elementB => {
-                                                                        if (elementB.employe == employeForBlock.id) {
-                                                                            valid4 = false
-                                                                        }
-                                                                    });
-                                                                }
-                                                                if (validB && valid4) {
-                                                                    blocks[w + q].employes.push(employeForBlock)
-                                                                }
-                                                                
-                                                                
-                                                            }
-                                                        }
-                                                    }
-                                                    for (let j = 0; j < blocks.length; j++) {
-                                                        if (blocks[j].hour == element.hours[0]) {
-                                                            for (let q = 0; q < 120; q++) {
-                                                                if (blocks[j + q].hour == element.hours[1]) {
-                                                                    break
-                                                                }
-                                                                for (let indexB = 0; indexB < blocks[j + q].employes.length; indexB++) {
-                                                                    const elementB = blocks[j + q].employes[indexB];
-                                                                    
-                                                                    if (elementB.id == req.body.id) {
-                                                                        blocks[j + q].employes.splice(indexB, 1)
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    dateBlock.findByIdAndUpdate(res[e]._id,{
-                                                        $set:{
-                                                            blocks:blocks
-                                                        }
-                                                    }).then(resEdit=>{}) 
-                                                }
-                                            }
-                                        })
-                                    }
-                                    
-                                }, 2000);
-                        res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
-                    }).catch(err => res.send(err))
+                            }, 2000);
+                    res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
+                    
                 }).catch(err => {
                     res.send(err)
                 })

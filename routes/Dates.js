@@ -396,7 +396,7 @@ dates.delete('/:id', async (req, res) => {
                         })
                         
                         Configuration.findOne({
-                            branch: deletedate.branch
+                            branch: deletedatec.branch
                         })
                         .then(getConfigurations => {
                             res.json({ status: 'deleted', data: deletedate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })

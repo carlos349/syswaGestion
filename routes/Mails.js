@@ -2429,8 +2429,8 @@ mails.post('/dateMail', async (req, res) => {
   var data = req.body.data
   const IDS = req.body.id
   const date = req.body.date
-
-  
+  const servicesFinal = req.body.servicesFinal
+  const valid = req.body.valid
 
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -2447,17 +2447,29 @@ mails.post('/dateMail', async (req, res) => {
       if (getConfigurations) {
         var services = ''
 
-        for (const key in data.serviceSelectds) {
-          const element = data.serviceSelectds[key]
+        for (const key in servicesFinal) {
+          const element = servicesFinal[key]
           var micro = ''
-          for (let i = 0; i < element.microServiceSelect.length; i++) {
-            const elementM = element.microServiceSelect[i];
-            if (element.microServiceSelect[i+1]) {
-              micro = micro + elementM.name + ' - '
-            }else{
-              micro = micro + elementM.name
+          if (valid) {
+            for (let i = 0; i < element.microServiceSelect.length; i++) {
+              const elementM = element.microServiceSelect[i];
+              if (element.microServiceSelect[i+1]) {
+                micro = micro + elementM.name + ' - '
+              }else{
+                micro = micro + elementM.name
+              }
+            }
+          }else{
+            for (let i = 0; i < data.microServices.length; i++) {
+              const elementM = data.microServices[i];
+              if (data.microServices[i+1]) {
+                micro = micro + elementM.name + ' - '
+              }else{
+                micro = micro + elementM.name
+              }
             }
           }
+          
           
           services = services + `
               <div style="margin:0px auto; margin-top:10px;max-width:600px;">
@@ -3256,6 +3268,7 @@ mails.post('/dateMail', async (req, res) => {
         res.json({status: 'ok'})
       }
   }catch(err){
+    console.log(err)
       res.send(err)
   }
   
