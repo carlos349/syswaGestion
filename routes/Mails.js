@@ -2428,15 +2428,9 @@ mails.post('/dateMail', async (req, res) => {
   const branchId = req.body.branchId
   var data = req.body.data
   const IDS = req.body.id
-<<<<<<< HEAD
   const date = req.body.date
   const servicesFinal = req.body.servicesFinal
   const valid = req.body.valid
-=======
-  const date = req.body.date.split('-')[1]+'-'+req.body.date.split('-')[0]+'-'+req.body.date.split('-')[2]
-
-  
->>>>>>> f359367135b49a0794e802d982afac4421582303
 
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
