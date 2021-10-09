@@ -67,7 +67,7 @@ mails.get('/sendMailRegister/:id', async (req, res) => {
                                     <a  href="https://api.whatsapp.com/send?phone=56972628949&text=&source=&data=&app_absent=" style="margin-left:20px;text-decoration:none;">
                                         <img style="width:4%;" src="https://kkprettynails.cl/img/ws.png" alt="Logo ws">
                                     </a>
-                                    <a  href="https://kkprettynails.cl" style="margin-left:20px;text-decoration:none;">
+                                    <a  href="http://kkspa.cl" style="margin-left:20px;text-decoration:none;">
                                         <img style="width:4%;" src="https://kkprettynails.cl/img/web.png" alt="Logo web">
                                     </a>
                                     <a  href="https://goo.gl/maps/m5rVWDEiPj7q1Hxh9" style="margin-left:20px;text-decoration:none;">
@@ -3278,11 +3278,14 @@ mails.post('/responseDate', (req, res) => {
   var confirmed = req.body.confirmed
   var subject = ''
   var textAlt = ''
+  var dateFormat = req.body.date
+  var splitDate = dateFormat.split("-")
+  dateFormat = splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2]
   if (confirmed) {
-    subject = req.body.client + ' Confirmo su cita para el: ' + req.body.date
+    subject = req.body.client + ' Confirmo su cita para el: ' + dateFormat
     textAlt = '<em><strong><span style="color: #2dc26b;">confirmado</span></strong></em>'
   }else{
-    subject = req.body.client + ' Cancelo su cita para el: ' + req.body.date
+    subject = req.body.client + ' Cancelo su cita para el: ' + dateFormat
     textAlt = '<em><strong><span style="color: #e03e2d;">cancelado</span></strong></em>'
   }
   console.log(req.body.email)
@@ -3459,7 +3462,7 @@ mails.post('/responseDate', (req, res) => {
         <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;">
         <center>
         <p style="font-family: Ubuntu, Helvetica, Arial;"><span style="font-size: 14px;"><span style="font-size: 16px;">
-        <strong>${req.body.client}</strong> ha ${textAlt} su cita para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${req.body.date}</strong></span></span></p>
+        <strong>${req.body.client}</strong> ha ${textAlt} su cita para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span></span></p>
         </center>
         
         </div>
@@ -3560,7 +3563,7 @@ mails.post('/responseDate', (req, res) => {
               <tr>
                 <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                   
-        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Empleado:</span></strong></p>
+        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Empleado</span></strong></p>
   <p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="font-size: 14px;">${req.body.employe}</span></p></div>
       
                 </td>
@@ -3585,7 +3588,7 @@ mails.post('/responseDate', (req, res) => {
               <tr>
                 <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                   
-        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Servicios adicionales:</span></strong></p>
+        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Servicios adicionales</span></strong></p>
   <p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="font-size: 16px;">${req.body.micro}</span></p></div>
       
                 </td>
@@ -3610,7 +3613,7 @@ mails.post('/responseDate', (req, res) => {
               <tr>
                 <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                   
-        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Horario:</span></strong></p>
+        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Horario</span></strong></p>
   <p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="font-size: 14px;">${req.body.start} / ${req.body.end}</span></p></div>
       
                 </td>
@@ -3671,7 +3674,7 @@ mails.post('/responseDate', (req, res) => {
               <tr>
                 <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                   
-        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Sucursal:</span></strong></p>
+        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><strong><span style="font-size: 16px;">Sucursal</span></strong></p>
   <p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="font-size: 14px;">${req.body.branchName}</span></p></div>
       
                 </td>
