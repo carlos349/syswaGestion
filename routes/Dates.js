@@ -192,6 +192,35 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
         res.send(err)
     }
 })
+//Fin de la api (Retorna: Datos de las horas bloqueadas) -- Api end (Return: hours blocking data)
+
+//----------------------------------------------------------------------------------
+
+//Api de la api (Retorna: Datos de las horas bloqueadas) llega (branch como parametro) -- Api end (Return: hours blocking data) input (branch as param)
+
+dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const EndingDates = conn.model('endingdates', endingDateSchema)
+    const dates = formats.dayBack(new Date())
+    try {
+        const find = await EndingDates.deleteMany({
+            $and: [
+                { createdAt: { $lte: dates + ' 00:00' } },
+                { branch: req.params.branch }
+            ]
+        })
+        if (find) {
+            res.json({ status: 'ok', token: req.requestToken })
+        }
+    } catch (err) {
+        res.send(err)
+    }
+})
 
 //Fin de la api (Retorna: Datos de las citas del empleado) -- Api end (Return: Employe dates´s data)
 
