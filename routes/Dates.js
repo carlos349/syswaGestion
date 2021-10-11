@@ -114,7 +114,16 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
     const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
 
     try {
-        const find = await HourBlocking.find({ branch: req.params.branch })
+        var month = new Date().getMonth()
+        var year = new Date().getFullYear()
+        const find = await HourBlocking.find({ 
+            $and:[{
+                dateBlockings:{
+                    $gte: new Date(year, month, 1)
+                },
+                branch: req.params.branch 
+            }]
+        })
         if (find.length > 0) {
             res.json({ status: 'ok', data: find, token: req.requestToken })
         } else {
