@@ -172,6 +172,34 @@ dates.get('/addData/:branch', (req, res) => {
     res.json({status: 'ok'})
 })
 
+dates.get('/giveDatesToSendConfirm/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const datee = conn.model('dates', dateSchema)
+    const dayBack = formats.dayBack(new Date())
+    const dayBackEnd = formats.dayBack(new Date())
+    try {
+        const findDates = await datee.deleteMany({
+            $and: [
+                { createdAt: { $gte: dayBack+' 00:00', $lte: dayBackEnd+' 24:00' } },
+                { branch: req.params.branch }
+            ]
+        })
+        if (findDates) {
+            for (const dateData of findDates) {
+                
+            }
+            res.json({ status: 'ok', token: req.requestToken })
+        }
+    } catch (err) {
+        res.send(err)
+    }
+})
+
 //Fin de la api (Retorna: Datos de las horas bloqueadas) -- Api end (Return: hours blocking data)
 
 //----------------------------------------------------------------------------------
@@ -1542,7 +1570,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
                     console.log('entry')
-                    const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
+                    const hour = (thisDate.getHours() - 4) + findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
                         if (blocksFirst[0].hour.split(':')[0] >= hour) {
