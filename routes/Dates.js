@@ -2280,7 +2280,8 @@ dates.post('/editdate', async (req, res) => {
                 end: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.endEdit,
                 split: dataEdit.employe.id,
                 employe: dataEdit.employe,
-                duration: dataEdit.duration
+                duration: dataEdit.duration,
+                class: dataEdit.employe.class
             }
         })
         if (editDate) {
