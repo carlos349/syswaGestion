@@ -14,6 +14,9 @@ const serviceSchema = new Schema({
     name: {
         type: String
     },
+    additionalName: {
+        type: String
+    },
     duration: {
         type: Number
     },

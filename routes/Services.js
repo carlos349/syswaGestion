@@ -155,6 +155,7 @@ services.post('/', protectRoute, async (req,res) => {
         employes: req.body.employes,
         products: req.body.products,
         name: req.body.name,
+        additionalName: req.body.additionalName,
         duration: req.body.duration,
         price: req.body.price,
         commission: req.body.commission,
@@ -238,6 +239,7 @@ services.put('/:id', protectRoute, async (req, res) => {
             $set: {
                 branch: req.body.branch,
                 name: req.body.name,
+                additionalName: req.body.additionalName,
                 duration: req.body.duration,
                 price: req.body.price,
                 products: req.body.products,
