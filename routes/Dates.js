@@ -2141,6 +2141,7 @@ dates.post('/noOneLender', (req, res) => {
             process: true,
             confirmation: false,
             imgDesign: [],
+            createdAt: date,
             confirmationId: id,
             typePay: client.pay,
             payPdf: nameFile

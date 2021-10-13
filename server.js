@@ -6,6 +6,7 @@ const app = express()
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const port = require('./private/port.js')
+const mailTask = require('./cronService/sendMailsSchedule')
 // const database = require('./private/database.js')
 // const verify = require('./accessFunctions/verify.js')
 
@@ -45,7 +46,6 @@ app.use('/branches', require('./routes/Branch.js'))
 app.use('/stores', require('./routes/Store.js'))
 // app.use('/pedidos', require('./routes/Pedidos.js'))
 app.use('/notifications', require('./routes/Notifications.js'))
-
 
 //Static files
 
