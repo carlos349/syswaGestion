@@ -49,7 +49,7 @@ notifications.get('/noviews/:id', protectRoute, async (req, res) => {
         const getnotifications = await Notification.find().sort({createdAt: -1}).limit(150)
         
         if (getnotifications.length > 0 ) {
-            console.log(getnotifications)
+        
             let onlyYours = []
             for (let i = 0; i < getnotifications.length; i++) {
                 const elementN = getnotifications[i];
@@ -65,8 +65,7 @@ notifications.get('/noviews/:id', protectRoute, async (req, res) => {
                     onlyYours.push(elementN)
                 }
             }
-            console.log("aqui:")
-            console.log(onlyYours)
+            
             res.json({status: 'ok', data: onlyYours, token: req.requestToken})
         }else{
             res.json({status: 'nothing found'})
