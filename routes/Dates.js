@@ -85,9 +85,16 @@ dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
     })
 
     const EndingDates = conn.model('endingdates', endingDateSchema)
-
+    const dateT = formats.datesEdit(new Date())
+    console.log(dateT)
     try {
-        const find = await EndingDates.find({ branch: req.params.branch })
+        const find = await EndingDates.find({
+            $and: [
+                { createdAt: { $gte: dateT + ' 00:00' } },
+                { branch: req.params.branch }
+            ]
+              
+        })
         if (find.length > 0) {
             res.json({ status: 'ok', data: find, token: req.requestToken })
         } else {
@@ -247,7 +254,7 @@ dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
     try {
         const find = await EndingDates.deleteMany({
             $and: [
-                { createdAt: { $lte: dates + ' 00:00' } },
+                { createdAt: { $gte: dates + ' 00:00', $lte: dates + ' 24:00' } },
                 { branch: req.params.branch }
             ]
         })
