@@ -554,14 +554,23 @@ dates.delete('/:id', async (req, res) => {
                             break
                         }
                         if (valid) {
-                            block.employes.push({
-                                name: employe.name,
-                                id: employe.id,
-                                class: employe.class,
-                                position: 20,
-                                valid: false,
-                                img: employe.img
-                            })
+                            var validEmploye = true
+                            for (const employeFor of block.employe) {
+                                if (employeFor.id == employe.id) {
+                                    validEmploye = false
+                                    break
+                                }
+                            }
+                            if (validEmploye) {
+                                block.employes.push({
+                                    name: employe.name,
+                                    id: employe.id,
+                                    class: employe.class,
+                                    position: 20,
+                                    valid: false,
+                                    img: employe.img
+                                })
+                            }
                         }
                     }
                     try {
@@ -1827,7 +1836,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     element.validator = true
                     blocks[i].employes.unshift(employe)
                     for (const employeFor in element.employeBlocked) {
-                        if (element.employeBlocked[employeFor].employe == employe) {
+                        if (element.employeBlocked[employeFor].employe == employe.id) {
                             element.employeBlocked.splice(employeFor, 1)
                         }
                     }
@@ -1840,9 +1849,9 @@ dates.post('/selectDatesBlocks', async (req, res) => {
             if (element.hour == hourSelect) {
                 for (let u = 0; u < hoursdate / 15; u++) {
                     for (let e = 0; e < blocks[i + u].employes.length; e++) {
-                        if (blocks[i + u].employes[e].id == employe) {
+                        if (blocks[i + u].employes[e].id == employe.id) {
                             blocks[i + u].employes.splice(e, 1)
-                            blocks[i + u].employeBlocked.push({employe: employe, type: 'date'})
+                            blocks[i + u].employeBlocked.push({employe: employe.id, type: 'date'})
                         }
                     }
                     if (blocks[i + u].employes.length == 0) {
@@ -1882,7 +1891,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     element.validator = true
                     blockFirst[i].employes.unshift(employe)
                     for (const employeFor in element.employeBlocked) {
-                        if (element.employeBlocked[employeFor].employe == employe) {
+                        if (element.employeBlocked[employeFor].employe == employe.id) {
                             element.employeBlocked.splice(employeFor, 1)
                         }
                     }
@@ -1903,9 +1912,9 @@ dates.post('/selectDatesBlocks', async (req, res) => {
             if (element.hour == hourSelect) {
                 for (let u = 0; u < hoursdate / 15; u++) {
                     for (let e = 0; e < blockFirst[i + u].employes.length; e++) {
-                        if (blockFirst[i + u].employes[e].id == employe) {
+                        if (blockFirst[i + u].employes[e].id == employe.id) {
                             blockFirst[i + u].employes.splice(e, 1)
-                            blockFirst[i + u].employeBlocked.push({employe: employe, type: 'date'})
+                            blockFirst[i + u].employeBlocked.push({employe: employe.id, type: 'date'})
                         }
                     }
                     if (blockFirst[i + u].employes.length == 0) {
