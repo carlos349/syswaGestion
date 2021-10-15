@@ -892,4 +892,27 @@ sales.put('/editclosedmanualamounts/:id', protectRoute, async (req,res) => {
     }
 })
 
+sales.get('/verifySale/:id', protectRoute, async (req,res) => {
+  const database = req.headers['x-database-connect'];
+  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+  })
+  const DaySale = conn.model('daySales', daySaleSchema)
+ 
+  try {
+      const findSale = await DaySale.find({idTableSales:req.params.id})
+      if (findSale.length > 0) {
+        res.json({status: 'ok', token: req.requestToken})
+      }else{
+        res.json({status: 'bad', token: req.requestToken})
+      }
+      
+  }catch(err){
+      res.send(err)
+  }
+})
+
+
+
 module.exports = sales
