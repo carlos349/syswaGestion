@@ -554,23 +554,14 @@ dates.delete('/:id', async (req, res) => {
                             break
                         }
                         if (valid) {
-                            var validEmploye = true
-                            for (const employeFor of block.employe) {
-                                if (employeFor.id == employe.id) {
-                                    validEmploye = false
-                                    break
-                                }
-                            }
-                            if (validEmploye) {
-                                block.employes.push({
-                                    name: employe.name,
-                                    id: employe.id,
-                                    class: employe.class,
-                                    position: 20,
-                                    valid: false,
-                                    img: employe.img
-                                })
-                            }
+                            block.employes.push({
+                                name: employe.name,
+                                id: employe.id,
+                                class: employe.class,
+                                position: 20,
+                                valid: false,
+                                img: employe.img
+                            })
                         }
                     }
                     try {
