@@ -56,7 +56,7 @@ dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
     try {
         const getDates = await date.find({
             branch: req.params.branch
-        }).sort({createdAt: -1})
+        }, {services: 0, microServices: 0, imgDesign: 0 }).sort({createdAt: -1})
         if (getDates.length > 0) {
             res.json(getDates)
         } 
