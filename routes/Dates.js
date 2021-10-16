@@ -1285,15 +1285,21 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 blockEmploye.push({ hour: block.hour, validator: 'unavailable', origin: true })
             } else {
                 var valid = false
-                for (const employe of block.employes) {
-                    if (employe.id == employeSelect) {
-                        blockEmploye.push({ hour: block.hour, validator: true, origin: true })
-                        valid = true
-                        break
+                if (block.validator == 'select') {
+                    blockEmploye.push({ hour: block.hour, validator: true, origin: true })
+                    block.validator = true
+                    block.employes.unshift(req.body.employeObject)
+                }else{
+                    for (const employe of block.employes) {
+                        if (employe.id == employeSelect) {
+                            blockEmploye.push({ hour: block.hour, validator: true, origin: true })
+                            valid = true
+                            break
+                        }
                     }
-                }
-                if (!valid) {
-                    blockEmploye.push({ hour: block.hour, validator: false, origin: true })
+                    if (!valid) {
+                        blockEmploye.push({ hour: block.hour, validator: false, origin: true })
+                    }
                 }
             }
         }
@@ -1473,8 +1479,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
                 const blocksFirst = finddate.blocks
-                console.log(employesServices)
-                console.log(blocksFirst[0].employes)
                 for (const block of blocksFirst) {
                     for (const employe of block.employes) {
                         employe.valid = false
@@ -1554,9 +1558,22 @@ dates.post('/blocksHoursFirst', async (req, res) => {
 
                 for (const employe of employes) {
                     for (const block of blocksFirst) {
+                        var dictEmploye = {}
                         for (const blockEmploye of block.employes) {
+                            if (dictEmploye[blockEmploye.id]) {
+                                dictEmploye[blockEmploye.id]++
+                            }else{
+                                dictEmploye[blockEmploye.id] = 1
+                            }
                             if (employe.id == blockEmploye.id) {
                                 blockEmploye.commission = employe.commission
+                            }
+                        }
+                        for (let index = 0; index < block.employes.length; index++) {
+                            const employeID = block.employes[index];
+                            if (dictEmploye[employeID.id] > 1) {
+                                dictEmploye[employeID.id] = dictEmploye[employeID.id] - 1
+                                block.employes.splice(index, 1)
                             }
                         }
                     }
@@ -1841,12 +1858,17 @@ dates.post('/selectDatesBlocks', async (req, res) => {
     const blocks = req.body.block
 
     if (req.body.firstBlock) {
-        if (!req.body.ifFirstClick) {
+        // if (!req.body.ifFirstClick) {
+            console.log('entre')
             for (let i = 0; i < blocks.length; i++) {
                 const element = blocks[i];
                 if (element.validator == 'select') {
                     element.validator = true
-                    blocks[i].employes.unshift(employe)
+                    if (blocks[i + 1]) {
+                        if (blocks[i + 1].validator == 'select') {
+                            blocks[i].employes.unshift(employe)
+                        }  
+                    }
                     for (const employeFor in element.employeBlocked) {
                         if (element.employeBlocked[employeFor].employe == employe.id) {
                             element.employeBlocked.splice(employeFor, 1)
@@ -1854,7 +1876,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     }
                 }
             }
-        }
+        // }
 
         for (let i = 0; i < blocks.length; i++) {
             const element = blocks[i];
@@ -1890,7 +1912,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
     } else {
         //algoritmo para bloques por empleado
         const blockFirst = req.body.blockFirst
-        if (!req.body.ifFirstClick) {
+        // if (!req.body.ifFirstClick) {
             for (let i = 0; i < blocks.length; i++) {
                 const element = blocks[i];
                 if (element.validator == 'select') {
@@ -1901,7 +1923,11 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 const element = blockFirst[i];
                 if (element.validator == 'select') {
                     element.validator = true
-                    blockFirst[i].employes.unshift(employe)
+                    if (blockFirst[i + 1]) {
+                        if (blockFirst[i + 1].validator == 'select') {
+                            blockFirst[i].employes.unshift(employe) 
+                        }
+                    }
                     for (const employeFor in element.employeBlocked) {
                         if (element.employeBlocked[employeFor].employe == employe.id) {
                             element.employeBlocked.splice(employeFor, 1)
@@ -1909,7 +1935,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     }
                 }
             }
-        }
+        // }
         for (let e = 0; e < blocks.length; e++) {
             const block = blocks[e]
             if (block.hour == hourSelect) {
