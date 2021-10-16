@@ -45,6 +45,26 @@ dates.get('/:branch', protectRoute, async (req, res) => {
     }
 })
 
+dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const date = conn.model('dates', dateSchema)
+    try {
+        const getDates = await date.find({
+            branch: req.params.branch
+        }).sort({createdAt: -1})
+        if (getDates.length > 0) {
+            res.json(getDates)
+        } 
+    } catch (err) {
+        res.send(err)
+    }
+})
+
 //Fin de la api (Retorna: Datos de las citas) -- Api end (Return: dates´s data)
 
 //----------------------------------------------------------------------------------
