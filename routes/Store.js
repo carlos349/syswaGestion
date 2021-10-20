@@ -941,7 +941,7 @@ stores.post('/deletestoreproduct', protectRoute, async (req, res) => {
                                 const data = {
                                     branch: element.branch,
                                     detail: `Producto (${element.product}) eliminado del inventario`,
-                                    amount: total,
+                                    amount: -(total),
                                     type: 'Inventario',
                                     validator: true,
                                     createdAt: new Date()
