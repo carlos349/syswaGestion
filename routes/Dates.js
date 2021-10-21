@@ -2397,20 +2397,31 @@ dates.post('/editdate', async (req, res) => {
             }
         })
         if (editDate) {
-            for (const block of blocks) {
-                if (block.validator == 'select') {
+            blocks.forEach((block, index) => {
+                
+                if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
                     if (block.employes.length > 0) {
-                        block.employes.forEach((element, index) => {
+                        block.employes.forEach((element, index2) => {
                             if (element.id == dataEdit.employe.id) {
-                                block.employes.splice(index, 1)
+                                block.employes.splice(index2, 1)
                             }
                         });
+                        if (block.employes.length > 0) {
+                            block.validator = true
+                        }else {
+                            block.validator = false
+                        }
+                    }else{
+                        block.validator = false
+                    }
+                }else{
+                    if (block.employes.length > 0) {
                         block.validator = true
-                    } else {
+                    }else{
                         block.validator = false
                     }
                 }
-            }
+            });
             try {
                 const findBlocks = await dateBlock.findByIdAndUpdate(dataEdit.idBlock, {
                     $set: {
@@ -2419,7 +2430,7 @@ dates.post('/editdate', async (req, res) => {
                 })
 
                 if (findBlocks) {
-                    res.json({ status: 'ok' })
+                    res.json({ status: 'ok', data:findBlocks })
                 }
             } catch (err) {
                 res.send(err)
