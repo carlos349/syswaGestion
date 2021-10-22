@@ -814,6 +814,26 @@ stores.put('/editstockalarmfrominventory/:id', protectRoute, async (req, res) =>
 
 //--------------------------------------------------------------------------------------
 
+stores.put('/chagepriceinventory/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Inventory = conn.model('inventories', inventorySchema)
+
+    Inventory.findByIdAndUpdate(req.params.id, {
+        $set: {price: req.body.price}
+    })
+    .then(done => {
+        if (done) {
+            res.json({status: 'changed'})     
+        }
+    }).catch(err => {
+        res.send(err)
+    })
+})
 //Api que registra un producto en la bodega (Ingreso: product, measure, price) -- Api that register a product to the store (Input: product, measure, price)
 
 stores.post('/', protectRoute, async (req,res) => {
