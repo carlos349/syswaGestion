@@ -12,28 +12,31 @@ const mailTask = require('./cronService/sendMailsSchedule')
 var path = require('path')
 var fs = require('fs')
 var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+var winston = require('winston');
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  defaultMeta: { service: 'user-service' },
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+
+logger.add(new winston.transports.Console({
+  format: winston.format.simple(),
+}));
 
 // settings
 app.set('port', process.env.PORT || port)
 app.set('trust proxy', true);
-
 //middlewares
 app.use(morgan('dev'))
-app.use(morgan('combined', { stream: accessLogStream }))
+app.use(morgan('combined', { 'stream': accessLogStream}));
 app.use(cors())
 app.use(bodyParser.json({ limit: "50mb" }))
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }))
-
-// // error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // Escribimos el error
-  accessLogStream.write(err.stack)
-
-});
 
 //Websockets
 io.on('connection', socket  => {

@@ -2428,6 +2428,7 @@ mails.post('/dateMail', async (req, res) => {
   const branchId = req.body.branchId
   var data = req.body.data
   const IDS = req.body.id
+  console.log(IDS)
   const date = req.body.date
   const servicesFinal = req.body.servicesFinal
   const valid = req.body.valid
@@ -2628,6 +2629,15 @@ mails.post('/dateMail', async (req, res) => {
                   <tr>
                     <td align="center" vertical-align="middle" style="font-size:0px;padding:0px 20px 20px 20px;word-break:break-word;">
                       
+                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                      <tr>
+                          <td align="center" bgcolor="#e85034" role="presentation" style="border:none;border-radius:5px;cursor:auto;mso-padding-alt:9px 26px 9px 26px;background:#e85034;" valign="middle">
+                          <a href="${getConfigurations.route}/cancelarcita?id=${IDS[key]._id}" style="display: inline-block; background: #e85034; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
+                              <span style="font-size: 12px;">Cancelar</span>
+                          </a>
+                          </td>
+                      </tr>
+                    </table>
             
 
                     </td>

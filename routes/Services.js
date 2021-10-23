@@ -5,6 +5,7 @@ const cors = require('cors');
 const protectRoute = require('../securityToken/verifyToken')
 const serviceSchema = require('../models/Services')
 const categorySchema = require('../models/Categories')
+const LogService = require('../logService/logService')
 services.use(cors())
 
 //output - status, data and token
@@ -196,7 +197,7 @@ services.post('/newCategory', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
     const Category = conn.model('categories', categorySchema)
-
+    
     const dataCategory = {
         name: req.body.name,
         branch: req.body.branch
@@ -208,15 +209,32 @@ services.post('/newCategory', protectRoute, async (req, res) => {
                 {branch: req.body.branch}
             ]
         })
-        console.log(findCategory)
+        const data = 0
+        data = 5
+        console.log(data)
         if (!findCategory) {
-            const createCategory = await Category.create(dataCategory)
-            res.json({status: 'ok', data: createCategory, token: req.requestToken})
+            try {
+                const createCategory = await Category.create(dataCategory)
+                res.json({status: 'ok', data: createCategory, token: req.requestToken})
+            }catch(err ){
+                res.send(err)
+            }
         }else{
             res.json({status: 'category already exist'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        // dataLog.errs = str(err)
+        res.json({dataLog: dataLog})
     }
 })
 
