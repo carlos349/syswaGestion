@@ -233,8 +233,7 @@ services.post('/newCategory', protectRoute, async (req, res) => {
             req.route
         )
         const dataLog = await Log.createLog()
-        // dataLog.errs = str(err)
-        res.json({dataLog: dataLog})
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
