@@ -10,6 +10,7 @@ const endingDateSchema = require('../models/EndingDates')
 const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const serviceSchema = require('../models/Services')
+const LogService = require('../logService/logService')
 const configurationSchema = require('../models/Configurations')
 const uploadS3 = require('../common-midleware/index')
 const email = require('../modelsMail/Mails')
@@ -2373,7 +2374,7 @@ dates.post('/endDate/:id', (req, res) => {
         })
 })
 
-dates.post('/editdate', async (req, res) => {
+dates.post('/editdate', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/' + database, {
         useNewUrlParser: true,
@@ -2397,32 +2398,32 @@ dates.post('/editdate', async (req, res) => {
             }
         })
         if (editDate) {
-            blocks.forEach((block, index) => {
-                
-                if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
-                    if (block.employes.length > 0) {
-                        block.employes.forEach((element, index2) => {
-                            if (element.id == dataEdit.employe.id) {
-                                block.employes.splice(index2, 1)
-                            }
-                        });
+            try {
+                blocks.forEach((block, index) => {
+                    
+                    if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
                         if (block.employes.length > 0) {
-                            block.validator = true
-                        }else {
+                            block.employes.forEach((element, index2) => {
+                                if (element.id == dataEdit.employe.id) {
+                                    block.employes.splice(index2, 1)
+                                }
+                            });
+                            if (block.employes.length > 0) {
+                                block.validator = true
+                            }else {
+                                block.validator = false
+                            }
+                        }else{
                             block.validator = false
                         }
                     }else{
-                        block.validator = false
+                        if (block.employes.length > 0) {
+                            block.validator = true
+                        }else{
+                            block.validator = false
+                        }
                     }
-                }else{
-                    if (block.employes.length > 0) {
-                        block.validator = true
-                    }else{
-                        block.validator = false
-                    }
-                }
-            });
-            try {
+                });
                 const findBlocks = await dateBlock.findByIdAndUpdate(dataEdit.idBlock, {
                     $set: {
                         blocks: blocks
@@ -2433,11 +2434,31 @@ dates.post('/editdate', async (req, res) => {
                     res.json({ status: 'ok', data:findBlocks })
                 }
             } catch (err) {
-                res.send(err)
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    req.requestToken, 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
             }
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
