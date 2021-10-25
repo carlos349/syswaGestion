@@ -209,9 +209,6 @@ services.post('/newCategory', protectRoute, async (req, res) => {
                 {branch: req.body.branch}
             ]
         })
-        const data = 0
-        data = 5
-        console.log(data)
         if (!findCategory) {
             try {
                 const createCategory = await Category.create(dataCategory)
