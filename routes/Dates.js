@@ -2400,27 +2400,28 @@ dates.post('/editdate', protectRoute, async (req, res) => {
         if (editDate) {
             try {
                 blocks.forEach((block, index) => {
-                    
-                    if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
-                        if (block.employes.length > 0) {
-                            block.employes.forEach((element, index2) => {
-                                if (element.id == dataEdit.employe.id) {
-                                    block.employes.splice(index2, 1)
-                                }
-                            });
+                    if (blocks[index + 1]) {
+                        if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
                             if (block.employes.length > 0) {
-                                block.validator = true
-                            }else {
+                                block.employes.forEach((element, index2) => {
+                                    if (element.id == dataEdit.employe.id) {
+                                        block.employes.splice(index2, 1)
+                                    }
+                                });
+                                if (block.employes.length > 0) {
+                                    block.validator = true
+                                }else {
+                                    block.validator = false
+                                }
+                            }else{
                                 block.validator = false
                             }
                         }else{
-                            block.validator = false
-                        }
-                    }else{
-                        if (block.employes.length > 0) {
-                            block.validator = true
-                        }else{
-                            block.validator = false
+                            if (block.employes.length > 0) {
+                                block.validator = true
+                            }else{
+                                block.validator = false
+                            }
                         }
                     }
                 });
