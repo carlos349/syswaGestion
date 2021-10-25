@@ -2465,7 +2465,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
 
 dates.post('/fixblocks', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    console.log(database)
+    // console.log(database)
     const conn = mongoose.createConnection('mongodb://localhost/' + database, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -2479,7 +2479,7 @@ dates.post('/fixblocks', async (req, res) => {
     const employe = req.body.employe
     const branch = req.body.branch
 
-    console.log(dateFix, start, end, employe, branch)
+    // console.log(dateFix, start, end, employe, branch)
     
     try {
         const findBlock = await dateBlock.findOne({
@@ -2490,7 +2490,7 @@ dates.post('/fixblocks', async (req, res) => {
         })
         if (findBlock) {
             var valid = false
-            console.log(findBlock)
+            // console.log(findBlock)
             findBlock.blocks.forEach((block, index) => {
                 if (block.hour == start) {
                     valid = true
@@ -2499,13 +2499,13 @@ dates.post('/fixblocks', async (req, res) => {
                     valid = false
                 }
                 if (valid) {
-                    for (const key in findBlock.blocks[index].employes) {
-                        if(findBlock.blocks[index].employes[key].id == employe.id){
-                            findBlock.blocks[index].employes.splice(key, 1)
-                        }
-                        // findBlock.blocks[index].employes.push(employe)
+                    // for (const key in findBlock.blocks[index].employes) {
+                        // if(findBlock.blocks[index].employes[key].id == employe.id){
+                        //     findBlock.blocks[index].employes.splice(key, 1)
+                        // }
+                        findBlock.blocks[index].employes.push(employe)
                         
-                    }
+                    // }
                     
                 }
             });
