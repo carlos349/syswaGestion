@@ -2441,5 +2441,68 @@ dates.post('/editdate', async (req, res) => {
     }
 })
 
+dates.post('/fixblocks', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+
+    const dateFix = req.body.date
+    const start = req.body.start
+    const end = req.body.end
+    const employe = req.body.employe
+    const branch = req.body.branch
+
+    
+    try {
+        const findBlock = await dateBlock.find({
+            $and:[
+                {branch:branch},
+                {"dateData.dateFormat": dateFix}
+            ]
+        })
+        if (findBlock) {
+            var valid = false
+            findBlock.blocks.forEach((block, index) => {
+                var valid2 = true
+                if (block.hour == start) {
+                    valid = true
+                }
+                if (block.hour == end) {
+                    valid = false
+                }
+                if (valid) {
+                    blocks.employes.forEach(element => {
+                        if (element.id == employe.id) {
+                            valid2 = false
+                        }
+                    });
+                    if (valid2) {
+                        findBlock.blocks[index].employes.push(employe)
+                    }
+                }
+            });
+            try {
+                const findBlocks = await dateBlock.findByIdAndUpdate(findBlock._id, {
+                    $set: {
+                        blocks: findBlock.blocks
+                    }
+                })
+
+                if (findBlocks) {
+                    res.json({ status: 'ok', data:findBlocks })
+                }
+            } catch (err) {
+                res.send(err)
+            }
+        }
+    } catch (err) {
+        res.send(err)
+    }
+})
+
 
 module.exports = dates
