@@ -6,6 +6,7 @@ const protectRoute = require('../securityToken/verifyToken')
 const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
 const configurationSchema = require('../models/Configurations')
+const logSchema = require('../models/Log')
 const profilesSchema = require('../models/accessProfile')
 const credentialSchema = require('../models/userCrendentials')
 const employeSchema = require('../models/Employes')
@@ -29,6 +30,38 @@ configurations.get('/profiles', protectRoute, async (req, res) => {
         res.json({status: 'ok', data: getProfiles, token: req.requestToken})
     }catch(err){
         res.send(err)
+    }
+})
+
+configurations.get('/clientlog', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const conn = mongoose.createConnection('mongodb://localhost/syswalogs', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    const Logs = conn.model('logs', logSchema)
+
+    try {
+        const getLog = await Logs.find({
+            database: database
+        })
+        if (getLog) {
+            res.json({status: 'ok', data: getLog, token: req.requestToken})
+        }
+    }catch(err){
+        console.log(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -718,5 +751,7 @@ configurations.delete('/:branch', protectRoute, async (req, res) => {
         res.send(err)
     }
 })
+
+
 
 module.exports = configurations
