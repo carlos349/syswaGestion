@@ -311,6 +311,7 @@ dates.post('/availableslenders', (req, res) => {
     dateNow.setDate(dateNow.getDate() + 1)
     const formatdateTwo = dateNow.getFullYear() + "-" + (dateNow.getMonth() + 1) + "-" + dateNow.getDate()
     var arrayLenders = []
+    console.log(req.body.date)
     date.find({
         $and: [
             { createdAt: { $gte: formatdate, $lte: formatdateTwo } },
@@ -2506,7 +2507,6 @@ dates.post('/fixblocks', async (req, res) => {
                         findBlock.blocks[index].employes.push(employe)
                         
                     // }
-                    
                 }
             });
             try {
