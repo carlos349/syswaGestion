@@ -310,7 +310,18 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
                             .then(deleteDaySale => {
                                 res.json({status: 'ok', data: update, token: req.requestToken})
                             })
-                            .catch(err => res.send(err))
+                            .catch(err => {
+                                const Log = new LogService(
+                                    req.headers.host, 
+                                    req.body, 
+                                    req.params, 
+                                    err, 
+                                    req.requestToken, 
+                                    req.headers['x-database-connect'], 
+                                    req.route
+                                )
+                                Log.createLog()
+                            })
                         }else{
                             DaySale.findByIdAndUpdate(DaySales._id, {
                                 $set: {
@@ -321,17 +332,49 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
                             .then(updateDaySale => {
                                 res.json({status: 'ok', data: update, token: req.requestToken})
                             })
-                            .catch(err => res.send(err))
+                            .catch(err => {
+                                const Log = new LogService(
+                                    req.headers.host, 
+                                    req.body, 
+                                    req.params, 
+                                    err, 
+                                    req.requestToken, 
+                                    req.headers['x-database-connect'], 
+                                    req.route
+                                )
+                                Log.createLog()
+                            })
                         }
                     })
-                    .catch(err => res.send(err))
+                    .catch(err => {
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            req.requestToken, 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        Log.createLog()
+                    })
                 })
             })
         }else{
             res.json({status: 'sales not found'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 

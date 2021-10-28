@@ -284,7 +284,7 @@ dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
             res.json({ status: 'ok', token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        console.log(err)
     }
 })
 

@@ -18,7 +18,7 @@ protectRoute.use((req, res, next) => {
 	}
     jwt.verify(token, key, (err, decoded) => {
         if (err) {
-            return res.status(401).json({auth: false, message: 'token expired'})
+            return res.status(401).json({auth: false, message: 'token expired', error: err})
         }else{
             User.findById(decoded._id)
             .then(verify => {
