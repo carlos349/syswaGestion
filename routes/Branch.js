@@ -5,6 +5,7 @@ const cors = require('cors');
 const protectRoute = require('../securityToken/verifyToken')
 const branchSchema = require('../models/Branch')
 const credentialSchema = require('../models/userCrendentials')
+const LogService = require('../logService/logService')
 branches.use(cors())
 
 branches.get('/', async (req, res) => {
@@ -23,7 +24,19 @@ branches.get('/', async (req, res) => {
         }else{
             res.json({status:'bad'})
         }
-    }catch(err){res.send(err)}
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
 })
 
 branches.get('/count', async (req, res) => {
@@ -38,7 +51,19 @@ branches.get('/count', async (req, res) => {
     try {
         const getCount = await Branch.find().count()
         res.json({status: 'ok', data: getCount})
-    }catch(err){res.send(err)}
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
 })
 
 branches.post('/', protectRoute, async (req, res) => {
@@ -62,11 +87,35 @@ branches.post('/', protectRoute, async (req, res) => {
                 if (createBranch) {
                     res.json({status: 'ok', data: createBranch, token: req.requestToken})
                 }
-            }catch(err){res.send(err)}
+            }catch(err){
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    req.requestToken, 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
+            }
         }else{
             res.json({status: 'bad', token: req.requestToken})
         }
-    }catch(err){res.send(err)}
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
 })
 
 branches.post('/createBranchCertificate', async (req, res) => {
@@ -142,7 +191,17 @@ branches.put('/changeActive/:id', protectRoute, async (req, res) => {
             res.json({status: 'ok', data: true, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 

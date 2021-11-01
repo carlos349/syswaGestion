@@ -56,7 +56,19 @@ services.get('/getCategoriesForClients/:branch', async (req, res) => {
             res.json({status: 'categories not found'})
         }
     }catch(err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -77,7 +89,19 @@ services.get('/:branch', protectRoute, async (req, res) => {
             res.json({status: 'services not found'})
         }
     }catch(err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -98,7 +122,19 @@ services.get('/servicesForClients/:branch', async (req, res) => {
             res.json({status: 'services not found'})
         }
     }catch(err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -120,7 +156,19 @@ services.get('/getServiceInfo/:id', async (req, res, next) => {
             res.json({status: 'service does exist'})
         }
     }catch (err) {
-        res.status(404).send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -147,7 +195,19 @@ services.post('/servicesByCategory', async (req, res, next) => {
             res.json({status: 'dont have services'})
         }
     }catch(err){
-        res.status(404).send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -194,7 +254,19 @@ services.post('/', protectRoute, async (req,res) => {
             res.json({status: "repeat service"})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     } 
 })
 
@@ -280,7 +352,19 @@ services.put('/:id', protectRoute, async (req, res) => {
             res.json({status: 'services does exist'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -312,7 +396,19 @@ services.put('/changeActive/:id', protectRoute, async (req, res) => {
             res.json({status: 'ok', data: true, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -332,7 +428,19 @@ services.delete('/deleteCategory/:id', protectRoute, async (req, res) => {
             res.json({status: 'ok', token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -352,7 +460,19 @@ services.delete('/:id', protectRoute, async (req, res) => {
             res.json({status: 'ok', token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 

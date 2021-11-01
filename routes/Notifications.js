@@ -2,6 +2,7 @@ const express = require('express')
 const notifications = express.Router()
 const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
+const LogService = require('../logService/logService')
 const notificationSchema = require('../models/Notifications')
 const cors = require('cors')
 
@@ -26,7 +27,19 @@ notifications.get('/', protectRoute, async (req, res) => {
             res.json({status: 'nothing found'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -71,7 +84,19 @@ notifications.get('/noviews/:id', protectRoute, async (req, res) => {
             res.json({status: 'nothing found'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -114,7 +139,19 @@ notifications.get('/validateviews/:id', protectRoute, (req, res) => {
             res.json({status: 'nothing found'})
         }
     }).catch(err=>{
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     })
 })
 
@@ -141,7 +178,19 @@ notifications.get('/getall', protectRoute, async (req, res) => {
             res.json({status: 'nothing found'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -174,7 +223,19 @@ notifications.post('/', async (req, res) => {
             res.json({status: 'ok', data: register, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 

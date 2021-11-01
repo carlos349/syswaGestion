@@ -10,6 +10,7 @@ const clientSchema = require('../models/Clients')
 const dateSchema = require('../models/Dates')
 const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
+const LogService = require('../logService/logService')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const cors = require('cors')
@@ -34,7 +35,17 @@ clients.get('/', protectRoute, async (req, res) => {
             res.json({status: 'bad', data: getClients, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 
 })
@@ -58,7 +69,17 @@ clients.get('/findOne/:id', protectRoute, async (req, res) => {
             res.json({status: 'user does exist', data: getClient, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -109,7 +130,17 @@ clients.get('/getEmails', protectRoute, async (req, res) => {
             res.json({status: 'bad', token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -307,7 +338,19 @@ clients.post('/datesperclient', protectRoute, async (req, res) => {
             res.json({status: 'bad', data: findDates, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -324,7 +367,19 @@ clients.post('/sendPromotionEmail', protectRoute, (req, res) => {
         Mails.sendMail(mail)
         res.json({status: 'ok'})
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -619,7 +674,17 @@ clients.delete('/:id', protectRoute, async (req, res) => {
         const deleteClient = await Client.findByIdAndDelete(req.params.id)
         res.json({status: 'ok', token: req.requestToken})
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -672,18 +737,48 @@ clients.put('/:id', protectRoute, async (req, res) => {
                             const clientNew = await Client.findById(updateClient._id)
                             res.json({status: 'update client', token: req.requestToken})
                         }catch(err){
-                            res.send(err)
+                            const Log = new LogService(
+                                req.headers.host, 
+                                req.body, 
+                                req.params, 
+                                err, 
+                                req.requestToken, 
+                                req.headers['x-database-connect'], 
+                                req.route
+                            )
+                            const dataLog = await Log.createLog()
+                            res.send('failed api with error, '+ dataLog.error)
                         }
                     }
                 } catch(err) {
-                    res.send(err)
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        req.requestToken, 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
                 }
             }else{
                 res.json({status: 'client does exist'})
             }
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 

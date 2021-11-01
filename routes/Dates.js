@@ -42,7 +42,17 @@ dates.get('/:branch', protectRoute, async (req, res) => {
             res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -63,7 +73,17 @@ dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
             res.json(getDates)
         } 
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -89,7 +109,17 @@ dates.get('/getDatesbyemploye/:id', protectRoute, async (req, res) => {
             res.json({ status: 'nothing found', token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -123,7 +153,17 @@ dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
             res.json({ status: 'nothing found', token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -225,7 +265,17 @@ dates.get('/giveDatesToSendConfirm/:branch', protectRoute, async (req, res) => {
             res.json({ status: 'ok', token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -255,7 +305,17 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
             res.json({ status: 'ok', token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 //Fin de la api (Retorna: Datos de las horas bloqueadas) -- Api end (Return: hours blocking data)
@@ -284,7 +344,17 @@ dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
             res.json({ status: 'ok', token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -363,14 +433,51 @@ dates.post('/availableslenders', (req, res) => {
                                 });
                                 res.json({ array: arrayLenders, day: day })
                             }
-                        }).catch(err => res.send(err))
+                        }).catch(err => {
+                            const Log = new LogService(
+                                req.headers.host, 
+                                req.body, 
+                                req.params, 
+                                err, 
+                                '', 
+                                req.headers['x-database-connect'], 
+                                req.route
+                            )
+                            Log.createLog()
+                            .then(dataLog => {
+                                res.send('failed api with error, '+ dataLog.error)
+                            })
+                        })
                 })
                 .catch(err => {
-                    res.send(err)
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        '', 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    Log.createLog()
+                    .then(dataLog => {
+                        res.send('failed api with error, '+ dataLog.error)
+                    })
                 })
         }).catch(err => {
-            console.log(err)
-            res.send(err)
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                '', 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
         })
 })
 
@@ -448,7 +555,7 @@ dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
         img: "no",
         commission: 0
     }
-    console.log(dataEmploye)
+    
     try {
         const datesBlocks = await dateBlock.find()
         if(datesBlocks.length > 0){
@@ -612,7 +719,17 @@ dates.delete('/:id', async (req, res) => {
             res.json({ status: 'deleted', token: req.requestToken })
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -720,8 +837,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     }
                 }
             });
-            console.log("aqui")
-            console.log(validAll)
             if (validAll) {
                 try {
                     const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
@@ -731,10 +846,30 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         const createHour = await HourBlocking.create(data)
                         res.json({ status: 'ok' })
                     } catch (err) {
-                        res.send(err)
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            req.requestToken, 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        const dataLog = await Log.createLog()
+                        res.send('failed api with error, '+ dataLog.error)
                     }
                 }catch (err) {
-                    res.send(err)
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        req.requestToken, 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
                 }
             }else{
                 res.json({ status: 'busy' })
@@ -877,18 +1012,71 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 const createHour = await HourBlocking.create(data)
                                 res.json({ status: 'ok' })
                             } catch (err) {
-                                res.send(err)
+                                const Log = new LogService(
+                                    req.headers.host, 
+                                    req.body, 
+                                    req.params, 
+                                    err, 
+                                    req.requestToken, 
+                                    req.headers['x-database-connect'], 
+                                    req.route
+                                )
+                                const dataLog = await Log.createLog()
+                                res.send('failed api with error, '+ dataLog.error)
                             }
                         } catch (err) {
-                            res.send(err)
+                            const Log = new LogService(
+                                req.headers.host, 
+                                req.body, 
+                                req.params, 
+                                err, 
+                                req.requestToken, 
+                                req.headers['x-database-connect'], 
+                                req.route
+                            )
+                            const dataLog = await Log.createLog()
+                            res.send('failed api with error, '+ dataLog.error)
                         }
                     }
-                } catch (err) { console.log(err) }
-            } catch (err) { res.send(err) }
+                } catch (err) { 
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        req.requestToken, 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
+                }
+            } catch (err) { 
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    req.requestToken, 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error) }
+            }
+        } catch (err) {
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            const dataLog = await Log.createLog()
+            res.send('failed api with error, '+ dataLog.error)
         }
-    } catch (err) {
-        res.send(err)
-    }
 })
 
 dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
@@ -1022,13 +1210,43 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                 const createHour = await HourBlocking.findByIdAndRemove(req.body.id)
                 res.json({ status: 'ok' })
             } catch (err) {
-                res.send(err)
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    req.requestToken, 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
             }
         } catch (err) {
-            res.send(err)
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            const dataLog = await Log.createLog()
+            res.send('failed api with error, '+ dataLog.error)
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -1144,12 +1362,46 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                             }
                         }
                         res.json({ status: 'ok', data: initialBlock })
-                    } catch (err) { res.send(err) }
-                } catch (err) { res.send(err) }
+                    } catch (err) { 
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            req.requestToken, 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        const dataLog = await Log.createLog()
+                        res.send('failed api with error, '+ dataLog.error)
+                    }
+                } catch (err) { 
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        req.requestToken, 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
+                }
             }
         }
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -1371,8 +1623,19 @@ dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, r
             res.json({ status: 'ok', image: images })
         })
         .catch(err => {
-            res.send(err)
-            console.log(err)
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
         })
 })
 
@@ -1400,7 +1663,21 @@ dates.put('/confirmDate/:id', async (req, res) => {
             res.json({ status: 'ok', data: confirmDate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
         })
     })
-    .catch(err => res.send(err))
+    .catch(err => {
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
+    })
 })
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
@@ -1424,7 +1701,17 @@ dates.put('/removeDate/:id', async (req, res) => {
             res.json({ status: 'ok', data: confirmDate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
         })
     } catch (err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -1443,12 +1730,24 @@ dates.put('/removeImage/:id', protectRoute, (req, res) => {
             imgDesign: images
         }
     })
-        .then(change => {
-            res.json({ status: 'ok', change: change })
+    .then(change => {
+        res.json({ status: 'ok', change: change })
+    })
+    .catch(err => {
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
         })
-        .catch(err => {
-            res.send(err)
-        })
+    })
 })
 
 // -----------------------------------------------------------------------------
@@ -1632,7 +1931,17 @@ dates.post('/blocksHoursFirst', async (req, res) => {
 
                 res.json({ status: 'ok', data: blocksFirst, id: finddate._id })
             } catch (err) {
-                res.send(err)
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    '', 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
             }
         } else {
             try {
@@ -1812,10 +2121,46 @@ dates.post('/blocksHoursFirst', async (req, res) => {
 
                         res.json({ status: 'ok', data: blocksFirst, id: createBlockdate._id })
                     }
-                } catch (err) { res.send(err) }
-            } catch (err) { res.send(err) }
+                } catch (err) { 
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        '', 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
+                }
+            } catch (err) { 
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    '', 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
+            }
         }
-    } catch (err) { res.send(err) }
+    } catch (err) { 
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
 })
 
 //Fin de la api (Retorna: status, data) -- Api end (Return: status, data)
@@ -2130,7 +2475,19 @@ dates.post('/verifydate', async (req, res) => {
         }else{
             res.json({ status: false })
         }
-    } catch (err) { res.send(err) }
+    } catch (err) { 
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
 })
 
 //Fin de la api (Retorna: status)  -- Api end (Return: status)
@@ -2205,8 +2562,8 @@ dates.post('/noOneLender', (req, res) => {
     }
     for (let i = 0; i < dataCitas.length; i++) {
         dates.create(dataCitas[i])
-            .then(citas => { })
-            .catch(err => console.log(err))
+        .then(citas => { })
+        .catch(err => console.log(err))
     }
 
     for (const block of blocks) {
@@ -2229,7 +2586,21 @@ dates.post('/noOneLender', (req, res) => {
                 .then(dataID => {
                     res.json({ status: 'ok', id: dataID })
                 })
-                .catch(err => res.send(err))
+                .catch(err => {
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        '', 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    Log.createLog()
+                    .then(dataLog => {
+                        res.send('failed api with error, '+ dataLog.error)
+                    })
+                })
         }, 500);
     })
 })
@@ -2328,7 +2699,19 @@ dates.post('/sendConfirmation/:id', (req, res) => {
         Mails.sendMail(mail)
         res.json({ status: 'ok' })
     } catch (err) {
-        res.json({ status: 'bad' })
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -2346,32 +2729,68 @@ dates.post('/endDate/:id', (req, res) => {
     const id = req.params.id
 
     Client.findById(req.body.client.id)
-        .then(client => {
-            const data = {
-                services: req.body.service,
-                branch: req.body.branch,
-                client: req.body.client,
-                employe: req.body.employe,
-                microServices: req.body.microServices,
-                createdAt: new Date()
-            }
-            EndingDates.create(data)
-                .then(closed => {
-                    Dates.findByIdAndUpdate(id, { $set: { process: false } })
-                        .then(end => {
-                            res.json({ status: 'ok' })
-                        })
-                        .catch(err => {
-                            res.send(err)
-                        })
+    .then(client => {
+        const data = {
+            services: req.body.service,
+            branch: req.body.branch,
+            client: req.body.client,
+            employe: req.body.employe,
+            microServices: req.body.microServices,
+            createdAt: new Date()
+        }
+        EndingDates.create(data)
+        .then(closed => {
+            Dates.findByIdAndUpdate(id, { $set: { process: false } })
+            .then(end => {
+                res.json({ status: 'ok' })
+            })
+            .catch(err => {
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    '', 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                Log.createLog()
+                .then(dataLog => {
+                    res.send('failed api with error, '+ dataLog.error)
                 })
-                .catch(err => {
-                    res.send(err)
-                })
+            })
         })
         .catch(err => {
-            res.send(err)
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                '', 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
         })
+    })
+    .catch(err => {
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
+    })
 })
 
 dates.post('/editdate', protectRoute, async (req, res) => {
