@@ -19,14 +19,25 @@ class Log {
     }
 
     getUserByToken(){
-        const decoded = jwt_decode(this.token)
-        return {
-            name: decoded.first_name + ' '+ decoded.last_name,
-            email: decoded.email,
-            id: decoded._id,
-            status: decoded.status,
-            LastAccess: decoded.lastAccess,
-            branch: decoded.branch
+        if (this.token.length > 0 || this.token == undefined) {
+            const decoded = jwt_decode(this.token)
+            return {
+                name: decoded.first_name + ' '+ decoded.last_name,
+                email: decoded.email,
+                id: decoded._id,
+                status: decoded.status,
+                LastAccess: decoded.lastAccess,
+                branch: decoded.branch
+            }
+        }else{
+            return {
+                name: 'no-token-provided',
+                email: 'no-token-provided',
+                id: 'no-token-provided',
+                status: 'no-token-provided',
+                LastAccess: 'no-token-provided',
+                branch: 'no-token-provided'
+            }
         }
     }
 

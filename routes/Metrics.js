@@ -6,6 +6,7 @@ const saleSchema = require('../models/Sales')
 const dateSchema = require('../models/Dates')
 const employeSchema = require('../models/Employes')
 const expenseSchema = require('../models/Expenses')
+const LogService = require('../logService/logService')
 const historyExpensesSchema = require('../models/HistoryExpenses')
 const projectionSchema = require('../models/ProjectionDays')
 const closureSchema = require('../models/Closures')
@@ -53,10 +54,34 @@ metrics.get('/compareSales/:branch', protectRoute, async (req, res) => {
       console.log(totals)
       res.json({status: 'ok', data: totals})
     }catch(err){
-      res.send(err)
+      const Log = new LogService(
+          req.headers.host, 
+          req.body, 
+          req.params, 
+          err, 
+          req.requestToken, 
+          req.headers['x-database-connect'], 
+          req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -79,7 +104,19 @@ metrics.get('/getDays/:branch', protectRoute, async (req, res) => {
     }).count()
     res.json({status: 'ok', quantity: closures})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -106,11 +143,35 @@ metrics.get('/getProjection/:branch', protectRoute, async (req, res) => {
         })
         res.json({status: 'ok', data: projectionCreate})
       }catch(err){
-        res.send(err)
+        const Log = new LogService(
+          req.headers.host, 
+          req.body, 
+          req.params, 
+          err, 
+          req.requestToken, 
+          req.headers['x-database-connect'], 
+          req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
       }
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -137,7 +198,19 @@ metrics.get('/getExpensesTotal/:branch', protectRoute, async (req, res) => {
     }
     res.json({status: 'ok', total: total})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -180,10 +253,34 @@ metrics.get('/compareItems/:branch', protectRoute, async (req, res) => {
       }
       res.json({status: 'ok', data: totals})
     }catch(err){
-      res.send(err)
+      const Log = new LogService(
+        req.headers.host, 
+        req.body, 
+        req.params, 
+        err, 
+        req.requestToken, 
+        req.headers['x-database-connect'], 
+        req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -234,7 +331,19 @@ metrics.post('/totalsTypesPays', protectRoute, async (req, res) => {
     }
     res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -279,7 +388,19 @@ metrics.post('/totalSales', protectRoute, async (req, res) => {
     })
     res.json({status: 'ok', series: series, total: sumTotal})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -353,10 +474,34 @@ metrics.post('/totalServices', protectRoute, async (req, res) => {
       })
       res.json({status: 'ok', series: series, total: sumTotal})
     }catch(err){
-      res.send(err)
+      const Log = new LogService(
+        req.headers.host, 
+        req.body, 
+        req.params, 
+        err, 
+        req.requestToken, 
+        req.headers['x-database-connect'], 
+        req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -409,10 +554,34 @@ metrics.post('/totalByEmploye', protectRoute, async (req, res) => {
         res.json({status: 'bad'})
       }
     }catch(err){
-      res.send(err)
+      const Log = new LogService(
+        req.headers.host, 
+        req.body, 
+        req.params, 
+        err, 
+        req.requestToken, 
+        req.headers['x-database-connect'], 
+        req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -455,7 +624,19 @@ metrics.post('/totalPerService', protectRoute, async (req, res) => {
     }
     res.json({status: 'ok', series:series, labels: labels})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -498,7 +679,19 @@ metrics.post('/totalPerProducts', protectRoute, async (req, res) => {
     }
     res.json({status: 'ok', series:series, labels: labels})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -551,10 +744,34 @@ metrics.post('/servicesByEmploye', protectRoute, async (req, res) => {
         res.json({status: 'bad'})
       }
     }catch(err){
-      res.send(err)
+      const Log = new LogService(
+        req.headers.host, 
+        req.body, 
+        req.params, 
+        err, 
+        req.requestToken, 
+        req.headers['x-database-connect'], 
+        req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -607,10 +824,34 @@ metrics.post('/commissionsByEmploye', protectRoute, async (req, res) => {
         res.json({status: 'bad'})
       }
     }catch(err){
-      res.send(err)
+      const Log = new LogService(
+        req.headers.host, 
+        req.body, 
+        req.params, 
+        err, 
+        req.requestToken, 
+        req.headers['x-database-connect'], 
+        req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -663,7 +904,19 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
       res.json({status: 'bad'})
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -706,7 +959,19 @@ metrics.post('/diaryTotals', protectRoute, async (req, res) => {
     }
     res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -756,7 +1021,7 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
         }
       }
     }
-    console.log(days)
+    
     for (const key in days) {
       if (days[key] > 0 && series[0].data[key] > 0) {
         series[0].data[key] = series[0].data[key] / days[key]
@@ -768,7 +1033,19 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
 
     res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -794,7 +1071,7 @@ metrics.post('/anualProduction', protectRoute, async (req, res) => {
       data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ]
-  console.log(dates)
+  
   try {
     const thisYear = await Sale.find({
       $and: [
@@ -824,10 +1101,34 @@ metrics.post('/anualProduction', protectRoute, async (req, res) => {
 
       res.json({status: 'ok', series: series, categories: categories})
     }catch(err){
-      res.send(err)
+      const Log = new LogService(
+        req.headers.host, 
+        req.body, 
+        req.params, 
+        err, 
+        req.requestToken, 
+        req.headers['x-database-connect'], 
+        req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
     }
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -871,7 +1172,19 @@ metrics.post('/anualServices', protectRoute, async (req, res) => {
 
     res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -925,7 +1238,19 @@ metrics.post('/dataEmploye', protectRoute, async (req, res) => {
     }
     res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -966,7 +1291,19 @@ metrics.post('/dataExpense', protectRoute, async (req, res) => {
     }
     res.json({status: 'ok', series: series, categories: categories})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 
@@ -987,7 +1324,19 @@ metrics.put('/updateProjection/:id', protectRoute, async (req, res) => {
     })
     res.json({status: 'ok'})
   }catch(err){
-    res.send(err)
+    const Log = new LogService(
+      req.headers.host, 
+      req.body, 
+      req.params, 
+      err, 
+      req.requestToken, 
+      req.headers['x-database-connect'], 
+      req.route
+    )
+    Log.createLog()
+    .then(dataLog => {
+        res.send('failed api with error, '+ dataLog.error)
+    })
   }
 })
 

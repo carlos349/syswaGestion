@@ -7,6 +7,7 @@ const employeSchema = require('../models/Employes')
 const credentialSchema = require('../models/userCrendentials')
 const bcrypt = require('bcrypt')
 const email = require('../modelsMail/Mails')
+const LogService = require('../logService/logService')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const uploadS3 = require('../common-midleware/index')
@@ -205,12 +206,36 @@ users.post('/createUserCertificate', async (req, res, next) => {
                 }
             })
             .catch(err => {
-                res.send('error: ' + err)
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    '', 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                Log.createLog()
+                .then(dataLog => {
+                    res.send('failed api with error, '+ dataLog.error)
+                })
             })
         }else{
             res.json({status: 'ok', data: 'incorrect credentials'})
         }
-    }catch(err){res.send(err)}
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
     
 })
 
@@ -231,7 +256,17 @@ users.get('/', protectRoute, async (req, res) => {
             res.json({status: 'users does exist'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -252,7 +287,17 @@ users.get('/:id', protectRoute, async (req, res) => {
             res.json({status: 'user does exist'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -294,8 +339,19 @@ users.post('/sendNewPass', async (req, res) => {
         	const send = await Mails.sendMail(mail)
 			res.json({status: 'ok'})
 		}catch(err){
-			res.json({status: 'bad'})
-			console.log(err)
+			const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                '', 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
 		}
 	}else{
 		res.json({status: 'user does exist'})
@@ -331,7 +387,17 @@ users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, 
             })
             res.json({status: 'ok', image: images, token: req.requestToken})
         }catch(err){
-            res.send(err)
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            const dataLog = await Log.createLog()
+            res.send('failed api with error, '+ dataLog.error)
         }
 	}else{
         try {
@@ -345,7 +411,17 @@ users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, 
             })
             res.json({status: 'ok', image: '', token: req.requestToken})
         }catch(err){
-            res.send(err)
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            const dataLog = await Log.createLog()
+            res.send('failed api with error, '+ dataLog.error)
         }
 	}
 })
@@ -412,7 +488,19 @@ users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) =
             res.json({status: 'user already exist'})
         }
     }).catch(err => {
-        req.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     })
 })
 
@@ -425,13 +513,11 @@ users.post('/login', (req, res) => {
         useUnifiedTopology: true,
     })
     const User = conn.model('users', userSchema)
-    console.log(req.body.email)
 	const today = new Date()
 	User.findOne({
 		email: req.body.email.toLowerCase()
 	})
 	.then(user => {
-        console.log(user)
 		if(user){
 			if(bcrypt.compareSync(req.body.password, user.password)){
 				User.findByIdAndUpdate(user._id, {
@@ -466,7 +552,19 @@ users.post('/login', (req, res) => {
 		}
 	})
 	.catch(err => {
-		res.send(err)
+		const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
 	})
 })
 
@@ -488,7 +586,17 @@ users.delete('/:id', protectRoute, async (req, res) => {
             res.json({status: 'users does exist'})
         }
     }catch(err) {
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -524,7 +632,17 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
             res.json({status: 'ok', data: update, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }	
 })
 
@@ -565,7 +683,17 @@ users.put('/editAccess/:id', protectRoute, async (req, res) => {
 			}
 		}
 	}catch(err) {
-		res.json({status: 'bad'})
+		const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
 	}
 })
 
@@ -606,7 +734,17 @@ users.put('/changePass/:id', protectRoute, async (req, res, next) => {
             }
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 

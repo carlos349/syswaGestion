@@ -10,6 +10,7 @@ const logSchema = require('../models/Log')
 const profilesSchema = require('../models/accessProfile')
 const credentialSchema = require('../models/userCrendentials')
 const employeSchema = require('../models/Employes')
+const LogService = require('../logService/logService')
 const uploadS3 = require('../common-midleware/index')
 const jwt = require('jsonwebtoken')
 const key = require('../private/key-jwt');
@@ -29,7 +30,17 @@ configurations.get('/profiles', protectRoute, async (req, res) => {
         const getProfiles = await Profiles.find().limit(1)
         res.json({status: 'ok', data: getProfiles, token: req.requestToken})
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -47,7 +58,7 @@ configurations.get('/clientlog', async (req, res) => {
             database: database
         })
         if (getLog) {
-            res.json({status: 'ok', data: getLog, token: req.requestToken})
+            res.json({status: 'ok', data: getLog})
         }
     }catch(err){
         console.log(err)
@@ -79,10 +90,20 @@ configurations.get('/:branch', async (req, res) => {
             branch: req.params.branch
         })
         if (getConfigurations) {
-            res.json({status: 'ok', data: getConfigurations, token: req.requestToken})
+            res.json({status: 'ok', data: getConfigurations})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -117,15 +138,25 @@ configurations.get('/getMicroservice/:branch', async (req, res) => {
         })
         if (getConfigurations.length > 0) {
             if (getConfigurations[0].microServices.length > 0) {
-                res.json({status: 'ok', data: getConfigurations[0].microServices, token: req.requestToken})
+                res.json({status: 'ok', data: getConfigurations[0].microServices})
             }else{
-               res.json({status: 'bad', token: req.requestToken})     
+               res.json({status: 'bad'})     
             }
         }else{
-            res.json({status: 'bad', token: req.requestToken})
+            res.json({status: 'bad'})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -144,7 +175,17 @@ configurations.get('/:branch', protectRoute, async (req, res) => {
             res.json({status: 'ok', data: getConfigurations, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -199,11 +240,20 @@ configurations.get('/getHours/:branch', protectRoute, async (req, res) => {
             var objectPush = daysHours[0]
             daysHours.splice(0, 1)
             daysHours.push(objectPush)
-            console.log(daysHours)
             res.json({status: 'ok', data: daysHours, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -248,7 +298,17 @@ configurations.post('/', protectRoute, async (req, res) => {
             res.json({status: 'ok', data: createConfiguration, token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -510,7 +570,17 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
             res.json({status: 'ok', token: req.requestToken})  
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
@@ -635,7 +705,17 @@ configurations.post('/addBlackList/:id', protectRoute, async (req, res) => {
             res.json({status: 'ok', token: req.requestToken})
         }
     }catch(err){
-        res.send(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
