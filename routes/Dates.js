@@ -577,6 +577,11 @@ dates.delete('/:id', async (req, res) => {
                             break
                         }
                         if (valid) {
+                            block.employeBlocked.forEach((element, index) => {
+                                if (element.employe == employe.id) {
+                                    findDateBlock[0].blocks.employeBlocked.splice(index, 1)
+                                }
+                            });
                             block.employes.push({
                                 name: employe.name,
                                 id: employe.id,
@@ -1481,7 +1486,15 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
                 const blocksFirst = finddate.blocks
+
                 for (const block of blocksFirst) {
+                    block.employeBlocked.forEach(element => {
+                        block.employes.forEach((employe, index) => {
+                            if (employe.id == element.id) {
+                                block.employes.splice(index,1)
+                            }
+                        });
+                    });
                     for (const employe of block.employes) {
                         employe.valid = false
                     }
@@ -1832,19 +1845,35 @@ dates.post('/editdateblockbefore', async (req, res) => {
     const end = req.body.end
     employe.valid = true
     var valid = false
-    for (const block of blocks) {
+    try{
+for (const block of blocks) {
         if (valid) {
-            block.employes.push(employe)
-            block.validator = true
             if (block.hour == end) {
                 valid = false
+                break
+            }else{
+                block.employeBlocked.forEach((element, index) => {
+                    if (element.employe == employe.id) {
+                        block.employeBlocked.splice(index, 1)
+                    }
+                });
+                block.employes.push(employe)
+                block.validator = true
             }
         }
         if (block.hour == start) {
+            block.employeBlocked.forEach((element, index) => {
+                if (element.employe == employe.id) {
+                    block.employeBlocked.splice(index, 1)
+                }
+            });
             valid = true
             block.employes.push(employe)
             block.validator = true
         }
+    }
+    }catch(err){
+        console.log(err)
     }
 
     res.json({ data: blocks })
@@ -2407,6 +2436,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                                 block.employes.forEach((element, index2) => {
                                     if (element.id == dataEdit.employe.id) {
                                         block.employes.splice(index2, 1)
+                                        block.employeBlocked.push({id:dataEdit.employe.id, type: 'date'})
                                     }
                                 });
                                 if (block.employes.length > 0) {
