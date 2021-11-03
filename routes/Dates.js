@@ -687,7 +687,7 @@ dates.delete('/:id', async (req, res) => {
                             if (valid) {
                                 block.employeBlocked.forEach((element, index) => {
                                     if (element.employe == employe.id) {
-                                        findDateBlock[0].blocks.employeBlocked.splice(index, 1)
+                                        block.employeBlocked.splice(index, 1)
                                     }
                                 });
                                 block.employes.push({
