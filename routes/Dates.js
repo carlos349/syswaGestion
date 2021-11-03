@@ -1823,7 +1823,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 for (const block of blocksFirst) {
                     block.employeBlocked.forEach(element => {
                         block.employes.forEach((employe, index) => {
-                            if (employe.id == element.id) {
+                            if (employe.id == element.employe) {
                                 block.employes.splice(index,1)
                             }
                         });
@@ -2889,7 +2889,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                                 block.employes.forEach((element, index2) => {
                                     if (element.id == dataEdit.employe.id) {
                                         block.employes.splice(index2, 1)
-                                        block.employeBlocked.push({id:dataEdit.employe.id, type: 'date'})
+                                        block.employeBlocked.push({employe:dataEdit.employe.id, type: 'date'})
                                     }
                                 });
                                 if (block.employes.length > 0) {
@@ -2988,7 +2988,11 @@ dates.post('/fixblocks', async (req, res) => {
                         //     findBlock.blocks[index].employes.splice(key, 1)
                         // }
                         findBlock.blocks[index].employes.push(employe)
-                        
+                        block.employeBlocked.forEach((element, index) => {
+                            if (element.employe == employe.id) {
+                                block.employeBlocked.splice(index, 1)
+                            }
+                        });
                     // }
                 }
             });
