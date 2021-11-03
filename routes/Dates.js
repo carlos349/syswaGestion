@@ -2954,7 +2954,11 @@ dates.post('/fixblocks', async (req, res) => {
                         //     findBlock.blocks[index].employes.splice(key, 1)
                         // }
                         findBlock.blocks[index].employes.push(employe)
-                        
+                        block.employeBlocked.forEach((element, index) => {
+                            if (element.employe == employe.id) {
+                                block.employeBlocked.splice(index, 1)
+                            }
+                        });
                     // }
                 }
             });
