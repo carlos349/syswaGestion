@@ -675,51 +675,85 @@ dates.delete('/:id', async (req, res) => {
                 })
                 if(findDateBlock[0]){
                     var valid = false
-                    for (const block of findDateBlock[0].blocks) {
-                        if (block.hour == hour) {
-                            valid = true
-                        }
-                        if (block.hour == end) {
-                            valid = false
-                            break
-                        }
-                        if (valid) {
-                            block.employeBlocked.forEach((element, index) => {
-                                if (element.employe == employe.id) {
-                                    findDateBlock[0].blocks.employeBlocked.splice(index, 1)
-                                }
-                            });
-                            block.employes.push({
-                                name: employe.name,
-                                id: employe.id,
-                                class: employe.class,
-                                position: 20,
-                                valid: false,
-                                img: employe.img
-                            })
-                        }
-                    }
                     try {
-                        const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
-                            $set: {
-                                blocks: findDateBlock[0].blocks
+                        for (const block of findDateBlock[0].blocks) {
+                            if (block.hour == hour) {
+                                valid = true
                             }
-                        })
-                        
-                        Configuration.findOne({
-                            branch: deletedate.branch
-                        })
-                        .then(getConfigurations => {
-                            res.json({ status: 'deleted', data: deletedate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
-                        })
+                            if (block.hour == end) {
+                                valid = false
+                                break
+                            }
+                            if (valid) {
+                                block.employeBlocked.forEach((element, index) => {
+                                    if (element.employe == employe.id) {
+                                        block.employeBlocked.splice(index, 1)
+                                    }
+                                });
+                                block.employes.push({
+                                    name: employe.name,
+                                    id: employe.id,
+                                    class: employe.class,
+                                    position: 20,
+                                    valid: false,
+                                    img: employe.img
+                                })
+                            }
+                        }
+                        try {
+                            const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
+                                $set: {
+                                    blocks: findDateBlock[0].blocks
+                                }
+                            })
+                            
+                            Configuration.findOne({
+                                branch: deletedate.branch
+                            })
+                            .then(getConfigurations => {
+                                res.json({ status: 'deleted', data: deletedate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
+                            })
+                        }catch(err){
+                            const Log = new LogService(
+                                req.headers.host, 
+                                req.body, 
+                                req.params, 
+                                err, 
+                                '', 
+                                req.headers['x-database-connect'], 
+                                req.route
+                            )
+                            const dataLog = await Log.createLog()
+                            res.send('failed api with error, '+ dataLog.error)
+                        }
                     }catch(err){
-                        res.send(err)
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            '', 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        const dataLog = await Log.createLog()
+                        res.send('failed api with error, '+ dataLog.error)
                     }
                 }else{
                     res.json({ status: 'deleted', token: req.requestToken })
                 }
             } catch (err) {
-                res.send(err)
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    '', 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
             }
         }else{
             res.json({ status: 'deleted', token: req.requestToken })
