@@ -2779,7 +2779,7 @@ dates.post('/sendConfirmation/:id', (req, res) => {
     }
 })
 
-dates.post('/endDate/:id', (req, res) => {
+dates.post('/endDate/:id', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
     const conn = mongoose.createConnection('mongodb://localhost/' + database, {
         useNewUrlParser: true,
@@ -2806,7 +2806,7 @@ dates.post('/endDate/:id', (req, res) => {
         .then(closed => {
             Dates.findByIdAndUpdate(id, { $set: { process: false } })
             .then(end => {
-                res.json({ status: 'ok' })
+                res.json({ status: 'ok', token:req.requestToken })
             })
             .catch(err => {
                 const Log = new LogService(
@@ -2916,7 +2916,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                 })
 
                 if (findBlocks) {
-                    res.json({ status: 'ok', data:findBlocks })
+                    res.json({ status: 'ok', data:findBlocks, token:req.requestToken })
                 }
             } catch (err) {
                 const Log = new LogService(

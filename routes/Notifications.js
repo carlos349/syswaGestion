@@ -220,7 +220,7 @@ notifications.post('/', async (req, res) => {
     try{
         const register = await Notification.create(dataNotify)
         if (register) {
-            res.json({status: 'ok', data: register, token: req.requestToken})
+            res.json({status: 'ok', data: register})
         }
     }catch(err){
         const Log = new LogService(
