@@ -1689,13 +1689,14 @@ dates.put('/confirmDate/:id', async (req, res) => {
     })
 
     const date = conn.model('dates', dateSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
+    console.log(req.body.id)
     date.findByIdAndUpdate(req.body.id, {
         $set: {
             confirmation: true
         }
     })
     .then(confirmDate => {
-        const Configuration = conn.model('configurations', configurationSchema)
         Configuration.findOne({
             branch: confirmDate.branch
         })
