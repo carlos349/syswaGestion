@@ -1666,17 +1666,19 @@ dates.put('/confirmDate/:id', async (req, res) => {
     const conn = mongoose.createConnection('mongodb://localhost/' + database, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useFindAndModify: false
     })
 
     const date = conn.model('dates', dateSchema)
+    const Configuration = conn.model('configurations', configurationSchema)
+    console.log(req.body.id)
     date.findByIdAndUpdate(req.body.id, {
         $set: {
             confirmation: true
         }
     })
     .then(confirmDate => {
-        console.log("BRANCH:" + confirmDate.branch)
-        const Configuration = conn.model('configurations', configurationSchema)
+        console.log(confirmDate)
         Configuration.findOne({
             branch: confirmDate.branch
         })
