@@ -1697,6 +1697,7 @@ dates.put('/confirmDate/:id', async (req, res) => {
         }
     })
     .then(confirmDate => {
+        console.log(confirmDate)
         Configuration.findOne({
             branch: confirmDate.branch
         })
