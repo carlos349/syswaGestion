@@ -663,17 +663,14 @@ sales.post('/closeDay/:name', protectRoute, async (req, res) => {
                         if (reloadFunds) {
                             res.json({status: 'ok', token: req.requestToken})
                         }
-                        res.json({status: 'bad'})
                     }catch(err){
                         res.send(err)
                     }
                 }
-                res.json({status: 'bad'})
             }catch(err){
                 res.send(err)
             }
         }
-        res.json({status: 'bad'})
     }catch(err){
       const Log = new LogService(
         req.headers.host, 
