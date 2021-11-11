@@ -1686,6 +1686,7 @@ dates.put('/confirmDate/:id', async (req, res) => {
     const conn = mongoose.createConnection('mongodb://localhost/' + database, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useFindAndModify: true
     })
 
     const date = conn.model('dates', dateSchema)
