@@ -2665,7 +2665,7 @@ mails.post('/dateMail', async (req, res) => {
         const mail = {
             from: "SYSWA",
             to: req.body.email,
-            subject: 'Detalles de tu agendamiento en ' + branch,
+            subject: 'Detalles de tu agendamiento en ' + getConfigurations.businessName,
             html: `<!doctype html>
             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
               <head>
@@ -2831,7 +2831,7 @@ mails.post('/dateMail', async (req, res) => {
                     <tr>
                       <td align="left" style="font-size:0px;padding:15px 15px 0px 15px;word-break:break-word;">
                         
-              <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><h2 style="font-family: Ubuntu, Helvetica, Arial; text-align: center;">${branch}</h2>
+              <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><h2 style="font-family: Ubuntu, Helvetica, Arial; text-align: center;">${getConfigurations.businessName}</h2>
         <p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;">&nbsp;</p></div>
             
                       </td>
@@ -3705,13 +3705,9 @@ mails.post('/responseDate', (req, res) => {
         </body>
       </html>`
   }
-  Mails.sendMail(mail)
-
-  .then(send => {
-      console.log(send)
-  }).catch(err => {
-      
-      console.log(err)
+  const sent = Mails.sendMail(mail)
+  sent.then(message =>{
+    console.log(message)
   })
   res.json({status: 'ok'})
 })

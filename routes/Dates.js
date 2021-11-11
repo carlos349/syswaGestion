@@ -811,23 +811,11 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
             var validAll = true
             var validStep = true
             findDay.blocks.forEach((block,index) => {
-                if (valid) {
-                    block.employeBlocked.forEach(v1 => {
-                        if (v1.employe == data.employe.id && v1.type == "blocking" && index != 0) {
-                            validAll = false
-                        }
-                    });
-                }
-                
                 if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0]) && validStep) {
                     valid = true
                     console.log("valid1")
                     if (valid2) {
-                        findDay.blocks[0].employeBlocked.forEach(v1 => {
-                            if (v1.employe == data.employe.id && v1.type == "blocking") {
-                                validAll = false
-                            }
-                        });
+                        
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                         valid2 = false
                     }
@@ -837,22 +825,14 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     valid = true
                     console.log("valid2")
                     if (valid2) {
-                        findDay.blocks[0].employeBlocked.forEach(v1 => {
-                            if (v1.employe == data.employe.id && v1.type == "blocking") {
-                                validAll = false
-                            }
-                        });
+                        
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                         valid2 = false
                     }
                 }
                 if (block.hour == req.body.start) {
                     if (index == 0 && valid2) {
-                        findDay.blocks[0].employeBlocked.forEach(v1 => {
-                            if (v1.employe == data.employe.id && v1.type == "blocking") {
-                                validAll = false
-                            }
-                        });
+                        
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                     }
                     valid = true
@@ -1695,6 +1675,7 @@ dates.put('/confirmDate/:id', async (req, res) => {
         }
     })
     .then(confirmDate => {
+        console.log("BRANCH:" + confirmDate.branch)
         const Configuration = conn.model('configurations', configurationSchema)
         Configuration.findOne({
             branch: confirmDate.branch

@@ -54,9 +54,10 @@ class Main {
     }
 
     async sendMails(){
+      
         const dates = await this.getDates()
         const configurations = await this.getConfigurations()
-        
+        console.log(dates)
         for (const datee of dates) {
             const formatDate = {
                 date: `${datee.start.split(' ')[0].split('-')[1]}-${datee.start.split(' ')[0].split('-')[0]}-${datee.start.split(' ')[0].split('-')[2]}`,
@@ -90,6 +91,7 @@ class Main {
                     branchData.route = config.bussinessRoute
                 }
             }
+            console.log(datee.client.email)
             const mail = {
                 from: branchData.name,
                 to: datee.client.email,
@@ -693,7 +695,7 @@ class Main {
                     <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                     <tr>
                         <td align="center" bgcolor="#2dce89" role="presentation" style="border:none;border-radius:5px;cursor:auto;mso-padding-alt:9px 26px 9px 26px;background:#2dce89;" valign="middle">
-                        <a href="${branchData.route}/confirmacioncita?id=${datee._id}" style="display: inline-block; background: #2dce89; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
+                        <a href="http://${branchData.route}/confirmacioncita?id=${datee._id}" style="display: inline-block; background: #2dce89; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
                             <span style="font-size: 12px;">Confirmar</span>
                         </a>
                         </td>
@@ -725,7 +727,7 @@ class Main {
                     <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                     <tr>
                         <td align="center" bgcolor="#e85034" role="presentation" style="border:none;border-radius:5px;cursor:auto;mso-padding-alt:9px 26px 9px 26px;background:#e85034;" valign="middle">
-                        <a href="${branchData.route}/cancelarcita?id=${datee._id}" style="display: inline-block; background: #e85034; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
+                        <a href="http://${branchData.route}/cancelarcita?id=${datee._id}" style="display: inline-block; background: #e85034; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
                             <span style="font-size: 12px;">Cancelar</span>
                         </a>
                         </td>
@@ -884,6 +886,7 @@ class Main {
 }
 
 const mailTask = cron.schedule('10 10 * * *', () => {
+  console.log("Se corrio")
     // for (const database of databases) {
         const data = new Main('kkprettynails-syswa')
         data.sendMails()
