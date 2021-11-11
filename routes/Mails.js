@@ -3256,7 +3256,6 @@ mails.post('/dateMail', async (req, res) => {
         .then(send => {
             console.log(send)
         }).catch(err => {
-          console.log("AQUI VIENE EL ERROOOORRR <<<<<<<<<<<<<<<<<<")
             console.log(err)
         })
         res.json({status: 'ok'})
@@ -3268,7 +3267,7 @@ mails.post('/dateMail', async (req, res) => {
   
 })
 
-mails.post('/responseDate', (req, res) => {
+mails.post('/responseDate', async (req, res) => {
   var confirmed = req.body.confirmed
   var subject = ''
   var textAlt = ''
@@ -3705,11 +3704,14 @@ mails.post('/responseDate', (req, res) => {
         </body>
       </html>`
   }
-  const sent = Mails.sendMail(mail)
-  sent.then(message =>{
-    console.log(message)
-  })
-  res.json({status: 'ok'})
+  try{
+    const sent = await Mails.sendMail(mail)
+    res.json({status: sent})
+  }catch(err){
+    console.log(err)
+  }
+  
+  
 })
 
 

@@ -9,23 +9,11 @@ class Email{
         try{
             this.createTransport.sendMail(KEmail, (error, info) => {
                 if(error){
-                    const givePromise = new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve(error)
-                        }, 200);
-                    })
-                    this.createTransport.close()
-                    return givePromise
+                    console.log(error)
                 }else{
-                    const givePromise = new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve('Correo enviado correctamente')
-                        }, 200);
-                    })
-                    this.createTransport.close()
-                    return givePromise
+                    console.log("Correo enviado correctamente")
                 }
-                
+                this.createTransport.close()
             })
         }catch(err){
             console.log('error: '+ err)
