@@ -1761,6 +1761,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
     const hoursdate = req.body.timedate
     const employes = req.body.employes
     const employesServices = req.body.employesServices
+    console.log(employesServices)
     if (req.body.online) {
         employesServices.forEach(emp => {
             if (emp.name != "Primera disponible") {
@@ -1807,7 +1808,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         const elementTwo = blocksFirst[u];
                         for (let o = 0; o < elementTwo.employes.length; o++) {
                             const elementThree = elementTwo.employes[o];
-                            if (element.id == elementThree.id && element.valid) {
+                            if (element.id == elementThree.id && element.valid == true) {
                                 elementThree.valid = true
                             }
                         }
