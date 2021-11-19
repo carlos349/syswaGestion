@@ -1774,7 +1774,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             }
         });
     }
-    
+    console.log(employesServices)
     try {
         const finddate = await dateBlock.findOne({
             $and: [
