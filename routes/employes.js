@@ -528,6 +528,7 @@ employes.post('/', async (req, res) => {
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
                     document: req.body.document,
+                    validOnline: req.body.validOnline,
                     commission: 0,
                     advancement: 0,
                     bonus: 0,
@@ -799,7 +800,8 @@ employes.put('/', protectRoute, async (req,res) => {
                         days: normalDays,
                         firstName: req.body.firstName,
                         lastName: req.body.lastName,
-                        document: req.body.document
+                        document: req.body.document,
+                        validOnline: req.body.validOnline
                     }
                 })
                 .then(employeEdited => {

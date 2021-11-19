@@ -381,7 +381,6 @@ dates.post('/availableslenders', (req, res) => {
     dateNow.setDate(dateNow.getDate() + 1)
     const formatdateTwo = dateNow.getFullYear() + "-" + (dateNow.getMonth() + 1) + "-" + dateNow.getDate()
     var arrayLenders = []
-    console.log(req.body.date)
     date.find({
         $and: [
             { createdAt: { $gte: formatdate, $lte: formatdateTwo } },
@@ -405,12 +404,19 @@ dates.post('/availableslenders', (req, res) => {
                                         restTime = elementFour.hours[0] + '/' + elementFour.hours[1]
                                     }
                                 }
-                                if (valid) {
-                                    if (element.users) {
-                                        arrayLenders.push({ name: element.firstName + ' ' + element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class, img: element.users.userImage != '' ? element.users.userImage : 'no' })
-                                    } else {
-                                        arrayLenders.push({ name: element.firstName + ' ' + element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class, img: 'no' })
+                                if (valid ) {
+                                    var valid2 = true
+                                    if (req.body.online && element.validOnline == false) {
+                                        valid2 = false
                                     }
+                                    if (valid2) {
+                                        if (element.users) {
+                                            arrayLenders.push({ name: element.firstName + ' ' + element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class, img: element.users.userImage != '' ? element.users.userImage : 'no',validOnline: element.validOnline })
+                                        } else {
+                                            arrayLenders.push({ name: element.firstName + ' ' + element.lastName, id: element._id, sort: 0, commission: element.commission, restTime: restTime, class: element.class, img: 'no',validOnline: element.validOnline })
+                                        }
+                                    }
+                                    
                                 }
                             }
 
@@ -1755,6 +1761,20 @@ dates.post('/blocksHoursFirst', async (req, res) => {
     const hoursdate = req.body.timedate
     const employes = req.body.employes
     const employesServices = req.body.employesServices
+    if (req.body.online) {
+        employesServices.forEach((emp, index) => {
+            if (index >= 1) {
+                var validOnline = false
+                employes.forEach(empl => {
+                    if (emp.id == empl.id) {
+                        validOnline = true
+                    }
+                });
+                emp.valid = validOnline
+            }
+        });
+    }
+    
     try {
         const finddate = await dateBlock.findOne({
             $and: [
@@ -1762,10 +1782,12 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 { 'dateData.date': dateDaily }
             ]
         })
+
         if (finddate) {
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
                 const blocksFirst = finddate.blocks
+
 
                 for (const block of blocksFirst) {
                     block.employeBlocked.forEach(element => {
@@ -1785,7 +1807,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         const elementTwo = blocksFirst[u];
                         for (let o = 0; o < elementTwo.employes.length; o++) {
                             const elementThree = elementTwo.employes[o];
-                            if (element.id == elementThree.id) {
+                            if (element.id == elementThree.id && element.valid) {
                                 elementThree.valid = true
                             }
                         }

@@ -33,6 +33,9 @@ const employeSchema = new Schema({
         type: Schema.ObjectId, 
         ref: "users" 
     },
+    validOnline: {
+        type: Boolean,
+    },
     createdAt: {
         type: Date,
         default: Date.now
