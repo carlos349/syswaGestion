@@ -1762,8 +1762,8 @@ dates.post('/blocksHoursFirst', async (req, res) => {
     const employes = req.body.employes
     const employesServices = req.body.employesServices
     if (req.body.online) {
-        employesServices.forEach((emp, index) => {
-            if (index >= 1) {
+        employesServices.forEach(emp => {
+            if (emp.name != "Primera disponible") {
                 var validOnline = false
                 employes.forEach(empl => {
                     if (emp.id == empl.id) {
