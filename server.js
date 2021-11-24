@@ -7,18 +7,15 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const port = require('./private/port.js')
 const mailTask = require('./cronService/sendMailsSchedule')
+// const instanceDB = require('./mongoConnection/conectionInstances')
 // const database = require('./private/database.js')
 // const verify = require('./accessFunctions/verify.js')
-var path = require('path')
-var fs = require('fs')
-var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 
 // settings
 app.set('port', process.env.PORT || port)
 app.set('trust proxy', true);
 //middlewares
 app.use(morgan('dev'))
-app.use(morgan('combined', { 'stream': accessLogStream}));
 app.use(cors())
 app.use(bodyParser.json({ limit: "50mb" }))
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }))

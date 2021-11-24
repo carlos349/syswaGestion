@@ -6,36 +6,36 @@ const protectRoute = require('../securityToken/verifyToken')
 const serviceSchema = require('../models/Services')
 const categorySchema = require('../models/Categories')
 const LogService = require('../logService/logService')
+const connect = require('../mongoConnection/conectionInstances')
 services.use(cors())
 
-//output - status, data and token
 services.get('/getCategories/:branch', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Category = conn.model('categories', categorySchema)
-
-    try{
-        const getCategories = await Category.find({branch: req.params.branch})
-        if (getCategories.length > 0) {
-            res.json({status: 'ok', data: getCategories, token: req.requestToken})
-        }else{
-            res.json({status: 'categories not found'})
+    try {
+        const database = req.headers['x-database-connect'];
+        const Category = connect.useDb(database).model('categories', categorySchema)
+        
+        try{
+            const getCategories = await Category.find({branch: req.params.branch})
+            if (getCategories.length > 0) {
+                res.json({status: 'ok', data: getCategories, token: req.requestToken})
+            }else{
+                res.json({status: 'categories not found'})
+            }
+        }catch(err) {
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            const dataLog = await Log.createLog()
+            res.send('failed api with error, '+ dataLog.error)
         }
-    }catch(err) {
-        const Log = new LogService(
-            req.headers.host, 
-            req.body, 
-            req.params, 
-            err, 
-            req.requestToken, 
-            req.headers['x-database-connect'], 
-            req.route
-        )
-        const dataLog = await Log.createLog()
-        res.send('failed api with error, '+ dataLog.error)
+    }catch(err){
+        console.log(err)
     }
 })
 
