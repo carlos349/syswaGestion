@@ -15,16 +15,13 @@ const uploadS3 = require('../common-midleware/index')
 const jwt = require('jsonwebtoken')
 const key = require('../private/key-jwt');
 const cors = require('cors')
-
+const connect = require('../mongoConnection/conectionInstances')
 configurations.use(cors())
 
 configurations.get('/profiles', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Profiles = conn.model('accessprofiles', profilesSchema)
+    
+    const Profiles = connect.useDb(database).model('accessprofiles', profilesSchema)
 
     try {
         const getProfiles = await Profiles.find().limit(1)
@@ -46,12 +43,8 @@ configurations.get('/profiles', protectRoute, async (req, res) => {
 
 configurations.get('/clientlog', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/syswalogs', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
 
-    const Logs = conn.model('logs', logSchema)
+    const Logs = connect.useDb("syswalogs").model('logs', logSchema)
 
     try {
         const getLog = await Logs.find({
@@ -78,12 +71,9 @@ configurations.get('/clientlog', async (req, res) => {
 
 configurations.get('/:branch', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Configuration = conn.model('configurations', configurationSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const getConfigurations = await Configuration.findOne({
@@ -111,10 +101,7 @@ configurations.get('/:branch', async (req, res) => {
 configurations.get('/getProfiles', async (req, res) => {
     const database = req.headers['x-database-connect'];
     console.log(database)
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
     console.log(database)
     // res.json({status: 'ok', data: database, token: req.requestToken})
     
@@ -122,12 +109,9 @@ configurations.get('/getProfiles', async (req, res) => {
 
 configurations.get('/getMicroservice/:branch', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Configuration = conn.model('configurations', configurationSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const getConfigurations = await Configuration.find({
@@ -162,12 +146,9 @@ configurations.get('/getMicroservice/:branch', async (req, res) => {
 
 configurations.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Configuration = conn.model('configurations', configurationSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const getConfigurations = await Configuration.findOne({branch: req.params.branch})
@@ -191,12 +172,9 @@ configurations.get('/:branch', protectRoute, async (req, res) => {
 
 configurations.get('/getHours/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Configuration = conn.model('configurations', configurationSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const getConfigurations = await Configuration.findOne({branch: req.params.branch})
@@ -259,11 +237,8 @@ configurations.get('/getHours/:branch', protectRoute, async (req, res) => {
 
 configurations.post('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
+    
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     const dataConfiguration = {
         branch: req.body.branch,
@@ -322,12 +297,9 @@ configurations.post('/uploadLogo', protectRoute, uploadS3.single("image"), (req,
 
 configurations.post('/createConfigCertificate', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
-    const UserCredential = conn.model('credentials', credentialSchema)
+    
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    const UserCredential = connect.useDb(database).model('credentials', credentialSchema)
     try {
         const getCredentials = await UserCredential.findOne({credential: req.body.secretKey})
         if (getCredentials){
@@ -372,12 +344,9 @@ configurations.post('/createConfigCertificate', async (req, res) => {
 
 configurations.post('/addFirstProfile', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Profiles = conn.model('accessprofiles', profilesSchema)
+    const Profiles = connect.useDb(database).model('accessprofiles', profilesSchema)
 
     try {
         const createProfile = await Profiles.create({
@@ -542,11 +511,8 @@ configurations.post('/addFirstProfile', async (req, res) => {
 
 configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
+    
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     const dataConfiguration = {
         blockHour: req.body.blockHour,
@@ -586,12 +552,9 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
 
 configurations.post('/editblockhour', async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
-    const Employe = conn.model('employes', employeSchema)
+    
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
     let employesArray = []
     try{
         const findEmployes = await Employe.find({branch:req.body.branch})
@@ -689,11 +652,8 @@ configurations.post('/editblockhour', async (req,res) => {
 
 configurations.post('/addBlackList/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
+    
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const editConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
@@ -722,11 +682,8 @@ configurations.post('/addBlackList/:id', protectRoute, async (req, res) => {
 
 configurations.post('/removeBlackList/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
+    
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const editConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {
@@ -746,12 +703,9 @@ configurations.post('/removeBlackList/:id', protectRoute, async (req, res) => {
 
 configurations.put('/editProfiles/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Profiles = conn.model('accessprofiles', profilesSchema)
+    const Profiles = connect.useDb(database).model('accessprofiles', profilesSchema)
 
     try {
         const editProfile = await Profiles.findByIdAndUpdate(req.params.id, {
@@ -767,12 +721,9 @@ configurations.put('/editProfiles/:id', protectRoute, async (req, res) => {
 
 configurations.put('/editAccessUsers/:name', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const User = conn.model('users', userSchema)
+    const User = connect.useDb(database).model('users', userSchema)
 
     try {
         const findUsers = await User.updateMany(
@@ -816,11 +767,8 @@ configurations.put('/editAccessUsers/:name', protectRoute, async (req, res) => {
 
 configurations.delete('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Configuration = conn.model('configurations', configurationSchema)
+    
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const deleteConfiguration = await Configuration.findOneAndDelete({branch: req.body.branch})

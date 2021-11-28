@@ -10,7 +10,7 @@ class Connection {
     }
 
     returnConnection(){
-        // const Branch = this.conn.model('branches', branchSchema)
+        // const Branch = this.connect.useDb(database).model('branches', branchSchema)
         return this.conn
     }
 }

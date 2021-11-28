@@ -5,19 +5,16 @@ const protectRoute = require('../securityToken/verifyToken')
 const LogService = require('../logService/logService')
 const notificationSchema = require('../models/Notifications')
 const cors = require('cors')
-
+const connect = require('../mongoConnection/conectionInstances')
 notifications.use(cors())
 
 //Api que busca todas las notificaciones (Ingreso: Nullo) -- Api that search all the notifications (Input: Null)
 
 notifications.get('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Notification = conn.model('notifications', notificationSchema)
+    const Notification = connect.useDb(database).model('notifications', notificationSchema)
 
     try{
         const getnotifications = await Notification.find()
@@ -51,12 +48,9 @@ notifications.get('/', protectRoute, async (req, res) => {
 
 notifications.get('/noviews/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Notification = conn.model('notifications', notificationSchema)
+    const Notification = connect.useDb(database).model('notifications', notificationSchema)
     
     try{
         const getnotifications = await Notification.find().sort({createdAt: -1}).limit(150)
@@ -108,12 +102,9 @@ notifications.get('/noviews/:id', protectRoute, async (req, res) => {
 
 notifications.get('/validateviews/:id', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Notification = conn.model('notifications', notificationSchema)
+    const Notification = connect.useDb(database).model('notifications', notificationSchema)
 
     Notification.find().sort({createdAt: -1}).limit(150)
     .then(getNotifications => {
@@ -163,12 +154,9 @@ notifications.get('/validateviews/:id', protectRoute, (req, res) => {
 
 notifications.get('/getall', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Notification = conn.model('notifications', notificationSchema)
+    const Notification = connect.useDb(database).model('notifications', notificationSchema)
 
     try{
         const getnotifications = await Notification.find().sort({createdAt: -1}).limit(500)
@@ -202,12 +190,9 @@ notifications.get('/getall', protectRoute, async (req, res) => {
 
 notifications.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Notification = conn.model('notifications', notificationSchema)
+    const Notification = connect.useDb(database).model('notifications', notificationSchema)
 
     const dataNotify = {
         branch: req.body.branch,

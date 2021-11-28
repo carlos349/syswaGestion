@@ -7,15 +7,13 @@ const branchSchema = require('../models/Branch')
 const credentialSchema = require('../models/userCrendentials')
 const LogService = require('../logService/logService')
 branches.use(cors())
+const connect = require('../mongoConnection/conectionInstances')
 
 branches.get('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Branch = conn.model('branches', branchSchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
 
     try {
         const getBranches = await Branch.find()
@@ -41,12 +39,9 @@ branches.get('/', async (req, res) => {
 
 branches.get('/count', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Branch = conn.model('branches', branchSchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
 
     try {
         const getCount = await Branch.find().count()
@@ -68,12 +63,9 @@ branches.get('/count', async (req, res) => {
 
 branches.post('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Branch = conn.model('branches', branchSchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
     const dataBranch = {
         name: req.body.branch,
         productsCount: 0,
@@ -120,13 +112,10 @@ branches.post('/', protectRoute, async (req, res) => {
 
 branches.post('/createBranchCertificate', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Branch = conn.model('branches', branchSchema)
-    const UserCredential = conn.model('credentials', credentialSchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
+    const UserCredential = connect.useDb(database).model('credentials', credentialSchema)
     try {
         const getCredentials = await UserCredential.findOne({credential: req.body.secretKey})
         if (getCredentials){
@@ -154,24 +143,18 @@ branches.post('/createBranchCertificate', async (req, res) => {
 
 branches.delete('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Branch = conn.model('branches', branchSchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
 
     //por definir
 })
 
 branches.put('/changeActive/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Branch = conn.model('branches', branchSchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
 
     try{
         const findBranch = await Branch.findById(req.params.id)

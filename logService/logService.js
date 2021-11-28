@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
 const logSchema = require('../models/Log')
 const jwt_decode = require("jwt-decode");
+const connect = require('../mongoConnection/conectionInstances')
 
 class Log {
     constructor (host, body, params, error, token, database, route){
-        this.conn = mongoose.createConnection('mongodb://localhost/syswalogs', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        this.conn = connect.useDb("syswalogs")
         this.host = host
         this.body = body
         this.params = params

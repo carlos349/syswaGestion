@@ -13,7 +13,7 @@ const closureSchema = require('../models/Closures')
 const formats = require('../formats')
 const cors = require('cors')
 metrics.use(cors())
-
+const connect = require('../mongoConnection/conectionInstances')
 metrics.get('/compareSales/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
   const conn = mongoose.createConnection('mongodb://localhost/'+database, {
@@ -21,7 +21,7 @@ metrics.get('/compareSales/:branch', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
 
   var dates = formats.datesMonth()
   try {
@@ -92,7 +92,7 @@ metrics.get('/getDays/:branch', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Closure = conn.model('closures', closureSchema)
+  const Closure = connect.useDb(database).model('closures', closureSchema)
   const dates = formats.datesMonth()
 
   try {
@@ -127,7 +127,7 @@ metrics.get('/getProjection/:branch', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Projection = conn.model('projectiondays', projectionSchema)
+  const Projection = connect.useDb(database).model('projectiondays', projectionSchema)
 
   try {
     const projection = await Projection.findOne({
@@ -182,7 +182,7 @@ metrics.get('/getExpensesTotal/:branch', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Expense = conn.model('expenses', expenseSchema)
+  const Expense = connect.useDb(database).model('expenses', expenseSchema)
   const dates = formats.datesMonth()
 
   try {
@@ -221,7 +221,7 @@ metrics.get('/compareItems/:branch', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
 
   var dates = formats.datesMonth()
   try {
@@ -291,7 +291,7 @@ metrics.post('/totalsTypesPays', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
 
   var dates = req.body.dates
   var series = [{
@@ -354,7 +354,7 @@ metrics.post('/totalSales', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   var series = [
     {
       name:"Venta total",
@@ -411,8 +411,8 @@ metrics.post('/totalServices', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
-  const Date = conn.model('dates', dateSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
+  const Date = connect.useDb(database).model('dates', dateSchema)
   var series = [
     {
       name:"Servicios procesados",
@@ -512,8 +512,8 @@ metrics.post('/totalByEmploye', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
-  const Employe = conn.model('employes', employeSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
+  const Employe = connect.useDb(database).model('employes', employeSchema)
   var datess = req.body.dates
   var series = [{
     name:"Totales",
@@ -592,7 +592,7 @@ metrics.post('/totalPerService', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   var datess = req.body.dates
   var series = []
   var labels = []
@@ -647,7 +647,7 @@ metrics.post('/totalPerProducts', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   var datess = req.body.dates
   var series = []
   var labels = []
@@ -702,8 +702,8 @@ metrics.post('/servicesByEmploye', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
-  const Employe = conn.model('employes', employeSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
+  const Employe = connect.useDb(database).model('employes', employeSchema)
   var datess = req.body.dates
   var series = [{
     name:"Servicios",
@@ -782,8 +782,8 @@ metrics.post('/commissionsByEmploye', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
-  const Employe = conn.model('employes', employeSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
+  const Employe = connect.useDb(database).model('employes', employeSchema)
   var datess = req.body.dates
   var series = [{
     name:"Comisión",
@@ -862,7 +862,7 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Expense = conn.model('expenses', expenseSchema)
+  const Expense = connect.useDb(database).model('expenses', expenseSchema)
   var datess = req.body.dates
   var categories = ['Bono', 'Mensual', 'Inventario', 'Comision']
   var series = [
@@ -927,7 +927,7 @@ metrics.post('/diaryTotals', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   let categories = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
   let series = [
     {
@@ -982,7 +982,7 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   let categories = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
   let series = [
     {
@@ -1058,7 +1058,7 @@ metrics.post('/anualProduction', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   const dates = formats.anualDates()
   const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
   const series = [
@@ -1140,7 +1140,7 @@ metrics.post('/anualServices', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   const dates = formats.anualDates()
   const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
   const series = [
@@ -1196,8 +1196,8 @@ metrics.post('/dataEmploye', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Sale = conn.model('sales', saleSchema)
-  const Employe = conn.model('employes', employeSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
+  const Employe = connect.useDb(database).model('employes', employeSchema)
   const dates = formats.anualDates()
   const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
   const series = [
@@ -1261,7 +1261,7 @@ metrics.post('/dataExpense', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
+  const HistoryExpense = connect.useDb(database).model('historyexpenses', historyExpensesSchema)
   const dates = formats.anualDates()
   const categories = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
   const series = [
@@ -1314,7 +1314,7 @@ metrics.put('/updateProjection/:id', protectRoute, async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Projection = conn.model('projectiondays', projectionSchema)
+  const Projection = connect.useDb(database).model('projectiondays', projectionSchema)
 
   try {
     const projection = await Projection.findByIdAndUpdate(req.params.id, {

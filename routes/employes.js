@@ -13,19 +13,16 @@ const historyEmployeSchema = require('../models/HistoryEmployeClosed')
 const saleSchema = require('../models/Sales')
 const cors = require('cors')
 const { QLDB } = require('aws-sdk')
-
+const connect = require('../mongoConnection/conectionInstances')
 employes.use(cors())
 
 // Api que busca todos los empleados. (Ingreso: nulo) -- Api that search all the users. (input: Null)
 
 employes.get('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
     try{
         const getEmployes = await Employe.find()
         if (getEmployes.length > 0) {
@@ -53,13 +50,10 @@ employes.get('/', protectRoute, async (req, res) => {
 
 employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
-    const User = conn.model('users', userSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const User = connect.useDb(database).model('users', userSchema)
 
     try{
         const getEmployes = await Employe.find({branch: req.params.branch})
@@ -113,12 +107,9 @@ employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
 
 employes.get('/historyCloses/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+    const HistoryEmploye = connect.useDb(database).model('historyEmploye', historyEmployeSchema)
 
     try {
         const getHistory = await HistoryEmploye.find({
@@ -148,12 +139,9 @@ employes.get('/historyCloses/:id', protectRoute, async (req, res) => {
 
 employes.get('/getHistoryEmploye/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+    const HistoryEmploye = connect.useDb(database).model('historyEmploye', historyEmployeSchema)
 
     try {
         const getHistory = await HistoryEmploye.findById(req.params.id)
@@ -185,12 +173,9 @@ employes.get('/getHistoryEmploye/:id', protectRoute, async (req, res) => {
 
 employes.get('/justonebyid/:id', protectRoute, async (req, res) =>{
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
     try{
         const findById = await Employe.findById(req.params.id)
         if (findById) {
@@ -224,13 +209,10 @@ employes.get('/justonebyid/:id', protectRoute, async (req, res) =>{
 
 employes.get('/employesbybranch/:branch', protectRoute, async (req, res) =>{
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
-    const User = conn.model('users', userSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const User = connect.useDb(database).model('users', userSchema)
 
     try{
         const findByBranch = await Employe.find({branch: req.params.branch})
@@ -275,12 +257,9 @@ employes.get('/employesbybranch/:branch', protectRoute, async (req, res) =>{
 
 employes.get('/employesbybranchForClients/:branch', async (req, res) =>{
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
     try{
         const findByBranch = await Employe.find({branch:req.params.branch})
         if (findByBranch) {
@@ -314,12 +293,9 @@ employes.get('/employesbybranchForClients/:branch', async (req, res) =>{
 
 employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Sale = conn.model('sales', saleSchema)
+    const Sale = connect.useDb(database).model('sales', saleSchema)
     try{
         var month = new Date().getMonth()
         var year = new Date().getFullYear()
@@ -373,9 +349,9 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
         useFindAndModify: false
     })
 
-    const Sale = conn.model('sales', saleSchema)
-    const Employe = conn.model('employes', employeSchema)
-    const DaySale = conn.model('daySales', daySaleSchema)
+    const Sale = connect.useDb(database).model('sales', saleSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
     try{
         const findSale = await Sale.findById(req.params.id)
         if (findSale){
@@ -506,13 +482,10 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
 
 employes.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
     Employe.find({document:req.body.document})
     .then(findEmploye => {
@@ -644,13 +617,10 @@ employes.post('/', async (req, res) => {
 
 employes.post('/registerexpenseforemploye', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
-    const Expense = conn.model('expenses', expenseSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const Expense = connect.useDb(database).model('expenses', expenseSchema)
 
     const type = req.body.type ? 'Bonus' : 'Advancement'
     const advancement = {
@@ -731,12 +701,9 @@ employes.post('/registerexpenseforemploye', protectRoute, async (req, res) => {
 
 employes.delete('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
 
     try{
         const deleteEmploye = await Employe.findByIdAndRemove(req.params.id)
@@ -770,14 +737,11 @@ employes.delete('/:id', protectRoute, async (req, res) => {
 
 employes.put('/', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
-    const Service = conn.model('services', serviceSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const Service = connect.useDb(database).model('services', serviceSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
     const dayValid = req.body.dayValid
     const validBloked = req.body.validBlocked
@@ -1150,12 +1114,9 @@ employes.put('/', protectRoute, async (req,res) => {
 
 employes.put('/registerBonus/:id', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
 
     Employe.findByIdAndUpdate(req.params.id, {
         $inc: {
@@ -1192,12 +1153,9 @@ employes.put('/registerBonus/:id', protectRoute, async (req,res) => {
 
 employes.put('/regAdvancement/:id', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
 
     Employe.findByIdAndUpdate(req.params.id, {
         $inc: {
@@ -1234,14 +1192,11 @@ employes.put('/regAdvancement/:id', protectRoute, async (req,res) => {
 
 employes.put('/closeemploye/:id', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
     
-    const Employe = conn.model('employes', employeSchema)
-    const Sale = conn.model('sales', saleSchema)
-    const HistoryEmploye = conn.model('historyEmploye', historyEmployeSchema)
+    
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const Sale = connect.useDb(database).model('sales', saleSchema)
+    const HistoryEmploye = connect.useDb(database).model('historyEmploye', historyEmployeSchema)
     const dataHistory = {
         sales: req.body.sales,
         bonus: req.body.bonus,

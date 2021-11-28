@@ -10,7 +10,7 @@ const saleSchema = require('../models/Sales')
 const configurationSchema = require('../models/Configurations')
 const Mails = new email(mailCredentials)
 const cors = require('cors')
-
+const connect = require('../mongoConnection/conectionInstances')
 mails.use(cors())
 
 
@@ -18,12 +18,9 @@ mails.use(cors())
 //output - status, data and token
 mails.get('/sendMailRegister/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Client = conn.model('clients', clientSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const client = await Client.findById(req.params.id)
@@ -1446,8 +1443,8 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
   })
-  const Sale = conn.model('sales', saleSchema)
-  const Configuration = conn.model('configurations', configurationSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
+  const Configuration = connect.useDb(database).model('configurations', configurationSchema)
   var logo = ''
     
   
@@ -2439,7 +2436,7 @@ mails.post('/dateMail', async (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const Configuration = conn.model('configurations', configurationSchema)
+  const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
   try {
       const getConfigurations = await Configuration.findOne({

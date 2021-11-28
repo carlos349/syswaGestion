@@ -19,19 +19,16 @@ const Mails = new email(mailCredentials)
 const formats = require('../formats')
 const cors = require('cors')
 const { CredentialProviderChain } = require('aws-sdk')
-
+const connect = require('../mongoConnection/conectionInstances')
 sales.use(cors())
 
 // input - null
 // output - status, data, token
 sales.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Sale = conn.model('sales', saleSchema)
+    const Sale = connect.useDb(database).model('sales', saleSchema)
     try {
         const getSales = await Sale.find({branch: req.params.branch})
         if (getSales.length > 0) {
@@ -64,7 +61,7 @@ sales.get('/getClosing/:id', protectRoute, async (req, res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
   })
-  const Closure = conn.model('closures', closureSchema)
+  const Closure = connect.useDb(database).model('closures', closureSchema)
 
   try{ 
       const findSale = await Closure.findById(req.params.id)
@@ -94,11 +91,8 @@ sales.get('/getClosing/:id', protectRoute, async (req, res) => {
 //output - status, data and token
 sales.get('/Closing/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Closure = conn.model('closures', closureSchema)
+    
+    const Closure = connect.useDb(database).model('closures', closureSchema)
 
     try {
         const findClosures = await Closure.find({branch: req.params.branch}).sort({createdAt: -1})
@@ -132,7 +126,7 @@ sales.get('/totalSales/:branch', protectRoute, async (req, res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
   })
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   const dateDaily = new Date()
   const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1 00:00"
   const untilActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-31 24:00"
@@ -172,12 +166,9 @@ sales.get('/totalSales/:branch', protectRoute, async (req, res) => {
 //output - status, data and token
 sales.get('/getClosingDay/:branch', protectRoute, async(req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const DaySale = conn.model('daySales', daySaleSchema)
-    const Configuration = conn.model('configurations', configurationSchema)
+    
+    const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const getConfiguration = await Configuration.findOne({branch: req.params.branch})
@@ -266,7 +257,7 @@ sales.get('/getSale/:id', protectRoute, async (req, res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
   })
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
   console.log(req.params.id)
   try{ 
       const findSale = await Sale.findById(req.params.id)
@@ -297,11 +288,8 @@ sales.get('/getSale/:id', protectRoute, async (req, res) => {
 //output - status, data and token
 sales.get('/dataChecker', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Sale = conn.model('sales', saleSchema)
+    
+    const Sale = connect.useDb(database).model('sales', saleSchema)
 
     const dateDaily = new Date()
     const dateDailyToday = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-"+dateDaily.getDate()
@@ -343,7 +331,7 @@ sales.post('/findSalesByDate', protectRoute, async (req, res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
   })
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
 
   try {
       const Sales = await Sale.find({
@@ -382,7 +370,7 @@ sales.post('/findSalesByDay', protectRoute, async (req, res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
   })
-  const Sale = conn.model('sales', saleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
 
   const dates = req.body.dates
   const splitDates = dates.split(':')
@@ -421,11 +409,8 @@ sales.post('/findSalesByDay', protectRoute, async (req, res) => {
 // output - status, dataTable and token
 sales.post('/generateDataExcel', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Sale = conn.model('sales', saleSchema)
+    
+    const Sale = connect.useDb(database).model('sales', saleSchema)
 
     const data = {
       rangeExcel: req.body.rangeExcel,  
@@ -544,11 +529,8 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
 
 sales.get('/getFund/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const CashFund = conn.model('cashfunds', cashfundSchema)
+    
+    const CashFund = connect.useDb(database).model('cashfunds', cashfundSchema)
 
     try {
       const getFund = await CashFund.findOne({branch: req.params.branch})
@@ -578,13 +560,10 @@ sales.get('/getFund/:branch', protectRoute, async (req, res) => {
 // ouput - status and token 
 sales.post('/closeDay/:name', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const CashFund = conn.model('cashfunds', cashfundSchema)
-    const DaySale = conn.model('daySales', daySaleSchema)
-    const Closure = conn.model('closures', closureSchema)
+    
+    const CashFund = connect.useDb(database).model('cashfunds', cashfundSchema)
+    const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
+    const Closure = connect.useDb(database).model('closures', closureSchema)
     
     const manual = []
     const system = []
@@ -692,16 +671,13 @@ sales.post('/closeDay/:name', protectRoute, async (req, res) => {
 // ouput - status and token 
 sales.post('/processEndDates', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const CashFund = conn.model('cashfunds', cashfundSchema)
-    const DaySale = conn.model('daySales', daySaleSchema)
-    const Sale = conn.model('sales', saleSchema)
-    const ClosedDates = conn.model('closedDates', closedDateSchema)
-    const Client = conn.model('clients', clientSchema)
-    const Employe = conn.model('employes', employeSchema)
+    
+    const CashFund = connect.useDb(database).model('cashfunds', cashfundSchema)
+    const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
+    const Sale = connect.useDb(database).model('sales', saleSchema)
+    const ClosedDates = connect.useDb(database).model('closedDates', closedDateSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
 
     CashFund.find({branch: req.body.branch})
     .then(have => {
@@ -798,14 +774,14 @@ sales.post('/process', protectRoute, (req, res) => {
       useUnifiedTopology: true,
   })
 
-  const CashFund = conn.model('cashfunds', cashfundSchema)
-  const DaySale = conn.model('daySales', daySaleSchema)
-  const Sale = conn.model('sales', saleSchema)
-  const EndingDates = conn.model('endingdates', endingDateSchema)
-  const Client = conn.model('clients', clientSchema)
-  const Employe = conn.model('employes', employeSchema)
-  const Dates = conn.model('dates', dateSchema)
-  const Inventory = conn.model('inventories', inventorySchema)
+  const CashFund = connect.useDb(database).model('cashfunds', cashfundSchema)
+  const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
+  const Sale = connect.useDb(database).model('sales', saleSchema)
+  const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
+  const Client = connect.useDb(database).model('clients', clientSchema)
+  const Employe = connect.useDb(database).model('employes', employeSchema)
+  const Dates = connect.useDb(database).model('dates', dateSchema)
+  const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
   const items = req.body.items
   const total = req.body.total
@@ -991,12 +967,9 @@ sales.post('/process', protectRoute, (req, res) => {
 // ouput - status and token
 sales.post('/registerFund', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const CashFund = conn.model('cashfunds', cashfundSchema)
+    const CashFund = connect.useDb(database).model('cashfunds', cashfundSchema)
 
     try {
       const find = await CashFund.findOne({branch: req.body.branch})
@@ -1081,14 +1054,11 @@ sales.post('/registerFund', protectRoute, async (req, res) => {
 // ouput - status and token
 sales.put('/:id', protectRoute, async (req, res, next) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const DaySale = conn.model('daySales', daySaleSchema)
-    const Sale = conn.model('sales', saleSchema)
-    const Employe = conn.model('employes', employeSchema)
-    const Inventory = conn.model('inventories', inventorySchema)
+    
+    const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
+    const Sale = connect.useDb(database).model('sales', saleSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
     const id = req.params.id
     
     try {
@@ -1164,11 +1134,8 @@ sales.put('/:id', protectRoute, async (req, res, next) => {
 // ouput - status and token
 sales.put('/editclosedmanualamounts/:id', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Closure = conn.model('closures', closureSchema)
+    
+    const Closure = connect.useDb(database).model('closures', closureSchema)
 
     const data = req.body.manual
     try {
@@ -1201,7 +1168,7 @@ sales.get('/verifySale/:id', protectRoute, async (req,res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
   })
-  const DaySale = conn.model('daySales', daySaleSchema)
+  const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
  
   try {
       const findSale = await DaySale.find({idTableSales:req.params.id})

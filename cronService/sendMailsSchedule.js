@@ -18,17 +18,17 @@ class Main {
     }
 
     async getBranch(){
-        const Branch = this.conn.model('branches', branchSchema)
+        const Branch = this.connect.useDb(database).model('branches', branchSchema)
         return await Branch.find()
     }
 
     async getConfigurations(){
-        const Configuration = this.conn.model('configurations', configurationSchema)
+        const Configuration = this.connect.useDb(database).model('configurations', configurationSchema)
         return await Configuration.find()
     }
 
     async getDates(){
-        const date = this.conn.model('dates', dateSchema)
+        const date = this.connect.useDb(database).model('dates', dateSchema)
         
         const dayAfter = formats.dayAfter(new Date())
         try {

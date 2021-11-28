@@ -13,8 +13,8 @@ services.get('/getCategories/:branch', protectRoute, async (req, res) => {
     try {
         const database = req.headers['x-database-connect'];
         const Category = connect.useDb(database).model('categories', categorySchema)
-        
         try{
+        
             const getCategories = await Category.find({branch: req.params.branch})
             if (getCategories.length > 0) {
                 res.json({status: 'ok', data: getCategories, token: req.requestToken})
@@ -35,18 +35,24 @@ services.get('/getCategories/:branch', protectRoute, async (req, res) => {
             res.send('failed api with error, '+ dataLog.error)
         }
     }catch(err){
-        console.log(err)
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
     }
 })
 
 //output - status, data and token
 services.get('/getCategoriesForClients/:branch', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Category = conn.model('categories', categorySchema)
+    const Category = connect.useDb(database).model('categories', categorySchema)
 
     try{
         const getCategories = await Category.find({branch: req.params.branch})
@@ -75,11 +81,7 @@ services.get('/getCategoriesForClients/:branch', async (req, res) => {
 //output - status, data and token
 services.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
+    const Service = connect.useDb(database).model('services', serviceSchema)
     
     try{
         const getServices = await Service.find({branch: req.params.branch})
@@ -104,15 +106,11 @@ services.get('/:branch', protectRoute, async (req, res) => {
         })
     }
 })
-
-//output - status, data and token
+//output - status, data and toke
 services.get('/servicesForClients/:branch', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
+    
+    const Service = connect.useDb(database).model('services', serviceSchema)
     
     try{
         const getServices = await Service.find({branch: req.params.branch})
@@ -142,11 +140,7 @@ services.get('/servicesForClients/:branch', async (req, res) => {
 //output - status, data and token
 services.get('/getServiceInfo/:id', async (req, res, next) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
+    const Service = connect.useDb(database).model('services', serviceSchema)
 
     try {
         const service = await Service.findById(req.params.id)
@@ -176,11 +170,8 @@ services.get('/getServiceInfo/:id', async (req, res, next) => {
 // output - status and data
 services.post('/servicesByCategory', async (req, res, next) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
+    
+    const Service = connect.useDb(database).model('services', serviceSchema)
     
     try {
         const services = await Service.find({
@@ -215,11 +206,8 @@ services.post('/servicesByCategory', async (req, res, next) => {
 //output - status and token
 services.post('/', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
+    
+    const Service = connect.useDb(database).model('services', serviceSchema)
 
     const dataServices = {
         branch: req.body.branch,
@@ -274,11 +262,7 @@ services.post('/', protectRoute, async (req,res) => {
 //output - status, data and token
 services.post('/newCategory', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Category = conn.model('categories', categorySchema)
+    const Category = connect.useDb(database).model('categories', categorySchema)
     
     const dataCategory = {
         name: req.body.name,
@@ -325,7 +309,7 @@ services.put('/:id', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
         useFindAndModify: false
     })
-    const Service = conn.model('services', serviceSchema)
+    const Service = connect.useDb(database).model('services', serviceSchema)
     const prepayment = {
         ifPrepayment: req.body.prepayment,
         amount: req.body.prepayment ? req.body.prepaymentAmount : 0
@@ -372,11 +356,8 @@ services.put('/:id', protectRoute, async (req, res) => {
 // output - status, data and token
 services.put('/changeActive/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
+    
+    const Service = connect.useDb(database).model('services', serviceSchema)
 
     try{
         const findService = await Service.findById(req.params.id)
@@ -416,11 +397,7 @@ services.put('/changeActive/:id', protectRoute, async (req, res) => {
 // output - status, data and token
 services.delete('/deleteCategory/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Category = conn.model('categories', categorySchema)
+    const Category = connect.useDb(database).model('categories', categorySchema)
 
     try{
         const removeCategory = await Category.findByIdAndRemove(req.params.id)
@@ -448,11 +425,8 @@ services.delete('/deleteCategory/:id', protectRoute, async (req, res) => {
 // output - status, data and token
 services.delete('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Service = conn.model('services', serviceSchema)
+    
+    const Service = connect.useDb(database).model('services', serviceSchema)
 
     try{
         const removeCategory = await Service.findByIdAndRemove(req.params.id)

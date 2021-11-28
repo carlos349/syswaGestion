@@ -12,19 +12,16 @@ const historyClosedInventorySchema = require('../models/HistoryClosedInventories
 const expenseSchema = require('../models/Expenses')
 const formats = require('../formats')
 const cors = require('cors')
-
+const connect = require('../mongoConnection/conectionInstances')
 stores.use(cors())
 
 //Api que busca todos los datos de los productos de la bodega (Ingreso: Nullo) -- Api that search all the products´ data of the store (Input: Null)
 
 stores.get('/getstore', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     try{
         const getStore = await Store.find()
@@ -58,12 +55,9 @@ stores.get('/getstore', protectRoute, async (req, res) => {
 
 stores.get('/getstorebyid/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     try{
         const getStore = await Store.findById(req.params.id)
@@ -97,12 +91,9 @@ stores.get('/getstorebyid/:id', protectRoute, async (req, res) => {
 
 stores.get('/getinventorybyid/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     try{
         const findProduct = await Inventory.findById(req.params.id)
@@ -137,12 +128,9 @@ stores.get('/getinventorybyid/:id', protectRoute, async (req, res) => {
 
 stores.get('/getinventorybybranch/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     try{
         const getInventoryByBranch = await Inventory.find({branch: req.params.branch})
@@ -177,12 +165,9 @@ stores.get('/getinventorybybranch/:branch', protectRoute, async (req, res) => {
 
 stores.get('/getproductsales/:branch', protectRoute, async (req, res) => { 
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     try{
         const getInventoryByBranch = await Inventory.find({
@@ -216,12 +201,9 @@ stores.get('/getproductsales/:branch', protectRoute, async (req, res) => {
 
 stores.get('/getinventorybybranchforservice/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     try{
         const getInventoryByBranch = await Inventory.find({
@@ -261,12 +243,9 @@ stores.get('/getinventorybybranchforservice/:branch', protectRoute, async (req, 
 
 stores.get('/getproviders', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Provider = conn.model('providers', providerSchema)
+    const Provider = connect.useDb(database).model('providers', providerSchema)
 
     try{
         const getProviders = await Provider.find()
@@ -300,12 +279,9 @@ stores.get('/getproviders', protectRoute, async (req, res) => {
 
 stores.get('/getstorehistory', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const History = conn.model('historyInventories', historyInventorySchema)
+    const History = connect.useDb(database).model('historyInventories', historyInventorySchema)
 
     try{
         const getHistory = await History.find()
@@ -339,12 +315,9 @@ stores.get('/getstorehistory', protectRoute, async (req, res) => {
 
 stores.get('/gethistorybybranch/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const History = conn.model('historyInventories', historyInventorySchema)
+    const History = connect.useDb(database).model('historyInventories', historyInventorySchema)
 
     try{
         const historyByBranch = await History.find({branch: req.params.branch})
@@ -378,12 +351,9 @@ stores.get('/gethistorybybranch/:branch', protectRoute, async (req, res) => {
 
 stores.get('/gethistoryclosedbybranch/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const HistoryClosed = conn.model('historyClosedInventories', historyClosedInventorySchema)
+    const HistoryClosed = connect.useDb(database).model('historyClosedInventories', historyClosedInventorySchema)
 
     try{
         const historyByBranch = await HistoryClosed.find({branch: req.params.branch})
@@ -417,12 +387,9 @@ stores.get('/gethistoryclosedbybranch/:branch', protectRoute, async (req, res) =
 
 stores.get('/getstoreclosed', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const HistoryClosed = conn.model('historyClosedInventories', historyClosedInventorySchema)
+    const HistoryClosed = connect.useDb(database).model('historyClosedInventories', historyClosedInventorySchema)
 
     try{
         const historyByBranch = await HistoryClosed.find({branch: 'store'})
@@ -456,13 +423,10 @@ stores.get('/getstoreclosed', protectRoute, async (req, res) => {
 
 stores.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     Store.findById(req.params.id)
     .then(found => {
@@ -560,12 +524,9 @@ stores.put('/:id', protectRoute, async (req, res) => {
 
 stores.put('/updateprovider/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Provider = conn.model('providers', providerSchema)
+    const Provider = connect.useDb(database).model('providers', providerSchema)
 
     Provider.findById(req.params.id)
     .then(found => {
@@ -641,14 +602,11 @@ stores.put('/updateprovider/:id', protectRoute, async (req, res) => {
 
 stores.put('/add/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
-    const History = conn.model('historyInventories', historyInventorySchema)
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
+    const History = connect.useDb(database).model('historyInventories', historyInventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     const historical = {
         id: req.params.id,
@@ -789,13 +747,10 @@ stores.put('/add/:id', protectRoute, async (req, res) => {
 
 stores.post('/registertobranch', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
-    const Branch = conn.model('branches', branchSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
 
     try{
         const inspector = await Inventory.find({$and:[{branch:req.body.branch}, {product: req.body.product}]})
@@ -886,9 +841,9 @@ stores.post('/addtobranch', protectRoute, async (req, res) => {
         useNewUrlParser: true,
         useUnifiedTopology: true,    })
 
-    const Inventory = conn.model('inventories', inventorySchema)
-    const History = conn.model('historyInventories', historyInventorySchema)
-    const Store = conn.model('stores', storeSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+    const History = connect.useDb(database).model('historyInventories', historyInventorySchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     var pric = req.body.inv ? 'Devolución' : 'Abastecimiento'
     var prov = req.body.inv ? 'Inventario' : 'Bodega'
@@ -984,13 +939,10 @@ stores.post('/addtobranch', protectRoute, async (req, res) => {
 
 stores.post('/closestore', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const HistoryClosed = conn.model('historyClosedInventories', historyClosedInventorySchema)
-    const Store = conn.model('stores', storeSchema)
+    const HistoryClosed = connect.useDb(database).model('historyClosedInventories', historyClosedInventorySchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     const products = req.body.products
 
@@ -1058,13 +1010,10 @@ stores.post('/closestore', protectRoute, async (req, res) => {
 
 stores.post('/closeinventorybybranch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const HistoryClosed = conn.model('historyClosedInventories', historyClosedInventorySchema)
-    const Inventory = conn.model('inventories', inventorySchema)
+    const HistoryClosed = connect.useDb(database).model('historyClosedInventories', historyClosedInventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     const products = req.body.products
 
@@ -1131,12 +1080,9 @@ stores.post('/closeinventorybybranch', protectRoute, async (req, res) => {
 //Api que edita la alarma de stock de un producto de la bodega (Ingreso: ObjectId del producto, stock) -- Api that edit stock alarm from the store (Input: Product´s ObjectId, stock)
 stores.put('/editstockalarmfromstore/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     Store.findByIdAndUpdate(req.params.id, {
         $set: {alertTotal: req.body.stock}
@@ -1169,12 +1115,9 @@ stores.put('/editstockalarmfromstore/:id', protectRoute, async (req, res) => {
 //Api que edita la alarma de stock de un producto del inventario por sucursal (Ingreso: ObjectId del producto, stock) -- Api that edit stock alarm from the inventory by branch (Input: Product´s ObjectId, stock)
 stores.put('/editstockalarmfrominventory/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     Inventory.findByIdAndUpdate(req.params.id, {
         $set: {alertTotal: req.body.stock}
@@ -1206,12 +1149,9 @@ stores.put('/editstockalarmfrominventory/:id', protectRoute, async (req, res) =>
 
 stores.put('/chagepriceinventory/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     Inventory.findByIdAndUpdate(req.params.id, {
         $set: {price: req.body.price}
@@ -1240,12 +1180,9 @@ stores.put('/chagepriceinventory/:id', protectRoute, async (req, res) => {
 
 stores.post('/', protectRoute, async (req,res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     try{
         const inspector = await Store.find({product: req.body.product})
@@ -1309,12 +1246,9 @@ stores.post('/', protectRoute, async (req,res) => {
 
 stores.post('/addprovider', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Provider = conn.model('providers', providerSchema)
+    const Provider = connect.useDb(database).model('providers', providerSchema)
 
     try{
         const inspector = await Provider.find({$or:[{name:req.body.name}, {document: req.body.document}]})
@@ -1359,15 +1293,12 @@ stores.post('/addprovider', protectRoute, async (req, res) => {
 
 stores.post('/deletestoreproduct', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
-    const Inventory = conn.model('inventories', inventorySchema)
-    const History = conn.model('historyInventories', historyInventorySchema)
-    const Expense = conn.model('expenses', expenseSchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+    const History = connect.useDb(database).model('historyInventories', historyInventorySchema)
+    const Expense = connect.useDb(database).model('expenses', expenseSchema)
 
     try{
         const deleteProduct = await Store.findByIdAndRemove(req.body.id)
@@ -1504,15 +1435,12 @@ stores.post('/deletestoreproduct', protectRoute, async (req, res) => {
 
 stores.post('/deleteinventoryproduct', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
-    const Store = conn.model('stores', storeSchema)
-    const Branch = conn.model('branches', branchSchema)
-    const History = conn.model('historyInventories', historyInventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
+    const Branch = connect.useDb(database).model('branches', branchSchema)
+    const History = connect.useDb(database).model('historyInventories', historyInventorySchema)
 
     const historical = {
         id: req.body.storeId,
@@ -1621,12 +1549,9 @@ stores.post('/deleteinventoryproduct', protectRoute, async (req, res) => {
 
 stores.delete('/deleteprovider/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Provider = conn.model('providers', providerSchema)
+    const Provider = connect.useDb(database).model('providers', providerSchema)
 
     try{
         const deleteProduct = await Provider.findByIdAndRemove(req.params.id)
@@ -1658,12 +1583,9 @@ stores.delete('/deleteprovider/:id', protectRoute, async (req, res) => {
 
 stores.post('/processsale', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     const products = req.body.products
 
@@ -1683,12 +1605,9 @@ stores.post('/processsale', protectRoute, (req, res) => {
 
 stores.get('/alertstoreproducts', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Store = conn.model('stores', storeSchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     var productsToAlert = []
     Store.find()
@@ -1730,12 +1649,9 @@ stores.get('/alertstoreproducts', protectRoute, (req, res) => {
 
 stores.post('/nullsale', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
 
     var products = req.body.products
     for (let i = 0; i < products.length; i++) {
@@ -1754,12 +1670,9 @@ stores.post('/nullsale', protectRoute, (req, res) => {
 
 stores.put('/changetype/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
     
     Inventory.findByIdAndUpdate(req.params.id, {
         $set: {productType:req.body.productType}
@@ -1775,13 +1688,10 @@ stores.put('/changetype/:id', protectRoute, async (req, res) => {
 
 stores.put('/returntostore/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Inventory = conn.model('inventories', inventorySchema)
-    const Store = conn.model('stores', storeSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+    const Store = connect.useDb(database).model('stores', storeSchema)
 
     try{
         const update = await Inventory.findByIdAndUpdate(req.params.id, {

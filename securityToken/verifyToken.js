@@ -4,14 +4,11 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose')
 const key = require('../private/key-jwt');
 const userSchema = require('../models/Users')
-
+const connect = require('../mongoConnection/conectionInstances')
 protectRoute.use((req, res, next) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
 	const token = req.headers['x-access-token'];
 	if (!token) {
 		return res.status(401).json({auth: false, message: 'no token provided'})

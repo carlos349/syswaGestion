@@ -18,7 +18,7 @@ const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const formats = require('../formats')
 const cors = require('cors')
-
+const connect = require('../mongoConnection/conectionInstances')
 
 dates.use(cors())
 
@@ -31,7 +31,7 @@ dates.get('/:branch', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
     try {
         const getDates = await date.find({
             branch: req.params.branch
@@ -63,7 +63,7 @@ dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
     try {
         const getDates = await date.find({
             branch: req.params.branch
@@ -100,7 +100,7 @@ dates.get('/getDatesbyemploye/:id', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
     try {
         const find = await date.find({ 'employe.id': req.params.id })
         if (find.length > 0) {
@@ -136,7 +136,7 @@ dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const EndingDates = conn.model('endingdates', endingDateSchema)
+    const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
     const dateT = formats.datesEdit(new Date())
     console.log(dateT)
     try {
@@ -180,7 +180,7 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+    const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
 
     try {
         var month = new Date().getMonth()
@@ -211,11 +211,11 @@ dates.get('/addData/:branch', (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
-    const datee = conn.model('dates', dateSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
-    const Service = conn.model('services', serviceSchema)
-    const Employe = conn.model('employes', employeSchema)
+    const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
+    const datee = connect.useDb(database).model('dates', dateSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const Service = connect.useDb(database).model('services', serviceSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
     
     for (const date of datesJson.blockingHours) {
         date.branch = "612f185da6a0df026bb599c5"
@@ -248,7 +248,7 @@ dates.get('/giveDatesToSendConfirm/:branch', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const datee = conn.model('dates', dateSchema)
+    const datee = connect.useDb(database).model('dates', dateSchema)
     const dayBack = formats.dayBack(new Date())
     const dayBackEnd = formats.dayBack(new Date())
     try {
@@ -292,7 +292,7 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
+    const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dates = formats.dayBack(new Date())
     try {
         const find = await HourBlocking.deleteMany({
@@ -331,7 +331,7 @@ dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const EndingDates = conn.model('endingdates', endingDateSchema)
+    const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
     const dates = formats.dayBack(new Date())
     try {
         const find = await EndingDates.deleteMany({
@@ -371,9 +371,9 @@ dates.post('/availableslenders', (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
-    const Employe = conn.model('employes', employeSchema)
-    const User = conn.model('users', userSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const User = connect.useDb(database).model('users', userSchema)
 
     const dateNow = new Date(req.body.date)
     const day = dateNow.getDay()
@@ -465,7 +465,7 @@ dates.post('/', async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
 
     try {
         const inspector = await date.findOne({
@@ -516,7 +516,7 @@ dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const dataEmploye = {
         name: req.body.name,
         id: req.body.id,
@@ -572,7 +572,7 @@ dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const dataEmploye = {
         name: req.body.name,
         id: req.body.id,
@@ -625,9 +625,9 @@ dates.delete('/:id', async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
-    const Configuration = conn.model('configurations', configurationSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
     try {
         const deletedate = await date.findByIdAndRemove(req.params.id)
         if (deletedate) {
@@ -754,9 +754,9 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
-    const Configuration = conn.model('configurations', configurationSchema)
+    const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
     const splitDate = req.body.dateBlocking.split('-')
     const Day = new Date(splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2] + ' 10:00').getDay()
     const employes = req.body.employes
@@ -1076,8 +1076,8 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const HourBlocking = conn.model('hoursblocking', dateBlockingSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
     const data = {
         branch: req.body.branch,
@@ -1249,8 +1249,8 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
-    const Configuration = conn.model('configurations', configurationSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
     const dateDaily = req.body.date
     const Day = new Date(dateDaily).getDay()
 
@@ -1590,7 +1590,7 @@ dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, r
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
 
     const images = []
     for (let index = 0; index < req.files.length; index++) {
@@ -1639,8 +1639,8 @@ dates.put('/confirmDate/:id', async (req, res) => {
         useFindAndModify: false
     })
 
-    const date = conn.model('dates', dateSchema)
-    const Configuration = conn.model('configurations', configurationSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
     console.log(req.body.id)
     date.findByIdAndUpdate(req.body.id, {
         $set: {
@@ -1682,11 +1682,11 @@ dates.put('/removeDate/:id', async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
 
     try {
         const confirmDate = await date.findByIdAndRemove(req.body.id)
-        const Configuration = conn.model('configurations', configurationSchema)
+        const Configuration = connect.useDb(database).model('configurations', configurationSchema)
         Configuration.findOne({
             branch: confirmDate.branch
         })
@@ -1715,7 +1715,7 @@ dates.put('/removeImage/:id', protectRoute, (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const date = conn.model('dates', dateSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
 
     const images = req.body.images
     date.findByIdAndUpdate(req.params.id, {
@@ -1754,8 +1754,8 @@ dates.post('/blocksHoursFirst', async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
-    const Configuration = conn.model('configurations', configurationSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
     const dateDaily = req.body.date
     const Day = new Date(dateDaily).getDay()
     const hoursdate = req.body.timedate
@@ -2332,8 +2332,8 @@ dates.post('/selectDatesBlocks', async (req, res) => {
 //         useUnifiedTopology: true,
 //     })
 
-//     const dateBlock = conn.model('datesblocks', datesBlockSchema)
-//     const Configuration = conn.model('configurations', configurationSchema)
+//     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+//     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
 //     const dateDaily = req.body.date
 //     const Day = new Date(dateDaily).getDay()
@@ -2407,7 +2407,7 @@ dates.post('/verifydate', async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
     const datadate = req.body.dataDate
     const datee = req.body.date
@@ -2493,8 +2493,8 @@ dates.post('/noOneLender', (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const dates = conn.model('dates', dateSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const dates = connect.useDb(database).model('dates', dateSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
     const dataCitas = []
     const dataDate = req.body.dataDate
@@ -2716,9 +2716,9 @@ dates.post('/endDate/:id', protectRoute, (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const Client = conn.model('clients', clientSchema)
-    const EndingDates = conn.model('endingdates', endingDateSchema)
-    const Dates = conn.model('dates', dateSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
+    const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
+    const Dates = connect.useDb(database).model('dates', dateSchema)
 
     const id = req.params.id
 
@@ -2794,8 +2794,8 @@ dates.post('/editdate', protectRoute, async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const Dates = conn.model('dates', dateSchema)
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const Dates = connect.useDb(database).model('dates', dateSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
     const blocks = req.body.blocks
     const dataEdit = req.body.data
@@ -2885,7 +2885,7 @@ dates.post('/fixblocks', async (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const dateBlock = conn.model('datesblocks', datesBlockSchema)
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
     const dateFix = req.body.date
     const start = req.body.start

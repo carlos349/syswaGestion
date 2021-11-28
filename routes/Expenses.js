@@ -14,7 +14,7 @@ const formats = require('../formats')
 const pdf = require("pdf-creator-node");
 const fs = require("fs");
 const html = fs.readFileSync("./templatesPDF/reportExpenses.html", "utf8");
-
+const connect = require('../mongoConnection/conectionInstances')
 const cors = require('cors')
 
 expenses.use(cors())
@@ -23,12 +23,9 @@ expenses.use(cors())
 //input null - output status, data, token
 expenses.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Expense = conn.model('expenses', expenseSchema)
+    const Expense = connect.useDb(database).model('expenses', expenseSchema)
 
     const dateDaily = new Date()
     const sinceActual = dateDaily.getFullYear() +"-"+(dateDaily.getMonth() + 1)+"-1 00:00"
@@ -109,12 +106,9 @@ expenses.get('/:branch', protectRoute, async (req, res) => {
 
 expenses.get('/historyExpenses/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
     
-    const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
+    
+    const HistoryExpense = connect.useDb(database).model('historyexpenses', historyExpensesSchema)
 
     try {
         const historyExpenses = await HistoryExpense.find({branch: req.params.branch})
@@ -142,12 +136,9 @@ expenses.get('/historyExpenses/:branch', protectRoute, async (req, res) => {
 
 expenses.get('/getHistoryClosesExpense/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
     
-    const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
+    
+    const HistoryExpense = connect.useDb(database).model('historyexpenses', historyExpensesSchema)
 
     try {
         const historyExpenses = await HistoryExpense.findById(req.params.id)
@@ -177,12 +168,9 @@ expenses.get('/getHistoryClosesExpense/:id', protectRoute, async (req, res) => {
 //input null - output status, data, token
 expenses.get('/findReinvestment/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
+    const Reinvestment = connect.useDb(database).model('reinvestments', reinvestmentSchema)
 
     try {
         const findReinvesment = await Reinvestment.findOne({branch: req.params.branch})
@@ -241,12 +229,9 @@ expenses.get('/findReinvestment/:branch', protectRoute, async (req, res) => {
 // input branch, detail, amount, type - output status, token
 expenses.post('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Expense = conn.model('expenses', expenseSchema)
+    const Expense = connect.useDb(database).model('expenses', expenseSchema)
     const data = {
         branch: req.body.branch,
         detail: req.body.detail,
@@ -283,12 +268,9 @@ expenses.post('/', protectRoute, async (req, res) => {
 //input null - output status, data, token
 expenses.post('/findByDates/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Expense = conn.model('expenses', expenseSchema)
+    const Expense = connect.useDb(database).model('expenses', expenseSchema)
     
     try {
         const findExpenses = await Expense.find({
@@ -324,16 +306,13 @@ expenses.post('/findByDates/:branch', protectRoute, async (req, res) => {
 // input branch, detail, amount, type - output status, token
 expenses.post('/closeExpenses', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Expense = conn.model('expenses', expenseSchema)
-    const Sale = conn.model('sales', saleSchema)
-    const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
-    const Inventory = conn.model('inventories', inventorySchema)
-    const HistoryExpense = conn.model('historyexpenses', historyExpensesSchema)
+    const Expense = connect.useDb(database).model('expenses', expenseSchema)
+    const Sale = connect.useDb(database).model('sales', saleSchema)
+    const Reinvestment = connect.useDb(database).model('reinvestments', reinvestmentSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+    const HistoryExpense = connect.useDb(database).model('historyexpenses', historyExpensesSchema)
 
     try {
         const getInventory = await Inventory.find({branch: req.body.branch})
@@ -557,14 +536,11 @@ expenses.post('/closeExpenses', protectRoute, async (req, res) => {
 // Api to valid close
 expenses.post('/validclose', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Employe = conn.model('employes', employeSchema)
-    const Inventory = conn.model('inventories', inventorySchema)
-    const CashFund = conn.model('cashfunds', cashfundSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
+    const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+    const CashFund = connect.useDb(database).model('cashfunds', cashfundSchema)
 
     try {
         const findEmployes = await Employe.find({branch: req.body.branch})
@@ -654,12 +630,9 @@ expenses.post('/validclose', protectRoute, async (req, res) => {
 //input null - output status, data, token
 expenses.put('/regReinvestment/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Reinvestment = conn.model('reinvestments', reinvestmentSchema)
+    const Reinvestment = connect.useDb(database).model('reinvestments', reinvestmentSchema)
     try {
         const editReinvestment = await Reinvestment.findByIdAndUpdate(req.params.id, {
             $set: {
@@ -691,13 +664,10 @@ expenses.put('/regReinvestment/:id', protectRoute, async (req, res) => {
 // input branch, detail, amount, type - output status, token
 expenses.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Expense = conn.model('expenses', expenseSchema)
-    const Employe = conn.model('employes', employeSchema)
+    const Expense = connect.useDb(database).model('expenses', expenseSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
 
     try {
         const deleteExpense = await Expense.findByIdAndRemove(req.params.id)

@@ -15,17 +15,15 @@ const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const cors = require('cors')
 clients.use(cors())
+const connect = require('../mongoConnection/conectionInstances')
 
 //input - none - nada
 //output - status, data and token
 clients.get('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Client = conn.model('clients', clientSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const getClients = await Client.find()
@@ -54,12 +52,9 @@ clients.get('/', protectRoute, async (req, res) => {
 //output - status, data and token
 clients.get('/findOne/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Client = conn.model('clients', clientSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const getClient = await Client.findOne({_id: req.params.id})
@@ -87,12 +82,9 @@ clients.get('/findOne/:id', protectRoute, async (req, res) => {
 //output - status, data and token
 clients.get('/findOneWithoutToken/:email', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Client = conn.model('clients', clientSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const getClient = await Client.findOne({email: req.params.email}, {password: 0})
@@ -110,12 +102,9 @@ clients.get('/findOneWithoutToken/:email', async (req, res) => {
 //output - status
 clients.get('/getEmails', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Client = conn.model('clients', clientSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const getClients = await Client.find()
@@ -153,7 +142,7 @@ clients.get('/restoreClients', (req, res) => {
         useUnifiedTopology: true,
     })
 
-    const Client = conn.model('clients', clientSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
     const clients = dataClient.data
     
     for (const client of clients) {
@@ -168,12 +157,9 @@ clients.get('/restoreClients', (req, res) => {
 
 clients.get('/countClientsKK', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Client = conn.model('clients', clientSchema)
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const getClients = await Client.find().count()
@@ -191,11 +177,8 @@ clients.get('/countClientsKK', async (req, res) => {
 //output - status
 clients.get('/sendMailChange/:id', (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     Client.findById(req.params.id)
     .then(client => {
@@ -271,11 +254,8 @@ clients.get('/sendMailChange/:id', (req, res) => {
 //output - status and token
 clients.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     var finalRecommender = req.body.recommender == null ? 'Ninguno' : req.body.recommender
     const today = new Date()
@@ -322,11 +302,8 @@ clients.post('/', async (req, res) => {
 //output - status, data and token
 clients.post('/datesperclient', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Date = conn.model('clients', dateSchema)
+    
+    const Date = connect.useDb(database).model('clients', dateSchema)
 
     try {
         const findDates = await Date.find({
@@ -387,12 +364,9 @@ clients.post('/sendPromotionEmail', protectRoute, (req, res) => {
 //output - status
 clients.post('/verifyBlackList', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const Configuration = conn.model('configurations', configurationSchema)
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     try {
         const findConfiguration = await Configuration.findOne({branch:req.body.branch})
@@ -442,11 +416,8 @@ clients.post('/verifyBlackList', async (req, res) => {
 //output - status and token
 clients.post('/loginClient', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     const data = {
         user: req.body.user.toLowerCase(),
@@ -486,11 +457,8 @@ clients.post('/loginClient', async (req, res) => {
 //output - status and token
 clients.post('/registerwithpass', (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     const data = req.body.data
     const email = data.email.toLowerCase()
@@ -628,11 +596,8 @@ clients.post('/registerwithpass', (req, res) => {
 //output - status and token
 clients.post('/rescueChange', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
     try {
         const findClient = await Client.findOne({
             codeRescue: req.body.code
@@ -664,11 +629,8 @@ clients.post('/rescueChange', async (req, res) => {
 //output - status and token
 clients.delete('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {   
         const deleteClient = await Client.findByIdAndDelete(req.params.id)
@@ -692,11 +654,8 @@ clients.delete('/:id', protectRoute, async (req, res) => {
 //output - status and token
 clients.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const findClient = await Client.findOne({
@@ -784,11 +743,8 @@ clients.put('/:id', protectRoute, async (req, res) => {
 
 clients.put('/changeImage/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const change = await Client.findByIdAndUpdate(req.params.id, {
@@ -826,11 +782,8 @@ clients.put('/changeImage/:id', async (req, res) => {
 //output - status
 clients.put('/changePass/:id', (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     Client.findById(req.params.id)
     .then(client => {
@@ -926,11 +879,8 @@ clients.put('/changePass/:id', (req, res) => {
 //output - status
 clients.put('/rescuePass/:email', async (req, res, next) => { 
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const Client = conn.model('clients', clientSchema)
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
         const findClient = await Client.findOne({

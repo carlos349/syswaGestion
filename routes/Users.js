@@ -15,16 +15,13 @@ const key = require('../private/key-jwt');
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 users.use(cors())
-
+const connect = require('../mongoConnection/conectionInstances')
 //generador de super usuario - super user generator
 users.post('/createUserCertificate', async (req, res, next) => {
 	const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
-    const UserCredential = conn.model('credentials', credentialSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
+    const UserCredential = connect.useDb(database).model('credentials', credentialSchema)
     try {
         const getCredentials = await UserCredential.findOne({credential: req.body.secretKey})
         if (getCredentials){
@@ -242,12 +239,9 @@ users.post('/createUserCertificate', async (req, res, next) => {
 //output - data and token
 users.get('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
-    const User = conn.model('users', userSchema)
+    const User = connect.useDb(database).model('users', userSchema)
     try {
         const getUsers = await User.find({},{password: 0})
         if (getUsers.length > 0) {
@@ -274,11 +268,8 @@ users.get('/', protectRoute, async (req, res) => {
 //output - data and token
 users.get('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
     try{
         const findUser = await User.findById(req.params.id, {password: 0})
         if (findUser) {
@@ -305,11 +296,8 @@ users.get('/:id', protectRoute, async (req, res) => {
 //output - ok, y envia un correo al usuario con una nueva contraseña provisional . ok, and mail for user with a new provisional password
 users.post('/sendNewPass', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
 
 	const email = req.body.email
 	const user = await User.findOne({email: email})
@@ -362,11 +350,8 @@ users.post('/sendNewPass', async (req, res) => {
 //output ok, token
 users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, res, next) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
 
 	const id = req.params.id
 	const firstName = req.body.first_name  
@@ -430,11 +415,8 @@ users.post('/editData/:id', protectRoute, uploadS3.single("image"), async (req, 
 //output - ok, data and token
 users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
     
     const today = new Date()
     var userData = {}
@@ -508,11 +490,8 @@ users.post('/registerUser', protectRoute, uploadS3.single("image"), (req, res) =
 //output - status, token and access
 users.post('/login', (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
 	const today = new Date()
 	User.findOne({
 		email: req.body.email.toLowerCase()
@@ -572,11 +551,8 @@ users.post('/login', (req, res) => {
 // output - status and token
 users.delete('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
 
     try{
         const deleteUser = await User.findByIdAndRemove(req.params.id)
@@ -604,12 +580,9 @@ users.delete('/:id', protectRoute, async (req, res) => {
 //output - status, data, and token
 users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
-    const Employe = conn.model('employes', employeSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
 
 	const status = req.body.status
 	const employe = req.body.employe
@@ -650,11 +623,8 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
 //output - status and token
 users.put('/editAccess/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
 	const access = req.body.access
 	try {
 		const modifyAccess = await User.findByIdAndUpdate(req.params.id, {
@@ -701,11 +671,8 @@ users.put('/editAccess/:id', protectRoute, async (req, res) => {
 //output - status and token
 users.put('/changePass/:id', protectRoute, async (req, res, next) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    const User = conn.model('users', userSchema)
+    
+    const User = connect.useDb(database).model('users', userSchema)
 
 	const id = req.params.id
 	const newPass = req.body.newPass
