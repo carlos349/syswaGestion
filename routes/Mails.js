@@ -1439,10 +1439,7 @@ mails.post('/welcome', (req, res) => {
 
 mails.get('/salemail/:id', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const Configuration = connect.useDb(database).model('configurations', configurationSchema)
   var logo = ''
@@ -2431,10 +2428,7 @@ mails.post('/dateMail', async (req, res) => {
   const valid = req.body.valid
 
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 

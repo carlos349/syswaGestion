@@ -16,10 +16,7 @@ metrics.use(cors())
 const connect = require('../mongoConnection/conectionInstances')
 metrics.get('/compareSales/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
 
@@ -87,10 +84,7 @@ metrics.get('/compareSales/:branch', protectRoute, async (req, res) => {
 
 metrics.get('/getDays/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Closure = connect.useDb(database).model('closures', closureSchema)
   const dates = formats.datesMonth()
@@ -122,10 +116,7 @@ metrics.get('/getDays/:branch', protectRoute, async (req, res) => {
 
 metrics.get('/getProjection/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Projection = connect.useDb(database).model('projectiondays', projectionSchema)
 
@@ -177,10 +168,7 @@ metrics.get('/getProjection/:branch', protectRoute, async (req, res) => {
 
 metrics.get('/getExpensesTotal/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Expense = connect.useDb(database).model('expenses', expenseSchema)
   const dates = formats.datesMonth()
@@ -216,10 +204,7 @@ metrics.get('/getExpensesTotal/:branch', protectRoute, async (req, res) => {
 
 metrics.get('/compareItems/:branch', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
 
@@ -286,10 +271,7 @@ metrics.get('/compareItems/:branch', protectRoute, async (req, res) => {
 
 metrics.post('/totalsTypesPays', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
 
@@ -349,10 +331,7 @@ metrics.post('/totalsTypesPays', protectRoute, async (req, res) => {
 
 metrics.post('/totalSales', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   var series = [
@@ -406,10 +385,7 @@ metrics.post('/totalSales', protectRoute, async (req, res) => {
 
 metrics.post('/totalServices', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const Date = connect.useDb(database).model('dates', dateSchema)
@@ -507,10 +483,7 @@ metrics.post('/totalServices', protectRoute, async (req, res) => {
 
 metrics.post('/totalByEmploye', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const Employe = connect.useDb(database).model('employes', employeSchema)
@@ -587,10 +560,7 @@ metrics.post('/totalByEmploye', protectRoute, async (req, res) => {
 
 metrics.post('/totalPerService', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   var datess = req.body.dates
@@ -642,10 +612,7 @@ metrics.post('/totalPerService', protectRoute, async (req, res) => {
 
 metrics.post('/totalPerProducts', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   var datess = req.body.dates
@@ -697,10 +664,7 @@ metrics.post('/totalPerProducts', protectRoute, async (req, res) => {
 
 metrics.post('/servicesByEmploye', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const Employe = connect.useDb(database).model('employes', employeSchema)
@@ -777,10 +741,7 @@ metrics.post('/servicesByEmploye', protectRoute, async (req, res) => {
 
 metrics.post('/commissionsByEmploye', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const Employe = connect.useDb(database).model('employes', employeSchema)
@@ -857,10 +818,7 @@ metrics.post('/commissionsByEmploye', protectRoute, async (req, res) => {
 
 metrics.post('/totalExpenses', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Expense = connect.useDb(database).model('expenses', expenseSchema)
   var datess = req.body.dates
@@ -922,10 +880,7 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
 
 metrics.post('/diaryTotals', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   let categories = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
@@ -977,10 +932,7 @@ metrics.post('/diaryTotals', protectRoute, async (req, res) => {
 
 metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   let categories = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
@@ -1053,10 +1005,7 @@ metrics.post('/diaryPromedies', protectRoute, async (req, res) => {
 
 metrics.post('/anualProduction', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const dates = formats.anualDates()
@@ -1135,10 +1084,7 @@ metrics.post('/anualProduction', protectRoute, async (req, res) => {
 
 metrics.post('/anualServices', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const dates = formats.anualDates()
@@ -1191,10 +1137,7 @@ metrics.post('/anualServices', protectRoute, async (req, res) => {
 
 metrics.post('/dataEmploye', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Sale = connect.useDb(database).model('sales', saleSchema)
   const Employe = connect.useDb(database).model('employes', employeSchema)
@@ -1256,10 +1199,7 @@ metrics.post('/dataEmploye', protectRoute, async (req, res) => {
 
 metrics.post('/dataExpense', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const HistoryExpense = connect.useDb(database).model('historyexpenses', historyExpensesSchema)
   const dates = formats.anualDates()
@@ -1309,10 +1249,7 @@ metrics.post('/dataExpense', protectRoute, async (req, res) => {
 
 metrics.put('/updateProjection/:id', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
-  const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-  })
+  
 
   const Projection = connect.useDb(database).model('projectiondays', projectionSchema)
 
