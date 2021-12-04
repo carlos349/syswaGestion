@@ -26,10 +26,7 @@ dates.use(cors())
 
 dates.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     try {
@@ -58,10 +55,7 @@ dates.get('/:branch', protectRoute, async (req, res) => {
 
 dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     try {
@@ -95,10 +89,7 @@ dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
 
 dates.get('/getDatesbyemploye/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     try {
@@ -131,10 +122,7 @@ dates.get('/getDatesbyemploye/:id', protectRoute, async (req, res) => {
 
 dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
     const dateT = formats.datesEdit(new Date())
@@ -175,10 +163,7 @@ dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
 
 dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
 
@@ -243,10 +228,7 @@ dates.get('/addData/:branch', (req, res) => {
 
 dates.get('/giveDatesToSendConfirm/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const datee = connect.useDb(database).model('dates', dateSchema)
     const dayBack = formats.dayBack(new Date())
@@ -287,10 +269,7 @@ dates.get('/giveDatesToSendConfirm/:branch', protectRoute, async (req, res) => {
 
 dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dates = formats.dayBack(new Date())
@@ -326,10 +305,7 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
 
 dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
     const dates = formats.dayBack(new Date())
@@ -366,11 +342,6 @@ dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
 
 dates.post('/availableslenders', (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-
     const date = connect.useDb(database).model('dates', dateSchema)
     const Employe = connect.useDb(database).model('employes', employeSchema)
     const User = connect.useDb(database).model('users', userSchema)
@@ -460,10 +431,7 @@ dates.post('/availableslenders', (req, res) => {
 
 dates.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
 
@@ -511,10 +479,7 @@ dates.post('/', async (req, res) => {
 
 dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const dataEmploye = {
@@ -567,10 +532,7 @@ dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
 
 dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const dataEmploye = {
@@ -620,10 +582,7 @@ dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
 
 dates.delete('/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -749,10 +708,7 @@ dates.delete('/:id', async (req, res) => {
 
 dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -1071,10 +1027,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
 
 dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -1244,10 +1197,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
 
 dates.post('/blockHours', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
@@ -1404,8 +1354,25 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
 dates.post('/editBlocksFirst', async (req, res) => {
     const hoursdate = req.body.timedate
     const blocks = req.body.block
+    
     if (req.body.firstBlock) {
         const employesServices = req.body.employesServices
+        
+        if (req.body.online) {
+            const employes = req.body.employes
+            employesServices.forEach((emp,index) => {
+                if (emp.name != "Primera disponible") {
+                    emp.valid = false
+                    var validOnline = false
+                    employes.forEach(empl => {
+                        if (emp.id == empl.id) {
+                            validOnline = true
+                        }
+                    });
+                    emp.valid = validOnline
+                }
+            });
+        }
 
         for (const u in blocks) {
             const elementTwo = blocks[u];
@@ -1421,7 +1388,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 const elementTwo = blocks[u];
                 for (let o = 0; o < elementTwo.employes.length; o++) {
                     const elementThree = elementTwo.employes[o];
-                    if (element.id == elementThree.id) {
+                    if (element.id == elementThree.id && element.valid == true) {
                         elementThree.valid = true
                     }
                 }
@@ -1453,7 +1420,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 var valid = false
                 for (let r = 0; r < block.employes.length; r++) {
                     const employeBlock = block.employes[r];
-                    if (employeBlock.id == employeService.id) {
+                    if (employeBlock.id == employeService.id && employeService.valid == true) {
                         valid = true
                     }
                 }
@@ -1585,10 +1552,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
 
 dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
 
@@ -1677,10 +1641,7 @@ dates.put('/confirmDate/:id', async (req, res) => {
 
 dates.put('/removeDate/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
 
@@ -1710,10 +1671,7 @@ dates.put('/removeDate/:id', async (req, res) => {
 
 dates.put('/removeImage/:id', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
 
@@ -1749,10 +1707,7 @@ dates.put('/removeImage/:id', protectRoute, (req, res) => {
 
 dates.post('/blocksHoursFirst', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
@@ -1771,6 +1726,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         validOnline = true
                     }
                 });
+
                 emp.valid = validOnline
             }
         });
@@ -1808,7 +1764,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         const elementTwo = blocksFirst[u];
                         for (let o = 0; o < elementTwo.employes.length; o++) {
                             const elementThree = elementTwo.employes[o];
-                            if (element.id == elementThree.id && element.valid == true) {
+                            if (element.id == elementThree.id && element.valid == true ) {
                                 elementThree.valid = true
                             }
                         }
@@ -2402,10 +2358,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
 
 dates.post('/verifydate', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
@@ -2488,10 +2441,7 @@ dates.post('/verifydate', async (req, res) => {
 
 dates.post('/noOneLender', (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const dates = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -2711,10 +2661,7 @@ dates.post('/sendConfirmation/:id', (req, res) => {
 
 dates.post('/endDate/:id', protectRoute, (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const Client = connect.useDb(database).model('clients', clientSchema)
     const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
@@ -2789,10 +2736,7 @@ dates.post('/endDate/:id', protectRoute, (req, res) => {
 
 dates.post('/editdate', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const Dates = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -2880,10 +2824,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
 dates.post('/fixblocks', async (req, res) => {
     const database = req.headers['x-database-connect'];
     // console.log(database)
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
