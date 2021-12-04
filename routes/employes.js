@@ -343,11 +343,7 @@ employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
 
 employes.put('/nullsale/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useFindAndModify: false
-    })
+    
 
     const Sale = connect.useDb(database).model('sales', saleSchema)
     const Employe = connect.useDb(database).model('employes', employeSchema)

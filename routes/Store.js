@@ -837,9 +837,6 @@ stores.post('/registertobranch', protectRoute, async (req,res) => {
 
 stores.post('/addtobranch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,    })
 
     const Inventory = connect.useDb(database).model('inventories', inventorySchema)
     const History = connect.useDb(database).model('historyInventories', historyInventorySchema)

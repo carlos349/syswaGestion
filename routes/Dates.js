@@ -191,10 +191,7 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
 
 dates.get('/addData/:branch', (req, res) => {
     // const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const datee = connect.useDb(database).model('dates', dateSchema)
@@ -1597,11 +1594,7 @@ dates.put('/uploadDesign/:id', protectRoute, uploadS3.array('image', 3), (req, r
 
 dates.put('/confirmDate/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/' + database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useFindAndModify: false
-    })
+    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
@@ -2282,11 +2275,6 @@ dates.post('/selectDatesBlocks', async (req, res) => {
 //Api que busca y crea los bloques de horarios (Ingreso: date, timedate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timedate, hour, branch, employe)
 
 // dates.post('/selectdatesBlocks', async (req, res) => {
-//     const database = req.headers['x-database-connect'];
-//     const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-//         useNewUrlParser: true,
-//         useUnifiedTopology: true,
-//     })
 
 //     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 //     const Configuration = connect.useDb(database).model('configurations', configurationSchema)

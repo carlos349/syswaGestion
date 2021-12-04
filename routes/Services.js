@@ -304,11 +304,7 @@ services.post('/newCategory', protectRoute, async (req, res) => {
 //output - status and token
 services.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/'+database, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useFindAndModify: false
-    })
+    
     const Service = connect.useDb(database).model('services', serviceSchema)
     const prepayment = {
         ifPrepayment: req.body.prepayment,

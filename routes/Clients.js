@@ -137,10 +137,7 @@ clients.get('/getEmails', protectRoute, async (req, res) => {
 //output - status, data and token
 clients.get('/restoreClients', (req, res) => {
     // const database = req.headers['x-database-connect'];
-    const conn = mongoose.createConnection('mongodb://localhost/kkprettynails-syswa', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
+    
 
     const Client = connect.useDb(database).model('clients', clientSchema)
     const clients = dataClient.data
