@@ -409,14 +409,50 @@ dates.post('/availableslenders', (req, res) => {
                                 res.json({ array: arrayLenders, day: day })
                             }
                         }).catch(err => {
-                            res.send('failed api with error, '+ err)
+                            const Log = new LogService(
+                                req.headers.host, 
+                                req.body, 
+                                req.params, 
+                                err, 
+                                '', 
+                                req.headers['x-database-connect'], 
+                                req.route
+                            )
+                            Log.createLog()
+                            .then(dataLog => {
+                                res.send('failed api with error, '+ dataLog.error)
+                            })
                         })
                 })
                 .catch(err => {
-                    res.send('failed api with error, '+ err)
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        '', 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    Log.createLog()
+                    .then(dataLog => {
+                        res.send('failed api with error, '+ dataLog.error)
+                    })
                 })
         }).catch(err => {
-            res.send('failed api with error, '+ err)
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                '',
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
         })
 })
 
@@ -632,13 +668,25 @@ dates.delete('/:id', async (req, res) => {
                                     blocks: findDateBlock[0].blocks
                                 }
                             })
-                            
-                            Configuration.findOne({
-                                branch: deletedate.branch
-                            })
-                            .then(getConfigurations => {
-                                res.json({ status: 'deleted', data: deletedate, branchName: getConfigurations.businessName, branchEmail: getConfigurations.businessEmail, logo: getConfigurations.bussinessLogo })
-                            })
+                            try {
+                                const findConfig = await Configuration.findOne({
+                                    branch: deletedate.branch
+                                })
+                                
+                                res.json({ status: 'deleted', data: deletedate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo })
+                            }catch(err){
+                                const Log = new LogService(
+                                    req.headers.host, 
+                                    req.body, 
+                                    req.params, 
+                                    err, 
+                                    '', 
+                                    req.headers['x-database-connect'], 
+                                    req.route
+                                )
+                                const dataLog = await Log.createLog()
+                                res.send('failed api with error, '+ dataLog.error)
+                            }
                         }catch(err){
                             const Log = new LogService(
                                 req.headers.host, 
@@ -665,8 +713,6 @@ dates.delete('/:id', async (req, res) => {
                         const dataLog = await Log.createLog()
                         res.send('failed api with error, '+ dataLog.error)
                     }
-                }else{
-                    res.json({ status: 'deleted', token: req.requestToken })
                 }
             } catch (err) {
                 const Log = new LogService(
@@ -681,8 +727,6 @@ dates.delete('/:id', async (req, res) => {
                 const dataLog = await Log.createLog()
                 res.send('failed api with error, '+ dataLog.error)
             }
-        }else{
-            res.json({ status: 'deleted', token: req.requestToken })
         }
     } catch (err) {
         const Log = new LogService(
