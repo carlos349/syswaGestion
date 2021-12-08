@@ -7,28 +7,26 @@ const formats = require('../formats')
 const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
+const connect = require('../mongoConnection/conectionInstances')
 
 class Main {
 
     constructor(database){
-        this.conn = mongoose.createConnection('mongodb://localhost/'+database, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        })
+        this.database = database
     }
 
     async getBranch(){
-        const Branch = this.connect.useDb(database).model('branches', branchSchema)
+        const Branch = connect.useDb(this.database).model('branches', branchSchema)
         return await Branch.find()
     }
 
     async getConfigurations(){
-        const Configuration = this.connect.useDb(database).model('configurations', configurationSchema)
+        const Configuration = connect.useDb(this.database).model('configurations', configurationSchema)
         return await Configuration.find()
     }
 
     async getDates(){
-        const date = this.connect.useDb(database).model('dates', dateSchema)
+        const date = connect.useDb(this.database).model('dates', dateSchema)
         
         const dayAfter = formats.dayAfter(new Date())
         try {
@@ -91,7 +89,7 @@ class Main {
                     branchData.route = config.bussinessRoute
                 }
             }
-            console.log(datee.client.email)
+            
             const mail = {
                 from: branchData.name,
                 to: datee.client.email,
