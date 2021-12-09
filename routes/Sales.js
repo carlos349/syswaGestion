@@ -1064,13 +1064,15 @@ sales.put('/:id', protectRoute, async (req, res, next) => {
                 commission: parseFloat('-'+item.employe.commission)  
               }
             }).then(editEmploye => {})
-            if (item.item.products != false) {
-              for (const product of item.item.products) {
-                Inventory.findByIdAndUpdate(product.id,{
-                  $inc: {
-                    consume: parseFloat('-'+product.count)
-                  }
-                }).then(editInventory => {})
+            if (item.item.products) {
+              if (item.item.products != false) {
+                for (const product of item.item.products) {
+                  Inventory.findByIdAndUpdate(product.id,{
+                    $inc: {
+                      consume: parseFloat('-'+product.count)
+                    }
+                  }).then(editInventory => {})
+                }
               }
             }
           }

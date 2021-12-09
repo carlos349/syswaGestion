@@ -29,9 +29,13 @@ dates.get('/:branch', protectRoute, async (req, res) => {
     
 
     const date = connect.useDb(database).model('dates', dateSchema)
+    const datesFormats = formats.datesMonth()
     try {
         const getDates = await date.find({
-            branch: req.params.branch
+            $and: [
+                {branch: req.params.branch},
+                {createdAt: { $gte: datesFormats.thisMonth.since+' 00:00', $lte: '01-01-2050 24:00' }}
+            ]
         })
         if (getDates.length > 0) {
             res.json({ status: 'ok', data: getDates, token: req.requestToken })
