@@ -629,64 +629,50 @@ dates.delete('/:id', async (req, res) => {
             const end = deletedate.end.split(' ')[1]
             const employe = deletedate.employe
             try {
-                const findDateBlock = await dateBlock.find({
+                const findDateBlock = await dateBlock.findOne({
                     $and: [
                         { 'dateData.date': dateFind },
                         { 'dateData.branch': branch }
                     ]
                 })
-                if(findDateBlock[0]){
-                    var valid = false
-                    try {
-                        for (const block of findDateBlock[0].blocks) {
-                            if (block.hour == hour) {
-                                valid = true
-                            }
-                            if (block.hour == end) {
-                                valid = false
-                                break
-                            }
-                            if (valid) {
-                                block.employeBlocked.forEach((element, index) => {
-                                    if (element.employe == employe.id) {
-                                        block.employeBlocked.splice(index, 1)
-                                    }
-                                });
-                                block.employes.push({
-                                    name: employe.name,
-                                    id: employe.id,
-                                    class: employe.class,
-                                    position: 20,
-                                    valid: false,
-                                    img: employe.img
-                                })
-                            }
+                var valid = false
+                try {
+                    for (const block of findDateBlock.blocks) {
+                        if (block.hour == hour) {
+                            valid = true
                         }
-                        try {
-                            const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
-                                $set: {
-                                    blocks: findDateBlock[0].blocks
+                        if (block.hour == end) {
+                            valid = false
+                            break
+                        }
+                        if (valid) {
+                            block.employeBlocked.forEach((element, index) => {
+                                if (element.employe == employe.id) {
+                                    block.employeBlocked.splice(index, 1)
                                 }
+                            });
+                            block.employes.push({
+                                name: employe.name,
+                                id: employe.id,
+                                class: employe.class,
+                                position: 20,
+                                valid: false,
+                                img: employe.img
                             })
-                            try {
-                                const findConfig = await Configuration.findOne({
-                                    branch: deletedate.branch
-                                })
-                                
-                                res.json({ status: 'deleted', data: deletedate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo })
-                            }catch(err){
-                                const Log = new LogService(
-                                    req.headers.host, 
-                                    req.body, 
-                                    req.params, 
-                                    err, 
-                                    '', 
-                                    req.headers['x-database-connect'], 
-                                    req.route
-                                )
-                                const dataLog = await Log.createLog()
-                                res.send('failed api with error, '+ dataLog.error)
+                        }
+                    }
+                    try {
+                        const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
+                            $set: {
+                                blocks: findDateBlock[0].blocks
                             }
+                        })
+                        try {
+                            const findConfig = await Configuration.findOne({
+                                branch: deletedate.branch
+                            })
+                            
+                            res.json({ status: 'deleted', data: deletedate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo })
                         }catch(err){
                             const Log = new LogService(
                                 req.headers.host, 
@@ -713,6 +699,18 @@ dates.delete('/:id', async (req, res) => {
                         const dataLog = await Log.createLog()
                         res.send('failed api with error, '+ dataLog.error)
                     }
+                }catch(err){
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        '', 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
                 }
             } catch (err) {
                 const Log = new LogService(
