@@ -615,7 +615,6 @@ dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
 
 dates.delete('/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -662,9 +661,9 @@ dates.delete('/:id', async (req, res) => {
                         }
                     }
                     try {
-                        const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock[0]._id, {
+                        const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock._id, {
                             $set: {
-                                blocks: findDateBlock[0].blocks
+                                blocks: findDateBlock.blocks
                             }
                         })
                         try {
