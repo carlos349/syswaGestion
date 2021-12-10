@@ -48,6 +48,41 @@ clients.get('/', protectRoute, async (req, res) => {
 
 })
 
+clients.get('/regex/:str', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    
+
+    const Client = connect.useDb(database).model('clients', clientSchema)
+
+    try {
+        const getClients = await Client.find({
+            $or:[
+                {firstName:{$regex:req.params.str, $options:'i'}},
+                {lastName:{$regex:req.params.str.split(' ')[1] ? req.params.str.split(' ')[1] : req.params.str, $options:'i'}},
+                {email:{$regex:req.params.str, $options:'i'}}
+            ]
+        })
+        if (getClients.length > 0) {
+            res.json({status: 'ok', data: getClients, token: req.requestToken})
+        }else{
+            res.json({status: 'bad', data: getClients, token: req.requestToken})
+        }
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
+
+})
+
 //input - params id, pasar id
 //output - status, data and token
 clients.get('/findOne/:id', protectRoute, async (req, res) => {
