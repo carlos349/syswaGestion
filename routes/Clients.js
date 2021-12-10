@@ -61,7 +61,7 @@ clients.get('/regex/:str', protectRoute, async (req, res) => {
                 {lastName:{$regex:req.params.str.split(' ')[1] ? req.params.str.split(' ')[1] : req.params.str, $options:'i'}},
                 {email:{$regex:req.params.str, $options:'i'}}
             ]
-        })
+        }).limit(100)
         if (getClients.length > 0) {
             res.json({status: 'ok', data: getClients, token: req.requestToken})
         }else{
