@@ -17,6 +17,9 @@ const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const formats = require('../formats')
+const logger = require('../Logs/serviceExport');
+const logNode = logger.getLogger("node");
+const logDates = logger.getLogger("dates");
 const cors = require('cors')
 const connect = require('../mongoConnection/conectionInstances')
 
@@ -27,6 +30,7 @@ dates.use(cors())
 dates.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     
+    logNode.error("Esto es un log de prueba inicio");
 
     const date = connect.useDb(database).model('dates', dateSchema)
     const datesFormats = formats.datesMonth()
@@ -37,6 +41,8 @@ dates.get('/:branch', protectRoute, async (req, res) => {
                 {createdAt: { $gte: datesFormats.thisMonth.since+' 00:00', $lte: '01-01-2050 24:00' }}
             ]
         })
+        logDates.error("Esto es un log de prueba Fin");
+        logDates.info("Esto es un log de prueba Fin");
         if (getDates.length > 0) {
             res.json({ status: 'ok', data: getDates, token: req.requestToken })
         } else {
@@ -59,7 +65,6 @@ dates.get('/:branch', protectRoute, async (req, res) => {
 
 dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     try {
@@ -93,7 +98,6 @@ dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
 
 dates.get('/getDatesbyemploye/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const date = connect.useDb(database).model('dates', dateSchema)
     try {
@@ -126,7 +130,6 @@ dates.get('/getDatesbyemploye/:id', protectRoute, async (req, res) => {
 
 dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
     const dateT = formats.datesEdit(new Date())
@@ -167,7 +170,6 @@ dates.get('/getEndingDates/:branch', protectRoute, async (req, res) => {
 
 dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
 
@@ -194,8 +196,7 @@ dates.get('/getBlockingHours/:branch', protectRoute, async (req, res) => {
 
 
 dates.get('/addData/:branch', (req, res) => {
-    // const database = req.headers['x-database-connect'];
-    
+    const database = req.headers['x-database-connect'];
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const datee = connect.useDb(database).model('dates', dateSchema)
@@ -229,7 +230,6 @@ dates.get('/addData/:branch', (req, res) => {
 
 dates.get('/giveDatesToSendConfirm/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const datee = connect.useDb(database).model('dates', dateSchema)
     const dayBack = formats.dayBack(new Date())
@@ -270,7 +270,6 @@ dates.get('/giveDatesToSendConfirm/:branch', protectRoute, async (req, res) => {
 
 dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dates = formats.dayBack(new Date())
@@ -306,7 +305,6 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
 
 dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
     const dates = formats.dayBack(new Date())
