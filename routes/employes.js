@@ -60,7 +60,6 @@ employes.get('/UsersEmployes/:branch', protectRoute, async (req, res) => {
         if (getEmployes.length > 0) {
             try {
                 const users = await User.populate(getEmployes, {path: "users"})
-                console.log(users)
                 const sendData =  []
                 for (const employe of users) {
                     if (employe.users) {
@@ -383,9 +382,6 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
                     .then(DaySales => {
                         DaySales.total = DaySales.total - parseFloat(total)
                         DaySales.typesPay[0].total = DaySales.typesPay[0].total - parseFloat(total)
-                        console.log(DaySales.total == 0)
-                        console.log(DaySales.total)
-                        console.log(DaySales.typesPay)
                         if(DaySales.total == 0){
                             DaySale.findByIdAndRemove(DaySales._id)
                             .then(deleteDaySale => {

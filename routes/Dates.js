@@ -20,6 +20,7 @@ const formats = require('../formats')
 const logger = require('../Logs/serviceExport');
 const logNode = logger.getLogger("node");
 const logDates = logger.getLogger("dates");
+//Ejemplo logs logDates.info(``);
 const cors = require('cors')
 const connect = require('../mongoConnection/conectionInstances')
 
@@ -28,10 +29,9 @@ dates.use(cors())
 // Api que busca toda la informacion de las citas (Ingreso: Nullo) -- Api that search all the dates' data (Input: Null)
 
 dates.get('/:branch', protectRoute, async (req, res) => {
+    logDates.info("********* Inicio busca citas ***********");
     const database = req.headers['x-database-connect'];
-    
-    logNode.error("Esto es un log de prueba inicio");
-
+    logDates.info(`Base de datos de esta consulta ${database}`);
     const date = connect.useDb(database).model('dates', dateSchema)
     const datesFormats = formats.datesMonth()
     try {
@@ -41,14 +41,20 @@ dates.get('/:branch', protectRoute, async (req, res) => {
                 {createdAt: { $gte: datesFormats.thisMonth.since+' 00:00', $lte: '01-01-2050 24:00' }}
             ]
         })
-        logDates.error("Esto es un log de prueba Fin");
-        logDates.info("Esto es un log de prueba Fin");
+        logDates.info(`Paso consulta con exito`);
         if (getDates.length > 0) {
+            logDates.info(`********* Fin encontro ${getDates.length} citas ***********`);
             res.json({ status: 'ok', data: getDates, token: req.requestToken })
         } else {
+            let params = [
+                {branch: req.params.branch},
+                {createdAt: { $gte: datesFormats.thisMonth.since+' 00:00', $lte: '01-01-2050 24:00' }}
+            ];
+            logDates.info(`********* Fin no encontro citas, parametros ${JSON.stringify(params)} ***********`);
             res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
         }
     } catch (err) {
+        logDates.error(`********* Error ${err} ***********`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 
@@ -530,7 +536,6 @@ dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
     try {
         const datesBlocks = await dateBlock.find()
         if(datesBlocks.length > 0){
-            console.log(datesBlocks.length)
             for (const datesB of datesBlocks) {
                 for (const block of datesB.blocks) {
                     for (const key in block.employes) {
@@ -579,11 +584,9 @@ dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
         img: "no",
         commission: 0
     }
-    console.log(dataEmploye)
     try {
         const datesBlocks = await dateBlock.find()
         if(datesBlocks.length > 0){
-            console.log(datesBlocks.length)
             for (const datesB of datesBlocks) {
                 for (const block of datesB.blocks) {
                     if (block.hour == "13:30" || block.hour == "13:45" || block.hour == "14:00" || block.hour == "14:15") {
@@ -631,7 +634,7 @@ dates.delete('/:id', async (req, res) => {
         try {
             const findDateBlock = await dateBlock.findOne({
                 $and: [
-                    { 'dateData.date': dateFind },
+                    { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind[1] : dateFind },
                     { 'dateData.branch': branch }
                 ]
             })
