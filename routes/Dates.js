@@ -29,7 +29,7 @@ dates.use(cors())
 // Api que busca toda la informacion de las citas (Ingreso: Nullo) -- Api that search all the dates' data (Input: Null)
 
 dates.get('/:branch', protectRoute, async (req, res) => {
-    logDates.info("********* Inicio busca citas ***********");
+    logDates.info("################## Inicio busca citas ################");
     const database = req.headers['x-database-connect'];
     logDates.info(`Base de datos de esta consulta ${database}`);
     const date = connect.useDb(database).model('dates', dateSchema)
@@ -43,18 +43,18 @@ dates.get('/:branch', protectRoute, async (req, res) => {
         })
         logDates.info(`Paso consulta con exito`);
         if (getDates.length > 0) {
-            logDates.info(`********* Fin encontro ${getDates.length} citas ***********`);
+            logDates.info(`********* Fin encontro ${getDates.length} citas *********** \n`);
             res.json({ status: 'ok', data: getDates, token: req.requestToken })
         } else {
             let params = [
                 {branch: req.params.branch},
                 {createdAt: { $gte: datesFormats.thisMonth.since+' 00:00', $lte: '01-01-2050 24:00' }}
             ];
-            logDates.info(`********* Fin no encontro citas, parametros ${JSON.stringify(params)} ***********`);
+            logDates.info(`############# Fin no encontro citas, parametros ${JSON.stringify(params)} ############# \n`);
             res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
         }
     } catch (err) {
-        logDates.error(`********* Error ${err} ***********`);
+        logDates.error(`############ Error ${err} ############ \n`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 
@@ -521,7 +521,7 @@ dates.post('/', async (req, res) => {
 dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     
-
+    logDates.info(`############## Inicio de -> NormalizeDatesBlocks <-  con base de datos:${database} ###############`);
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const dataEmploye = {
         name: req.body.name,
@@ -532,19 +532,22 @@ dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
         img: "no",
         commission: 0
     }
-    
+    logDates.info(`********* Datos:${JSON.stringify(dataEmploye)} ***********`);
     try {
         const datesBlocks = await dateBlock.find()
         if(datesBlocks.length > 0){
+            logDates.info(`********* Bloques encontrados:${JSON.stringify(datesBlocks)} ***********`);
             for (const datesB of datesBlocks) {
                 for (const block of datesB.blocks) {
                     for (const key in block.employes) {
                         const employe = block.employes[key]
                         if (employe.id == dataEmploye.id) {
                             block.employes.splice(key, 1)
+                            logDates.info(`********* Bloque luego del splice (Employe) ${key} ${JSON.stringify(block)} ***********`);
                         }
                         if (employe.name == null) {
                             block.employes.splice(key, 1)
+                            logDates.info(`********* Bloque luego del splice (Employe) ${key} ${JSON.stringify(block)} ***********`);
                         }
                     }
                     var valid = true
@@ -555,24 +558,31 @@ dates.post('/normalizeDatesBlocks', protectRoute, async (req, res) => {
                     }
                     if (valid) {
                         block.employes.push(dataEmploye)
+                        logDates.info(`********* Bloque luego del push ${key} ${JSON.stringify(block)} ***********`);
                     }
                 }
+                logDates.info(`********* Bloque antes de hacer el update ${JSON.stringify(datesB.blocks)} ***********`);
                 dateBlock.findByIdAndUpdate(datesB._id, {
                     $set: {
                         blocks: datesB.blocks
                     }
-                }).then(ready => {})
+                }).then(ready => {
+                    logDates.info(`********* Respuesta del update ${JSON.stringify(ready)} ***********`);
+                })
             }
+            logDates.info(`############## Fin de -> NormalizeDatesBlocks <-  con base de datos:${database} ############### \n`);
             res.json({status: 'ok'})
         }
     } catch (err) {
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> NormalizeDatesBlocks <- con error ############### \n`);
         res.send(err)
     }
 })
 
 dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
+    logDates.info(`############## Inicio de -> NormalizeDatesBlocksColation <-  con base de datos:${database} ###############`);
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const dataEmploye = {
@@ -584,9 +594,11 @@ dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
         img: "no",
         commission: 0
     }
+    logDates.info(`********* Datos:${JSON.stringify(dataEmploye)} ***********`);
     try {
         const datesBlocks = await dateBlock.find()
         if(datesBlocks.length > 0){
+            logDates.info(`********* Bloques encontrados:${JSON.stringify(datesBlocks)} ***********`);
             for (const datesB of datesBlocks) {
                 for (const block of datesB.blocks) {
                     if (block.hour == "13:30" || block.hour == "13:45" || block.hour == "14:00" || block.hour == "14:15") {
@@ -594,19 +606,24 @@ dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
                             const employe = block.employes[key]
                             if (employe.id == dataEmploye.id) {
                                 block.employes.splice(key, 1)
+                                logDates.info(`********* Bloque luego del splice (Employe) ${key} ${JSON.stringify(block)} ***********`);
                             }
                         }
                     }
                 }
+                logDates.info(`********* Bloque antes de hacer el update ${JSON.stringify(datesB.blocks)} ***********`);
                 dateBlock.findByIdAndUpdate(datesB._id, {
                     $set: {
                         blocks: datesB.blocks
                     }
-                }).then(ready => {})
+                }).then(ready => {logDates.info(`********* Respuesta del update ${JSON.stringify(ready)} ***********`);})
             }
+            logDates.info(`############## Fin de -> NormalizeDatesBlocksColation <-  con base de datos:${database} ############### \n`);
             res.json({status: 'ok'})
         }
     } catch (err) {
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> NormalizeDatesBlocksColation <- con error ############### \n`);
         res.send(err)
     }
 })
@@ -620,17 +637,24 @@ dates.post('/normalizeDatesBlocksColation', protectRoute, async (req, res) => {
 
 dates.delete('/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
-
+    logDates.info(`############## Inicio de -> Api que elimina cita <-  con base de datos:${database} ###############`);
     const date = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
     try{
         const findDate = await date.findById(req.params.id)
+        logDates.info(`********* Cita encontrada :${JSON.stringify(findDate)} ***********`);
         const dateFind = findDate.start.split(' ')[0]
         const branch = findDate.branch
         const hour = findDate.start.split(' ')[1]
         const end = findDate.end.split(' ')[1]
         const employe = findDate.employe
+        logDates.info(`********* Constantes creadas: datefind, branch, hour, end, employe ***********`);
+        logDates.info(`********* dateFind: ${dateFind} ***********`);
+        logDates.info(`********* branch: ${branch} ***********`);
+        logDates.info(`********* hour: ${hour} ***********`);
+        logDates.info(`********* end: ${end} ***********`);
+        logDates.info(`********* employe: ${JSON.stringify(employe)} ***********`);
         try {
             const findDateBlock = await dateBlock.findOne({
                 $and: [
@@ -638,6 +662,7 @@ dates.delete('/:id', async (req, res) => {
                     { 'dateData.branch': branch }
                 ]
             })
+            logDates.info(`********* Bloques encontrados :${JSON.stringify(findDateBlock)} ***********`);
             var valid = false
             try {
                 for (const block of findDateBlock.blocks) {
@@ -652,6 +677,7 @@ dates.delete('/:id', async (req, res) => {
                         block.employeBlocked.forEach((element, index) => {
                             if (element.employe == employe.id) {
                                 block.employeBlocked.splice(index, 1)
+                                logDates.info(`********* Bloque luego del splice (employeBlocked) ${index} ${JSON.stringify(block)} ***********`);
                             }
                         });
                         block.employes.push({
@@ -662,22 +688,30 @@ dates.delete('/:id', async (req, res) => {
                             valid: false,
                             img: employe.img
                         })
+                        logDates.info(`********* Bloque luego del push (employes) ${JSON.stringify(block)} ***********`);
                     }
                 }
                 try {
+                    logDates.info(`********* Bloque antes de hacer el update ${JSON.stringify(findDateBlock.blocks)} ***********`);
                     const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock._id, {
                         $set: {
                             blocks: findDateBlock.blocks
                         }
                     })
+                    logDates.info(`********* Bloque editado :${JSON.stringify(editDateBlock)} ***********`);
                     try {
                         const findConfig = await Configuration.findOne({
                             branch: findDate.branch
                         })
+                        logDates.info(`********* Configuracion encontrada :${JSON.stringify(findConfig)} ***********`);
                         try {
                             const removeDate = await date.findByIdAndRemove(req.params.id)
+                            logDates.info(`********* Cita eliminada :${JSON.stringify(removeDate)} ***********`);
+                            logDates.info(`############## Fin -> Eliminar cita <- ############### \n`);
                             res.json({ status: 'deleted', data: findDate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo, removed: removeDate })
                         } catch (err) {
+                            logDates.error(`********* Error ${err} ***********`);
+                            logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
                             const Log = new LogService(
                                 req.headers.host, 
                                 req.body, 
@@ -691,6 +725,8 @@ dates.delete('/:id', async (req, res) => {
                             res.send('failed api with error, '+ dataLog.error)
                         }
                     }catch(err){
+                        logDates.error(`********* Error ${err} ***********`);
+                        logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
                         const Log = new LogService(
                             req.headers.host, 
                             req.body, 
@@ -704,6 +740,8 @@ dates.delete('/:id', async (req, res) => {
                         res.send('failed api with error, '+ dataLog.error)
                     }
                 }catch(err){
+                    logDates.error(`********* Error ${err} ***********`);
+                    logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
                     const Log = new LogService(
                         req.headers.host, 
                         req.body, 
@@ -717,6 +755,8 @@ dates.delete('/:id', async (req, res) => {
                     res.send('failed api with error, '+ dataLog.error)
                 }
             }catch(err){
+                logDates.error(`********* Error ${err} ***********`);
+                logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
                 const Log = new LogService(
                     req.headers.host, 
                     req.body, 
@@ -730,6 +770,8 @@ dates.delete('/:id', async (req, res) => {
                 res.send('failed api with error, '+ dataLog.error)
             }
         } catch (err) {
+            logDates.error(`********* Error ${err} ***********`);
+            logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
             const Log = new LogService(
                 req.headers.host, 
                 req.body, 
@@ -743,6 +785,8 @@ dates.delete('/:id', async (req, res) => {
             res.send('failed api with error, '+ dataLog.error)
         }
     }catch(err){
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 
@@ -764,11 +808,12 @@ dates.delete('/:id', async (req, res) => {
 
 dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    logDates.info(`############## Inicio de -> createBlockingHour <-  con base de datos:${database} ###############`);
+    logDates.info(`********* Creacion de constantes: splitDate, Day, employes, data  ***********`);
     const splitDate = req.body.dateBlocking.split('-')
     const Day = new Date(splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2] + ' 10:00').getDay()
     const employes = req.body.employes
@@ -780,6 +825,11 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
         start: req.body.start,
         end: req.body.end
     }
+    logDates.info(`********* splitDate:${splitDate}  ***********`);
+    logDates.info(`********* Day:${Day}  ***********`);
+    logDates.info(`********* employes:${JSON.stringify(employes)}  ***********`);
+    logDates.info(`********* data:${JSON.stringify(data)}  ***********`);
+
     try {
         const findDay = await dateBlock.findOne({
             $and: [
@@ -787,7 +837,9 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 { 'dateData.date': data.dateBlocking }
             ]
         })
+        
         if (findDay) {
+            logDates.info(`********* Bloques encontrados:${JSON.stringify(findDay)} ***********`);
             var valid = false
             var valid2 = true
             var validAll = true
@@ -799,6 +851,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     if (valid2) {
                         
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                        logDates.info(`********* Bloque luego del push 0.1 ${JSON.stringify(findDay.blocks[0])} ***********`);
                         valid2 = false
                     }
                 }
@@ -809,6 +862,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     if (valid2) {
                         
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                        logDates.info(`********* Bloque luego del push 0.2 ${JSON.stringify(findDay.blocks[0])} ***********`);
                         valid2 = false
                     }
                 }
@@ -816,12 +870,15 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     if (index == 0 && valid2) {
                         
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                        logDates.info(`********* Bloque luego del push 0.3 ${JSON.stringify(findDay.blocks[0])} ***********`);
                     }
+                    logDates.info(`********* block.hour es igual al start ***********`);
                     valid = true
                     validStep = false
                     console.log("valid3")
                 }
                 if (block.hour == req.body.end) {
+                    logDates.info(`********* block.hour es igual al end ***********`);
                     valid = false
                 }
                 if (block.hour == findDay.blocks[findDay.blocks.length -1] && parseFloat(req.body.end.split(":")[0]) > parseFloat(findDay.blocks[findDay.blocks.length -1].split(":")[0])) {
@@ -829,25 +886,32 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 }
                 if (valid) {
                     block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                    logDates.info(`********* Bloque luego del push (employeBlocked) ${JSON.stringify(block)} ***********`);
                     for (const key in block.employes) {
                         const employe = block.employes[key]
                         if (employe.id == data.employe.id) {
-                           
                             data.employe = employe
                             block.employes.splice(key, 1)
+                            logDates.info(`********* Bloque luego del splice (Employe) ${key} ${JSON.stringify(block)} ***********`);
                         }
                     }
                 }
             });
             if (validAll) {
                 try {
+                    logDates.info(`********* Bloque antes de hacer el update ${JSON.stringify(findDay.blocks)} ***********`);
                     const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
                         $set: { blocks: findDay.blocks }
                     })
                     try {
+                        logDates.info(`********* Data antes de hacer el create ${JSON.stringify(data)} ***********`);
                         const createHour = await HourBlocking.create(data)
+                        logDates.info(`********* Bloqueo creado ${JSON.stringify(createHour)} ***********`);
+                        logDates.info(`############## Fin de -> createBlockingHour <-  con base de datos:${database} ############### \n`);
                         res.json({ status: 'ok' })
                     } catch (err) {
+                        logDates.info(`********* Error ${err} ***********`);
+                        logDates.info(`############## Fin -> createBlockingHour <- con error ############### \n`);
                         const Log = new LogService(
                             req.headers.host, 
                             req.body, 
@@ -861,6 +925,8 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         res.send('failed api with error, '+ dataLog.error)
                     }
                 }catch (err) {
+                    logDates.info(`********* Error ${err} ***********`);
+                    logDates.info(`############## Fin -> createBlockingHour <- con error ############### \n`);
                     const Log = new LogService(
                         req.headers.host, 
                         req.body, 
@@ -874,6 +940,8 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     res.send('failed api with error, '+ dataLog.error)
                 }
             }else{
+                logDates.error(`********* Error - Ocupado ***********`);
+                logDates.info(`############## Fin -> createBlockingHour <- con error de ocupado ############### \n`);
                 res.json({ status: 'busy' })
             }
             
@@ -881,11 +949,16 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
             //create a dateBlock register to block hour
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
+                logDates.info(`********* Configuracion encontrada:${JSON.stringify(datesBlocks)} ***********`);
+                logDates.info(`********* Creacion de variables: getDay, blocksFirst, splitHour, splitMinutes ***********`);
                 const getDay = findConfiguration.blockHour.filter(day => day.day == Day)[0]
-                // console.log(findConfiguration)
                 var blocksFirst = []
                 var splitHour = parseFloat(getDay.start.split(':')[0])
                 var splitMinutes = getDay.start.split(':')[1]
+                logDates.info(`********* getDay:${getDay}  ***********`);
+                logDates.info(`********* blocksFirst:${blocksFirst} (Se crea vacio)  ***********`);
+                logDates.info(`********* splitHour:${splitHour}  ***********`);
+                logDates.info(`********* splitMinutes:${splitMinutes}  ***********`);
                 for (let i = 0; i < getDay.time / 15 + 1; i++) {
                     if (i == 0) {
                         blocksFirst.push({
@@ -894,6 +967,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                             employes: [],
                             employeBlocked: []
                         })
+                        logDates.info(`********* Bloque luego del push (if) ${i} ${JSON.stringify(blocksFirst)} ***********`);
                         splitMinutes = parseFloat(splitMinutes) + 15
                         splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
                         splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
@@ -904,6 +978,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                             employes: [],
                             employeBlocked: []
                         })
+                        logDates.info(`********* Bloque luego del push (else) ${i} ${JSON.stringify(blocksFirst)} ***********`);
                         splitMinutes = parseFloat(splitMinutes) + 15
                         splitHour = splitMinutes == 60 ? splitHour + 1 : splitHour
                         splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
@@ -927,6 +1002,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         }
                         if (!inspector) {
                             elementTwo.employes.push({ name: element.name, id: element.id, class: element.class, position: i, valid: false, img: element.img })
+                            logDates.info(`********* Bloque luego del push (employe)  ${JSON.stringify(elementTwo)} ***********`);
                             elementTwo.employeBlocked = []
                         }
                     }
@@ -963,6 +1039,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     blocks: blocksFirst
                 }
                 try {
+                    logDates.info(`********* Datos antes de crear dateBlock :${JSON.stringify(dataConfiguration)} ***********`);
                     const createBlockdate = await dateBlock.create(dataConfiguration)
                     if (createBlockdate) {
                         var valid = false
@@ -972,6 +1049,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 valid = true
                                 if (valid2) {
                                     blocksFirst[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    logDates.info(`********* Bloque luego del push (employeBlocked) 0.1 ${JSON.stringify(blocksFirst[0])} ***********`);
                                     valid2 = false
                                 }
                             }
@@ -980,12 +1058,14 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 valid = true
                                 if (valid2) {
                                     blocksFirst[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    logDates.info(`********* Bloque luego del push (employeBlocked) 0.2 ${JSON.stringify(blocksFirst[0])} ***********`);
                                     valid2 = false
                                 }
                             }
                             if (block.hour == req.body.start) {
                                 if (blocksFirst[0] == req.body.start) {
                                     blocksFirst[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    logDates.info(`********* Bloque luego del push (employeBlocked) 0.3 ${JSON.stringify(blocksFirst[0])} ***********`);
                                     valid2 = false
                                 }
                                 valid = true
@@ -999,21 +1079,28 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 for (const key in block.employes) {
                                     const employe = block.employes[key]
                                     block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    logDates.info(`********* Bloque luego del push (employeBlocked) ${key} ${JSON.stringify(block)} ***********`);
                                     if (employe.id == data.employe.id) {
                                         data.employe = employe
                                         block.employes.splice(key, 1)
+                                        logDates.info(`********* Bloque luego del splice (Employe) ${key} ${JSON.stringify(block)} ***********`);
                                     }
                                 }
                             }
                         }
                         try {
+                            logDates.info(`********* Datos antes de editar dateBlock :${JSON.stringify(blocksFirst)} ***********`);
                             const editBlockDate = await dateBlock.findByIdAndUpdate(createBlockdate._id, {
                                 $set: { blocks: blocksFirst }
                             })
                             try {
+                                logDates.info(`********* Datos antes de crear hourBlocking :${JSON.stringify(data)} ***********`);
                                 const createHour = await HourBlocking.create(data)
+                                logDates.info(`############## Fin de -> createBlockingHour <-  con base de datos:${database} ############### \n`);
                                 res.json({ status: 'ok' })
                             } catch (err) {
+                                logDates.info(`********* Error ${err} ***********`);
+                                logDates.info(`############## Fin -> createBlockingHour <- con error ############### \n`);
                                 const Log = new LogService(
                                     req.headers.host, 
                                     req.body, 
@@ -1027,6 +1114,8 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 res.send('failed api with error, '+ dataLog.error)
                             }
                         } catch (err) {
+                            logDates.info(`********* Error ${err} ***********`);
+                            logDates.info(`############## Fin -> createBlockingHour <- con error ############### \n`);
                             const Log = new LogService(
                                 req.headers.host, 
                                 req.body, 
@@ -1040,7 +1129,9 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                             res.send('failed api with error, '+ dataLog.error)
                         }
                     }
-                } catch (err) { 
+                } catch (err) {
+                    logDates.info(`********* Error ${err} ***********`);
+                    logDates.info(`############## Fin -> createBlockingHour <- con error ############### \n`); 
                     const Log = new LogService(
                         req.headers.host, 
                         req.body, 
@@ -1053,7 +1144,9 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     const dataLog = await Log.createLog()
                     res.send('failed api with error, '+ dataLog.error)
                 }
-            } catch (err) { 
+            } catch (err) {
+                logDates.info(`********* Error ${err} ***********`);
+                logDates.info(`############## Fin -> createBlockingHour <- con error ############### \n`); 
                 const Log = new LogService(
                     req.headers.host, 
                     req.body, 
@@ -1067,6 +1160,8 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 res.send('failed api with error, '+ dataLog.error) }
             }
         } catch (err) {
+            logDates.info(`********* Error ${err} ***********`);
+            logDates.info(`############## Fin -> createBlockingHour <- con error ############### \n`);
             const Log = new LogService(
                 req.headers.host, 
                 req.body, 
@@ -1083,8 +1178,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
 
 dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
-
+    logDates.info(`############## Inicio de -> deleteBlockingHour <-  con base de datos:${database} ###############`);
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
 
@@ -1095,6 +1189,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
         start: req.body.start,
         end: req.body.end
     }
+    logDates.info(`********* Datos:${JSON.stringify(data)} ***********`);
     try {
         const findDay = await dateBlock.findOne({
             $and: [
@@ -1102,6 +1197,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                 { 'dateData.date': data.dateBlocking }
             ]
         })
+        logDates.info(`********* Bloque encontrado:${JSON.stringify(findDay)} ***********`);
         var valid = false
         var valid2 = true
         for (const block of findDay.blocks) {
@@ -1111,7 +1207,9 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                     findDay.blocks[0].employeBlocked.forEach((element,index) => {
                         if (element.employe == data.employe.id && element.type == 'blocking') {
                             findDay.blocks[0].employeBlocked.splice(index, 1)
+                            logDates.info(`********* Bloque luego del splice (Employeblocked) ${index} ${JSON.stringify(findDay.blocks[0])} ***********`);
                             findDay.blocks[0].employes.unshift(data.employe)
+                            logDates.info(`********* Bloque luego del unshift (EmployeBlocked) ${index} ${JSON.stringify(findDay.blocks[0])} ***********`);
                         }
                         if (element.employe == data.employe.id && element.type == 'date') {
                             for (let indexB = 0; indexB < findDay.blocks[0].employes.length; indexB++) {
@@ -1119,6 +1217,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                                 
                                 if (elementB.id == data.employe.id) {
                                     findDay.blocks[0].employes.splice(indexB, 1)
+                                    logDates.info(`********* Bloque luego del splice (Employe) ${indexB} ${JSON.stringify(findDay.blocks[0])} ***********`);
                                 }
                             }
                         }
@@ -1133,7 +1232,9 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                     findDay.blocks[0].employeBlocked.forEach((element,index) => {
                         if (element.employe == data.employe.id && element.type == 'blocking') {
                             findDay.blocks[0].employeBlocked.splice(index, 1)
+                            logDates.info(`********* Bloque luego del splice (EmployeBlocked) ${index} ${JSON.stringify(findDay.blocks[0])} ***********`);
                             findDay.blocks[0].employes.unshift(data.employe)
+                            logDates.info(`********* Bloque luego del unshift (Employe) ${index} ${JSON.stringify(findDay.blocks[0])} ***********`);
                         }
                         if (element.employe == data.employe.id && element.type == 'date') {
                             for (let indexB = 0; indexB < findDay.blocks[0].employes.length; indexB++) {
@@ -1141,6 +1242,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                                 
                                 if (elementB.id == data.employe.id) {
                                     findDay.blocks[0].employes.splice(indexB, 1)
+                                    logDates.info(`********* Bloque luego del splice (Employe) ${indexB} ${JSON.stringify(findDay.blocks[0])} ***********`);
                                 }
                             }
                         }
@@ -1154,7 +1256,9 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                         findDay.blocks[0].employeBlocked.forEach((element,index) => {
                             if (element.employe == data.employe.id && element.type == 'blocking') {
                                 findDay.blocks[0].employeBlocked.splice(index, 1)
+                                logDates.info(`********* Bloque luego del splice (Employeblocked) ${index} ${JSON.stringify(findDay.blocks[0])} ***********`);
                                 findDay.blocks[0].employes.unshift(data.employe)
+                                logDates.info(`********* Bloque luego del unshift (Employe) ${index} ${JSON.stringify(findDay.blocks[0])} ***********`);
                             }
                             if (element.employe == data.employe.id && element.type == 'date') {
                                 for (let indexB = 0; indexB < findDay.blocks[0].employes.length; indexB++) {
@@ -1162,6 +1266,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                                     
                                     if (elementB.id == data.employe.id) {
                                         findDay.blocks[0].employes.splice(indexB, 1)
+                                        logDates.info(`********* Bloque luego del splice (Employe) ${indexB} ${JSON.stringify(findDay.blocks[0])} ***********`);
                                     }
                                 }
                             }
@@ -1182,7 +1287,9 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                     block.employeBlocked.forEach((element,index) => {
                         if (element.employe == data.employe.id && element.type == 'blocking') {
                             block.employeBlocked.splice(index, 1)
+                            logDates.info(`********* Bloque luego del splice (EmployeBlocked) ${index} ${JSON.stringify(block)} ***********`);
                             block.employes.unshift(data.employe)
+                            logDates.info(`********* Bloque luego del unshift (Employe) ${index} ${JSON.stringify(block)} ***********`);
                         }
                         
                     });
@@ -1196,19 +1303,26 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                         const elementB = element.employes[indexB];
                         if (elementB.id == data.employe.id) {
                             element.employes.splice(indexB, 1)
+                            logDates.info(`********* Bloque luego del splice (Employe) ${indexB} ${JSON.stringify(element)} ***********`);
                         }
                     }
                 }
             });
         });
         try {
+            logDates.info(`********* Bloque antes de hacer el update ${JSON.stringify(findDay.blocks)} ***********`);
             const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
                 $set: { blocks: findDay.blocks }
             })
+            logDates.info(`********* Respuesta del update ${JSON.stringify(editBlockDate)} ***********`);
             try {
                 const createHour = await HourBlocking.findByIdAndRemove(req.body.id)
+                logDates.info(`********* Respuesta del update ${JSON.stringify(createHour)} ***********`);
+                logDates.info(`############## Fin de -> deleteBlockingHour <-  con base de datos:${database} ############### \n`);
                 res.json({ status: 'ok' })
             } catch (err) {
+                logDates.info(`********* Error ${err} ***********`);
+                logDates.info(`############## Fin -> deleteBlockingHour <- con error ############### \n`);
                 const Log = new LogService(
                     req.headers.host, 
                     req.body, 
@@ -1222,6 +1336,8 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                 res.send('failed api with error, '+ dataLog.error)
             }
         } catch (err) {
+            logDates.info(`********* Error ${err} ***********`);
+            logDates.info(`############## Fin -> deleteBlockingHour <- con error ############### \n`);
             const Log = new LogService(
                 req.headers.host, 
                 req.body, 
@@ -1235,6 +1351,8 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
             res.send('failed api with error, '+ dataLog.error)
         }
     } catch (err) {
+        logDates.info(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> deleteBlockingHour <- con error ############### \n`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 
@@ -1254,14 +1372,18 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
 dates.post('/blockHours', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     
-
+    logDates.info(`############## Inicio de -> blockHours <-  con base de datos:${database} ###############`);
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    logDates.info(`********* Creacion de constantes: dateDaily, Day, restHour, hoursdate  ***********`);
     const dateDaily = req.body.date
     const Day = new Date(dateDaily).getDay()
-
     const restHour = req.body.restHour
     const hoursdate = req.body.timedate
+    logDates.info(`********* dateDaily:${dateDaily}  ***********`);
+    logDates.info(`********* Day:${Day}  ***********`);
+    logDates.info(`********* restHour:${restHour}  ***********`);
+    logDates.info(`********* hoursdate:${hoursdate}  ***********`);
     try {
         const findDay = await dateBlock.findOne({
             $and: [
@@ -1270,6 +1392,7 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
             ]
         })
         if (findDay) {
+            logDates.info(`********* Bloque encontrado:${JSON.stringify(findDay)} ***********`);
             var ifEmploye = false
             var blocks = []
             for (let i = 0; i < findDay.employeBlocks.length; i++) {
@@ -1280,6 +1403,7 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                     break
                 }
             }
+            
             if (ifEmploye) {
                 for (let e = 0; e < blocks.length; e++) {
                     const element = blocks[e];
@@ -1296,22 +1420,30 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                         }
                     }
                 }
+                logDates.info(`############## Fin de -> blockHours <- (entrando en el if)  con base de datos:${database} data: ${JSON.stringify(blocks)} ############### \n`);
                 res.json({ status: 'ok', data: blocks })
             } else {
                 try {
                     const findConfiguration = await Configuration.findOne({
                         branch: req.body.branch
                     })
+                    logDates.info(`********* Configuracion encontrada:${JSON.stringify(findConfiguration)} ***********`);
+                    logDates.info(`********* Creacion de constantes: getDay, initialBlock, splitHour, splitMinutes  ***********`);
                     const getDay = findConfiguration.blockHour.filter(day => day.day == Day)
                     var initialBlock = []
                     var splitHour = getDay.start.split(':')[0]
                     var splitMinutes = getDay.start.split(':')[1]
+                    logDates.info(`********* getDay:${getDay}  ***********`);
+                    logDates.info(`********* initialBlock:${initialBlock}  ***********`);
+                    logDates.info(`********* splithour:${splithour}  ***********`);
+                    logDates.info(`********* splitMinutes:${splitMinutes}  ***********`);
                     for (let i = 0; i < getDay.time / 15; i++) {
                         if (i == 0) {
                             initialBlock.push({
                                 hour: getDay.start,
                                 validator: true
                             })
+                            logDates.info(`********* Bloque luego del push ${i} ${JSON.stringify(initialBlock)} ***********`);
                             splitMinutes = parseFloat(splitMinutes + 15)
                             splitHour = splitMinutes == 60 ? splitHour++ : splitHour
                             splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
@@ -1320,6 +1452,7 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                                 hour: splitHour + ':' + splitMinutes,
                                 validator: true
                             })
+                            logDates.info(`********* Bloque luego del push ${i} ${JSON.stringify(initialBlock)} ***********`);
                             splitMinutes = parseFloat(splitMinutes + 15)
                             splitHour = splitMinutes == 60 ? splitHour++ : splitHour
                             splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
@@ -1334,6 +1467,7 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                         }
                     }
                     try {
+                        logDates.info(`********* ID antes de hacer el update ${JSON.stringify(findDay._id)} ***********`);
                         const findDay = await dateBlock.findByIdAndUpdate(findDay._id, {
                             $push: {
                                 employeBlocks: {
@@ -1342,6 +1476,7 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                                 }
                             }
                         })
+                        logDates.info(`********* Respuesta del update ${JSON.stringify(findDay)} ***********`);
                         for (let e = 0; e < initialBlock.length; e++) {
                             const element = initialBlock[e];
                             if (element.validator == false && initialBlock[e - 1].validator == true && e > 0) {
@@ -1357,8 +1492,11 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                                 }
                             }
                         }
+                        logDates.info(`############## Fin de -> blockHours <-  con base de datos:${database} data: ${JSON.stringify(initialBlock)} ############### \n`);
                         res.json({ status: 'ok', data: initialBlock })
                     } catch (err) { 
+                        logDates.error(`********* Error ${err} ***********`);
+                        logDates.info(`############## Fin -> blockHours <- con error ############### \n`);
                         const Log = new LogService(
                             req.headers.host, 
                             req.body, 
@@ -1371,7 +1509,9 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
                         const dataLog = await Log.createLog()
                         res.send('failed api with error, '+ dataLog.error)
                     }
-                } catch (err) { 
+                } catch (err) {
+                    logDates.error(`********* Error ${err} ***********`);
+                    logDates.info(`############## Fin -> blockHours <- con error ############### \n`); 
                     const Log = new LogService(
                         req.headers.host, 
                         req.body, 
@@ -1387,6 +1527,8 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
             }
         }
     } catch (err) {
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> blockHours <- con error ############### \n`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 
@@ -1408,13 +1550,17 @@ dates.post('/blockHours', protectRoute, async (req, res) => {
 //Api que busca y crea los bloques de horarios (Ingreso: date, timedate, branch, employes, employesServices) -- api that find and create first time blocks (Input: date, timedate, branch, employes, employesServices)
 
 dates.post('/editBlocksFirst', async (req, res) => {
+    logDates.info(`############## Inicio de -> editBlocksFirst <-  ###############`);
+    logDates.info(`********* Creacion de constantes: hoursdate, blocks  ***********`);
     const hoursdate = req.body.timedate
     const blocks = req.body.block
-    
+    logDates.info(`********* hoursdate:${hoursdate}  ***********`);
+    logDates.info(`********* blocks:${blocks}  ***********`);
     if (req.body.firstBlock) {
         const employesServices = req.body.employesServices
         
         if (req.body.online) {
+            logDates.info(`********* Fue desde agendamientoCliente ***********`);
             const employes = req.body.employes
             employesServices.forEach((emp,index) => {
                 if (emp.name != "Primera disponible") {
@@ -1437,7 +1583,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 elementThree.valid = false
             }
         }
-
+        logDates.info(`********* Bloque despues del primer FOR ${JSON.stringify(blocks)}  ***********`);
         for (const i in employesServices) {
             const element = employesServices[i];
             for (const u in blocks) {
@@ -1450,7 +1596,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del segundo FOR ${JSON.stringify(blocks)}  ***********`);
         for (const i in blocks) {
             const element = blocks[i];
             if (element.validator == 'select') {
@@ -1468,7 +1614,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del tercer FOR ${JSON.stringify(blocks)}  ***********`);
         for (let i = 0; i < employesServices.length; i++) {
             const employeService = employesServices[i];
             for (let e = 0; e < blocks.length; e++) {
@@ -1493,7 +1639,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del cuarto FOR ${JSON.stringify(blocks)}  ***********`);
         // res.json({status: 'ok', data: blocksFirst})
         for (let e = 0; e < blocks.length; e++) {
             const element = blocks[e];
@@ -1527,7 +1673,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del quinto FOR ${JSON.stringify(blocks)}  ***********`);
         for (const block of blocks) {
             if (block.employes.length > 0) {
                 var valid = true
@@ -1541,11 +1687,15 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del sexto y ultimo FOR ${JSON.stringify(blocks)}  ***********`);
+        logDates.info(`############## Fin de -> editBlocksFirst <- (Entrando en el IF)   data: ${JSON.stringify(blocks)} ############### \n`);
         res.json({ status: 'ok', data: blocks })
     } else {
+        logDates.info(`********* Creacion de constantes: employeSelect, blockEmploye ***********`);
         const employeSelect = req.body.employeSelect
         const blockEmploye = []
+        logDates.info(`********* employeSelect:${employeSelect}  ***********`);
+        logDates.info(`********* blockEmploye:${blockEmploye}  ***********`);
         for (const block of blocks) {
             if (block.sameDay) {
                 blockEmploye.push({ hour: block.hour, validator: 'unavailable', origin: true })
@@ -1569,7 +1719,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-        
+        logDates.info(`********* Bloque despues del primer FOR ${JSON.stringify(blocks)}  ***********`);
         for (let e = 0; e < blockEmploye.length; e++) {
             const element = blockEmploye[e];
             if (blockEmploye[e - 1]) {
@@ -1591,13 +1741,14 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del segundo FOR ${JSON.stringify(blocks)}  ***********`);
         for (const block of blockEmploye) {
             if (block.sameDay) {
                 block.validator = 'unavailable'
             }
         }
-
+        logDates.info(`********* Bloque despues del tercer FOR ${JSON.stringify(blocks)}  ***********`);
+        logDates.info(`############## Fin de -> editBlocksFirst <- (Entrando en el else)  data: ${JSON.stringify(blocks)} ############### \n`);
         res.json({ status: 'ok', data: blocks, blockEmploye: blockEmploye })
     }
 
@@ -1759,17 +1910,23 @@ dates.put('/removeImage/:id', protectRoute, (req, res) => {
 
 dates.post('/blocksHoursFirst', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
+    logDates.info(`############## Inicio de -> blocksHoursFirst <-  con base de datos:${database} ###############`);
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    logDates.info(`********* Creacion de constantes: dateDaily, Day, hoursdate, employes, employesServices  ***********`);
     const dateDaily = req.body.date
     const Day = new Date(dateDaily).getDay()
     const hoursdate = req.body.timedate
     const employes = req.body.employes
     const employesServices = req.body.employesServices
-    console.log(employesServices)
+    logDates.info(`********* dateDaily:${dateDaily}  ***********`);
+    logDates.info(`********* Day:${Day}  ***********`);
+    logDates.info(`********* hoursdate:${hoursdate}  ***********`);
+    logDates.info(`********* employes:${employes}  ***********`);
+    logDates.info(`********* employesServices:${employesServices}  ***********`);
     if (req.body.online) {
+        logDates.info(`********* Fue hecha en agendamientoCliente  ***********`);
         employesServices.forEach(emp => {
             if (emp.name != "Primera disponible") {
                 var validOnline = false
@@ -1783,7 +1940,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
             }
         });
     }
-    console.log(employesServices)
     try {
         const finddate = await dateBlock.findOne({
             $and: [
@@ -1793,10 +1949,11 @@ dates.post('/blocksHoursFirst', async (req, res) => {
         })
 
         if (finddate) {
+            logDates.info(`********* Bloques encontrados:${JSON.stringify(finddate)} ***********`);
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
+                logDates.info(`********* Configuracion encontrada:${JSON.stringify(findConfiguration)} ***********`);
                 const blocksFirst = finddate.blocks
-
 
                 for (const block of blocksFirst) {
                     block.employeBlocked.forEach(element => {
@@ -1810,6 +1967,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         employe.valid = false
                     }
                 }
+                logDates.info(`********* Bloque despues del primer FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 for (let i = 0; i < employesServices.length; i++) {
                     const element = employesServices[i];
                     for (let u = 0; u < blocksFirst.length; u++) {
@@ -1822,6 +1980,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         }
                     }
                 }
+                logDates.info(`********* Bloque despues del segundo FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 for (let i = 0; i < employesServices.length; i++) {
                     const employeService = employesServices[i];
                     for (let e = 0; e < blocksFirst.length; e++) {
@@ -1847,7 +2006,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         }
                     }
                 }
-
+                logDates.info(`********* Bloque despues del tercero FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 // res.json({status: 'ok', data: blocksFirst})
                 for (let e = 0; e < blocksFirst.length; e++) {
                     const element = blocksFirst[e];
@@ -1881,7 +2040,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         }
                     }
                 }
-
+                logDates.info(`********* Bloque despues del cuarto FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 for (const employe of employes) {
                     for (const block of blocksFirst) {
                         var dictEmploye = {}
@@ -1904,12 +2063,13 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         }
                     }
                 }
-
+                logDates.info(`********* Bloque despues del quinto FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 for (const block of blocksFirst) {
                     block.employes.sort((a, b) => {
                         return a.commission - b.commission;
                     });
                 }
+                logDates.info(`********* Bloque despues del sexto FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 var index = 0
                 for (const block of blocksFirst) {
                     
@@ -1936,11 +2096,14 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     }
                     index++
                 }
-
+                logDates.info(`********* Bloque despues del septimo FOR ${JSON.stringify(blocksFirst)}  ***********`);
+                logDates.info(`********* Creacion de constantes: thisDate, dateSelected  ***********`);
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
+                logDates.info(`********* thisDate:${thisDate}  ***********`);
+                logDates.info(`********* dateSelected:${dateSelected}  ***********`);
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    console.log('entry')
+                    logDates.info(`********* Entro al IF  ***********`);
                     const hour = (thisDate.getHours() - 4) + findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
@@ -1954,18 +2117,26 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         element.sameDay = true
                     }
                 }
-
+                logDates.info(`############## Fin de -> blocksHoursFirst <-  con base de datos:${database} con datos: ${JSON.stringify(blocksFirst)} ############### \n`);
                 res.json({ status: 'ok', data: blocksFirst, id: finddate._id })
             } catch (err) {
+                logDates.error(`********* Error ${err} ***********`);
+                logDates.info(`############## Fin -> blocksHoursFirst <- con error ############### \n`);
                 res.send('failed api with error, '+ err)
             }
         } else {
             try {
                 const findConfiguration = await Configuration.findOne({ branch: req.body.branch })
+                logDates.info(`********* Configuracion encontrada:${JSON.stringify(findConfiguration)} ***********`);
+                logDates.info(`********* Creacion de constantes: getDay, blocksFirst, splitHour, splitMinutes  ***********`);
                 const getDay = findConfiguration.blockHour.filter(day => day.day == Day)[0]
                 var blocksFirst = []
                 var splitHour = parseFloat(getDay.start.split(':')[0])
                 var splitMinutes = getDay.start.split(':')[1]
+                logDates.info(`********* getDay:${getDay}  ***********`);
+                logDates.info(`********* blocksFirst:${blocksFirst}  ***********`);
+                logDates.info(`********* splitHour:${splitHour}  ***********`);
+                logDates.info(`********* splitMinutes:${splitMinutes}  ***********`);
                 for (let i = 0; i < getDay.time / 15 + 1; i++) {
                     if (i == 0) {
                         blocksFirst.push({
@@ -1989,6 +2160,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         splitMinutes = splitMinutes == 60 ? '00' : splitMinutes
                     }
                 }
+                logDates.info(`********* Bloque despues del primer FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 for (let i = 0; i < employes.length; i++) {
                     const element = employes[i];
                     const restInit = element.restTime.split('/')[0]
@@ -2011,17 +2183,21 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         }
                     }
                 }
-
+                logDates.info(`********* Bloque despues del segundo FOR ${JSON.stringify(blocksFirst)}  ***********`);
                 for (let i = 0; i < blocksFirst.length; i++) {
                     const element = blocksFirst[i];
                     if (element.employes.length == 0) {
                         element.validator = false
                     }
                 }
-
+                logDates.info(`********* Bloque despues del tercer FOR ${JSON.stringify(blocksFirst)}  ***********`);
+                logDates.info(`********* Creacion de constantes: thisDate, dateSelected  ***********`);
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
+                logDates.info(`********* thisDate:${thisDate}  ***********`);
+                logDates.info(`********* dateSelected:${dateSelected}  ***********`);
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
+                    logDates.info(`********* Entro en el IF (2) ***********`);
                     const hour = (thisDate.getHours() - 4) - findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
@@ -2045,8 +2221,10 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     },
                     blocks: blocksFirst
                 }
+                logDates.info(`********* dataConfiguration:${dataConfiguration}  ***********`);
                 try {
                     const createBlockdate = await dateBlock.create(dataConfiguration)
+                    logDates.info(`********* Respuesta del create ${JSON.stringify(createBlockdate)} ***********`);
                     if (createBlockdate) {
                         for (let i = 0; i < employesServices.length; i++) {
                             const element = employesServices[i];
@@ -2060,7 +2238,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-
+                        logDates.info(`********* Bloque despues del primer. FOR ${JSON.stringify(blocksFirst)}  ***********`);
                         for (let i = 0; i < employesServices.length; i++) {
                             const employeService = employesServices[i];
                             for (let e = 0; e < blocksFirst.length; e++) {
@@ -2085,7 +2263,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-
+                        logDates.info(`********* Bloque despues del segundo. FOR ${JSON.stringify(blocksFirst)}  ***********`);
                         // res.json({status: 'ok', data: blocksFirst})
                         for (let e = 0; e < blocksFirst.length; e++) {
                             const element = blocksFirst[e];
@@ -2119,7 +2297,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-
+                        logDates.info(`********* Bloque despues del tercer. FOR ${JSON.stringify(blocksFirst)}  ***********`);
                         for (const block of blocksFirst) {
                             if (block.employes.length > 0) {
                                 var valid = true
@@ -2134,17 +2312,24 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-
+                        logDates.info(`********* Bloque despues del cuarto. FOR ${JSON.stringify(blocksFirst)}  ***********`);
+                        logDates.info(`############## Fin de -> blocksHoursFirst <-  con base de datos:${database} y data: ${JSON.stringify(blocksFirst)} ############### \n`);
                         res.json({ status: 'ok', data: blocksFirst, id: createBlockdate._id })
                     }
                 } catch (err) { 
+                    logDates.error(`********* Error ${err} ***********`);
+                    logDates.info(`############## Fin -> blocksHoursFirst <- con error ############### \n`);
                     res.send('failed api with error, '+ err)
                 }
             } catch (err) { 
+                logDates.error(`********* Error ${err} ***********`);
+                logDates.info(`############## Fin -> blocksHoursFirst <- con error ############### \n`);
                 res.send('failed api with error, '+ err)
             }
         }
-    } catch (err) { 
+    } catch (err) {
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> blocksHoursFirst <- con error ############### \n`); 
         res.send('failed api with error, '+ err)
     }
 })
@@ -2156,43 +2341,54 @@ dates.post('/blocksHoursFirst', async (req, res) => {
 //Api para editar bloques
 
 dates.post('/editdateblockbefore', async (req, res) => {
+    logDates.info(`############## Inicio de -> editdateblockbefore <-  ###############`);
+    logDates.info(`********* Creacion de constantes: blocks, employe, start, end, employe.valid, valid  ***********`);
     const blocks = req.body.block
     const employe = req.body.employe
     const start = req.body.start
     const end = req.body.end
     employe.valid = true
     var valid = false
+    logDates.info(`********* blocks:${blocks}  ***********`);
+    logDates.info(`********* employe:${employe}  ***********`);
+    logDates.info(`********* start:${start}  ***********`);
+    logDates.info(`********* end:${end}  ***********`);
+    logDates.info(`********* employe.valid:${employe.valid}  ***********`);
+    logDates.info(`********* valid:${valid}  ***********`);
     try{
-for (const block of blocks) {
-        if (valid) {
-            if (block.hour == end) {
-                valid = false
-                break
-            }else{
+        for (const block of blocks) {
+            if (valid) {
+                if (block.hour == end) {
+                    valid = false
+                    break
+                }else{
+                    block.employeBlocked.forEach((element, index) => {
+                        if (element.employe == employe.id) {
+                            block.employeBlocked.splice(index, 1)
+                        }
+                    });
+                    block.employes.push(employe)
+                    block.validator = true
+                }
+            }
+            if (block.hour == start) {
                 block.employeBlocked.forEach((element, index) => {
                     if (element.employe == employe.id) {
                         block.employeBlocked.splice(index, 1)
                     }
                 });
+                valid = true
                 block.employes.push(employe)
                 block.validator = true
             }
         }
-        if (block.hour == start) {
-            block.employeBlocked.forEach((element, index) => {
-                if (element.employe == employe.id) {
-                    block.employeBlocked.splice(index, 1)
-                }
-            });
-            valid = true
-            block.employes.push(employe)
-            block.validator = true
-        }
-    }
+        logDates.info(`********* Bloque despues del primer y unico FOR ${JSON.stringify(blocks)}  ***********`);
     }catch(err){
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> editdateblockbefore <- con error ############### \n`);
         console.log(err)
     }
-
+    logDates.info(`############## Fin de -> editdateblockbefore <-  con data: ${JSON.stringify(blocks)} ############### \n`);
     res.json({ data: blocks })
 
 })
@@ -2200,14 +2396,18 @@ for (const block of blocks) {
 //Api que busca y crea los bloques de horarios (Ingreso: date, timedate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timedate, hour, branch, employe)
 
 dates.post('/selectDatesBlocks', async (req, res) => {
+    logDates.info(`############## Inicio de -> selectDatesBlocks <-   ###############`);
+    logDates.info(`********* Creacion de constantes: hoursdate, hourSelect, employe, blocks ***********`);
     const hoursdate = req.body.timedate
     const hourSelect = req.body.hour
     const employe = req.body.employe
     const blocks = req.body.block
-
+    logDates.info(`********* hoursdate:${hoursdate}  ***********`);
+    logDates.info(`********* hourSelect:${hourSelect}  ***********`);
+    logDates.info(`********* employe:${employe}  ***********`);
+    logDates.info(`********* blocks:${blocks}  ***********`);
     if (req.body.firstBlock) {
         // if (!req.body.ifFirstClick) {
-            console.log('entre')
             for (let i = 0; i < blocks.length; i++) {
                 const element = blocks[i];
                 if (element.validator == 'select') {
@@ -2224,6 +2424,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     }
                 }
             }
+            logDates.info(`********* Bloque despues del primer FOR ${JSON.stringify(blocks)}  ***********`);
         // }
 
         for (let i = 0; i < blocks.length; i++) {
@@ -2242,7 +2443,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del segundo FOR ${JSON.stringify(blocks)}  ***********`);
         var end = ''
         for (let i = 0; i < blocks.length; i++) {
             const element = blocks[i];
@@ -2255,7 +2456,8 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del tercer FOR ${JSON.stringify(blocks)}  ***********`);
+        logDates.info(`############## Fin de -> selectDatesBlocks <- (entrando al IF)  data: ${JSON.stringify(blocks)} ############### \n`);
         res.json({ status: 'ok', data: blocks, end: end })
     } else {
         //algoritmo para bloques por empleado
@@ -2267,6 +2469,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     element.validator = element.origin
                 }
             }
+            logDates.info(`********* Bloque despues del primer FOR (solo blocks) ${JSON.stringify(blocks)}  ***********`);
             for (let i = 0; i < blockFirst.length; i++) {
                 const element = blockFirst[i];
                 if (element.validator == 'select') {
@@ -2283,6 +2486,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                     }
                 }
             }
+            logDates.info(`********* Bloque despues del segundo FOR (blockFirts de aqui en adelante) ${JSON.stringify(blockFirst)}  ***********`);
         // }
         for (let e = 0; e < blocks.length; e++) {
             const block = blocks[e]
@@ -2292,7 +2496,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del tercero FOR ${JSON.stringify(blockFirst)}  ***********`);
         for (let i = 0; i < blockFirst.length; i++) {
             const element = blockFirst[i];
             if (element.hour == hourSelect) {
@@ -2309,7 +2513,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 }
             }
         }
-
+        logDates.info(`********* Bloque despues del cuarto FOR ${JSON.stringify(blockFirst)}  ***********`);
         var end = ''
         for (let i = 0; i < blockFirst.length; i++) {
             const element = blockFirst[i];
@@ -2322,6 +2526,8 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 }
             }
         }
+        logDates.info(`********* Bloque despues del quinto FOR ${JSON.stringify(blockFirst)}  ***********`);
+        logDates.info(`############## Fin de -> selectDatesBlocks <-   data: ${JSON.stringify(blockFirst)} y ${JSON.stringify(blocks)}  ############### \n`);
         res.json({ status: 'ok', data: blocks, blockFirst: blockFirst, end: end })
     }
 
@@ -2488,11 +2694,11 @@ dates.post('/verifydate', async (req, res) => {
 
 dates.post('/noOneLender', (req, res) => {
     const database = req.headers['x-database-connect'];
-    
+    logDates.info(`############## Inicio de -> noOneLender <-  con base de datos:${database} ###############`);
 
     const dates = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
-
+    logDates.info(`********* Creacion de constantes: dataCitas, dataDate, client, date, blocks, nameFile, dateID, id  ***********`);
     const dataCitas = []
     const dataDate = req.body.dataDate
     const client = req.body.client
@@ -2506,6 +2712,15 @@ dates.post('/noOneLender', (req, res) => {
     }
     const dateID = new Date()
     const id = dateID.getTime()
+    logDates.info(`********* dataCitas:${dataCitas}  ***********`);
+    logDates.info(`********* dataDate:${JSON.stringify(dataDate)}  ***********`);
+    logDates.info(`********* client:${JSON.stringify(client)}  ***********`);
+    logDates.info(`********* date:${date}  ***********`);
+    logDates.info(`********* blocks:${JSON.stringify(blocks)}  ***********`);
+    logDates.info(`********* nameFile:${nameFile}  ***********`);
+    logDates.info(`********* dateID:${dateID}  ***********`);
+    logDates.info(`********* id:${id}  ***********`);
+
     for (let index = 0; index < dataDate.serviceSelectds.length; index++) {
         const element = dataDate.serviceSelectds[index];
         var data = {
@@ -2566,18 +2781,22 @@ dates.post('/noOneLender', (req, res) => {
             }
         }
     }
-
+    logDates.info(`********* Bloque despues del primer y unico FOR ${JSON.stringify(blocks)}  ***********`);
     dateBlock.findByIdAndUpdate(req.body.blockId, {
         $set: {
             blocks: blocks
         }
     }).then(edit => {
+        logDates.info(`********* Respuesta del update ${JSON.stringify(edit)} ***********`);
         setTimeout(() => {
             dates.find({ confirmationId: id })
                 .then(dataID => {
+                    logDates.info(`############## Fin de -> noOneLender <-  con base de datos:${database} ############### \n`);
                     res.json({ status: 'ok', id: dataID })
                 })
                 .catch(err => {
+                    logDates.error(`********* Error ${err} ***********`);
+                    logDates.info(`############## Fin -> noOneLender <- con error ############### \n`);
                     const Log = new LogService(
                         req.headers.host, 
                         req.body, 
@@ -2783,13 +3002,15 @@ dates.post('/endDate/:id', protectRoute, (req, res) => {
 
 dates.post('/editdate', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
+    logDates.info(`############## Inicio de -> editdate <-  con base de datos:${database} ###############`);
 
     const Dates = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
-
+    logDates.info(`********* Creacion de constantes: blocks, dataEdit  ***********`);
     const blocks = req.body.blocks
     const dataEdit = req.body.data
+    logDates.info(`********* blocks:${blocks}  ***********`);
+    logDates.info(`********* dataEdit:${dataEdit}  ***********`);
     try {
         const editDate = await Dates.findByIdAndUpdate(dataEdit._id, {
             $set: {
@@ -2830,6 +3051,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                         }
                     }
                 });
+                logDates.info(`********* Bloque despues del primer y unico FOR ${JSON.stringify(blocks)}  ***********`);
                 const findBlocks = await dateBlock.findByIdAndUpdate(dataEdit.idBlock, {
                     $set: {
                         blocks: blocks
@@ -2837,9 +3059,12 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                 })
 
                 if (findBlocks) {
+                    logDates.info(`********* Respuesta del update ${JSON.stringify(findBlocks)} ***********`);
                     res.json({ status: 'ok', data:findBlocks, token:req.requestToken })
                 }
             } catch (err) {
+                logDates.error(`********* Error ${err} ***********`);
+                logDates.info(`############## Fin -> noOneLender <- con error ############### \n`);
                 const Log = new LogService(
                     req.headers.host, 
                     req.body, 
@@ -2854,6 +3079,8 @@ dates.post('/editdate', protectRoute, async (req, res) => {
             }
         }
     } catch (err) {
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> noOneLender <- con error ############### \n`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 
@@ -2871,16 +3098,20 @@ dates.post('/editdate', protectRoute, async (req, res) => {
 dates.post('/fixblocks', async (req, res) => {
     const database = req.headers['x-database-connect'];
     // console.log(database)
-    
+    logDates.info(`############## Inicio de -> fixblocks <-  con base de datos:${database} ###############`);
 
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
-
+    logDates.info(`********* Creacion de constantes: dateFix, start, end, employe, branch  ***********`);
     const dateFix = req.body.date
     const start = req.body.start
     const end = req.body.end
     const employe = req.body.employe
     const branch = req.body.branch
-
+    logDates.info(`********* dateFix:${dateFix}  ***********`);
+    logDates.info(`********* start:${start}  ***********`);
+    logDates.info(`********* end:${end}  ***********`);
+    logDates.info(`********* employe:${employe}  ***********`);
+    logDates.info(`********* branch:${branch}  ***********`);
     // console.log(dateFix, start, end, employe, branch)
     
     try {
@@ -2891,6 +3122,7 @@ dates.post('/fixblocks', async (req, res) => {
             ]
         })
         if (findBlock) {
+            logDates.info(`********* Bloque encontrado:${JSON.stringify(findBlock)} ***********`);
             var valid = false
             // console.log(findBlock)
             findBlock.blocks.forEach((block, index) => {
@@ -2914,6 +3146,7 @@ dates.post('/fixblocks', async (req, res) => {
                     // }
                 }
             });
+            logDates.info(`********* Bloque despues del primer y unico FOR ${JSON.stringify(findBlock)}  ***********`);
             try {
                 const findBlocks = await dateBlock.findByIdAndUpdate(findBlock._id, {
                     $set: {
@@ -2922,14 +3155,20 @@ dates.post('/fixblocks', async (req, res) => {
                 })
 
                 if (findBlocks) {
+                    logDates.info(`********* Respuesta del update ${JSON.stringify(findBlocks)} ***********`);
+                    logDates.info(`############## Fin de -> fixblocks <-  con base de datos:${database}  ############### \n`);
                     res.json({ status: 'ok', data:findBlocks })
                 }
             } catch (err) {
+                logDates.error(`********* Error ${err} ***********`);
+                logDates.info(`############## Fin -> fixblocks <- con error ############### \n`);
                 console.log(err)
                 res.send(err)
             }
         }
     } catch (err) {
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> fixblocks <- con error ############### \n`);
         console.log(err)
         res.send(err)
     }
