@@ -27,7 +27,7 @@ sales.use(cors())
 sales.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Sale = connect.useDb(database).model('sales', saleSchema)
-    
+    const datesFormats = formats.datesMonth()
     try {
         const getSales = await Sale.find({
           $and: [
