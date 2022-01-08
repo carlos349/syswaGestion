@@ -32,7 +32,7 @@ sales.get('/:branch', protectRoute, async (req, res) => {
         const getSales = await Sale.find({
           $and: [
             {branch: req.params.branch},
-            {createdAt: { $gte: formats.dates(new Date())+' 00:00', $lte: '01-01-2050 24:00' }}
+            {createdAt: { $gte: datesFormats.thisMonth.since+' 00:00', $lte: '01-01-2050 24:00' }}
           ]
         })
         if (getSales.length > 0) {
