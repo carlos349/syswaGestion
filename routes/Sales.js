@@ -26,15 +26,19 @@ sales.use(cors())
 // output - status, data, token
 sales.get('/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
-
     const Sale = connect.useDb(database).model('sales', saleSchema)
+    
     try {
-        const getSales = await Sale.find({branch: req.params.branch})
+        const getSales = await Sale.find({
+          $and: [
+            {branch: req.params.branch},
+            {createdAt: { $gte: formats.dates(new Date())+' 00:00', $lte: '01-01-2050 24:00' }}
+          ]
+        })
         if (getSales.length > 0) {
-            res.json({status: 'ok', data: getSales, token: req.requestToken})
+          res.json({status: 'ok', data: getSales, token: req.requestToken})
         }else{
-            res.json({status: 'bad', data: getSales, token: req.requestToken})
+          res.json({status: 'bad', data: getSales, token: req.requestToken})
         }
     }catch(err){
       const Log = new LogService(
