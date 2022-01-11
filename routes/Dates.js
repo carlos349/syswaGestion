@@ -2577,9 +2577,12 @@ dates.post('/noOneLender', (req, res) => {
         dataCitas.push(data)
     }
     logDates.info(`********* dataDate:${JSON.stringify(dataCitas)}  ***********`);
+    var ids = [];
     for (let i = 0; i < dataCitas.length; i++) {
         dates.create(dataCitas[i])
-        .then(citas => { })
+        .then(citas => {
+            ids.push({_id : citas._id})
+        })
         .catch(err => console.log(err))
     }
     
@@ -2598,30 +2601,38 @@ dates.post('/noOneLender', (req, res) => {
         }
     }).then(edit => {
         logDates.info(`********* Respuesta del update (Bloques antes) ${JSON.stringify(edit)} ***********`);
-        setTimeout(() => {
-            dates.find({ confirmationId: id })
-                .then(dataID => {
+        if (ids.length > 0) {
+            logDates.info(`############## Fin de -> noOneLender <-  con base de datos:${database} ############### \n`);
+            res.json({ status: 'ok', id: ids })
+        }else{
+            setTimeout(() => {
+                if (ids.length > 0) {
                     logDates.info(`############## Fin de -> noOneLender <-  con base de datos:${database} ############### \n`);
-                    res.json({ status: 'ok', id: dataID })
-                })
-                .catch(err => {
-                    logDates.error(`********* Error ${err} ***********`);
-                    logDates.info(`############## Fin -> noOneLender <- con error ############### \n`);
-                    const Log = new LogService(
-                        req.headers.host, 
-                        req.body, 
-                        req.params, 
-                        err, 
-                        '', 
-                        req.headers['x-database-connect'], 
-                        req.route
-                    )
-                    Log.createLog()
-                    .then(dataLog => {
-                        res.send('failed api with error, '+ dataLog.error)
-                    })
-                })
-        }, 500);
+                    res.json({ status: 'ok', id: ids })
+                }else {
+                    setTimeout(() => {
+                        logDates.info(`############## Fin de -> noOneLender <-  con base de datos:${database} ############### \n`);
+                        res.json({ status: 'ok', id: ids })
+                    }, 1000);
+                }
+            }, 500);
+        }
+    }).catch(err => {
+        logDates.error(`********* Error ${err} ***********`);
+        logDates.info(`############## Fin -> noOneLender <- con error ############### \n`);
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            '', 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     })
 })
 
