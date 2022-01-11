@@ -658,7 +658,6 @@ dates.delete('/:id', async (req, res) => {
                         block.employeBlocked.forEach((element, index) => {
                             if (element.employe == employe.id) {
                                 block.employeBlocked.splice(index, 1)
-                                logDates.info(`********* Bloque luego del splice (employeBlocked) ${index} ${JSON.stringify(block)} ***********`);
                             }
                         });
                         block.employes.push({
@@ -669,7 +668,6 @@ dates.delete('/:id', async (req, res) => {
                             valid: false,
                             img: employe.img
                         })
-                        logDates.info(`********* Bloque luego del push (employes) ${JSON.stringify(block)} ***********`);
                     }
                 }
                 try {
@@ -679,12 +677,12 @@ dates.delete('/:id', async (req, res) => {
                             blocks: findDateBlock.blocks
                         }
                     })
-                    logDates.info(`********* Bloque editado :${JSON.stringify(editDateBlock)} ***********`);
+                    
                     try {
                         const findConfig = await Configuration.findOne({
                             branch: findDate.branch
                         })
-                        logDates.info(`********* Configuracion encontrada :${JSON.stringify(findConfig)} ***********`);
+                       
                         try {
                             const removeDate = await date.findByIdAndRemove(req.params.id)
                             logDates.info(`********* Cita eliminada :${JSON.stringify(removeDate)} ***********`);
