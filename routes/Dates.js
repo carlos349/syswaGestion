@@ -631,7 +631,7 @@ dates.delete('/:id', async (req, res) => {
         const end = findDate.end.split(' ')[1]
         const employe = findDate.employe
         const query = [
-            { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind[1] : dateFind },
+            { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind : dateFind },
             { 'dateData.branch': branch }
         ]
         logDates.info(`********* Constantes creadas: datefind, branch, hour, end, employe ***********`);
@@ -644,7 +644,7 @@ dates.delete('/:id', async (req, res) => {
         try {
             const findDateBlock = await dateBlock.findOne({
                 $and: [
-                    { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind[1] : dateFind },
+                    { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind : dateFind },
                     { 'dateData.branch': branch }
                 ]
             })
