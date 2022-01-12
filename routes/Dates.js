@@ -640,7 +640,7 @@ dates.delete('/:id', async (req, res) => {
         logDates.info(`********* hour: ${hour} ***********`);
         logDates.info(`********* end: ${end} ***********`);
         logDates.info(`********* employe: ${JSON.stringify(employe)} ***********`);
-        logDates.info(`********* employe: ${JSON.stringify(employe)} ***********`);
+        logDates.info(`********* query: ${JSON.stringify(query)} ***********`);
         try {
             const findDateBlock = await dateBlock.findOne({
                 $and: [
