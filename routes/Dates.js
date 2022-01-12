@@ -630,11 +630,16 @@ dates.delete('/:id', async (req, res) => {
         const hour = findDate.start.split(' ')[1]
         const end = findDate.end.split(' ')[1]
         const employe = findDate.employe
+        const query = [
+            { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind[1] : dateFind },
+            { 'dateData.branch': branch }
+        ]
         logDates.info(`********* Constantes creadas: datefind, branch, hour, end, employe ***********`);
         logDates.info(`********* dateFind: ${dateFind} ***********`);
         logDates.info(`********* branch: ${branch} ***********`);
         logDates.info(`********* hour: ${hour} ***********`);
         logDates.info(`********* end: ${end} ***********`);
+        logDates.info(`********* employe: ${JSON.stringify(employe)} ***********`);
         logDates.info(`********* employe: ${JSON.stringify(employe)} ***********`);
         try {
             const findDateBlock = await dateBlock.findOne({
