@@ -2835,13 +2835,54 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                 start: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.startEdit,
                 end: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.endEdit,
                 split: dataEdit.employe.id,
-                employe: dataEdit.employe,
+                employe: dataEdit.employe, 
                 duration: dataEdit.duration,
-                class: dataEdit.employe.class
+                class: dataEdit.employe.class,
+                createdAt: new Date(dataEdit.createdAt)
             }
         })
         if (editDate) {
             try {
+                const startFixed = dataEdit.start.split("T")[0].split("-")[1]+"-"+dataEdit.start.split("T")[0].split("-")[2]+"-"+dataEdit.start.split("T")[0].split("-")[0]
+                if (startFixed != dataEdit.createdAt) {
+                    const findBlocksToEdit = await dateBlock.findOne({
+                        $and: [
+                            { 'dateData.branch': editDate.branch },
+                            { 'dateData.date': startFixed }
+                        ]
+                    })
+                    if (findBlocksToEdit) {
+                        for (const blockEdit of findBlocksToEdit.blocks) {
+                            if (blockEdit.hour == dataEdit.startEdit) {
+                                valid = true
+                            }
+                            if (blockEdit.end == dataEdit.endEdit) {
+                                valid = false
+                                break
+                            }
+                            if (valid) {
+                                blockEdit.employeBlocked.forEach((element, index) => {
+                                    if (element.employe == dataEdit.employe.id) {
+                                        blockEdit.employeBlocked.splice(index, 1)
+                                    }
+                                });
+                                blockEdit.employes.push({
+                                    name: dataEdit.employe.name,
+                                    id: dataEdit.employe.id,
+                                    class: dataEdit.employe.class,
+                                    position: 20,
+                                    valid: false,
+                                    img: dataEdit.employe.img
+                                })
+                            }
+                        }
+                        const EditBlocks = await dateBlock.findByIdAndUpdate(findBlocksToEdit._id, {
+                            $set: {
+                                blocks: findBlocksToEdit.blocks
+                            }
+                        })
+                    }
+                }
                 blocks.forEach((block, index) => {
                     if (blocks[index + 1]) {
                         if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
