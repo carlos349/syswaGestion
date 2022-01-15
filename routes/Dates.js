@@ -2933,9 +2933,83 @@ dates.post('/fixblocks', async (req, res) => {
                 }
                 if (valid) {
                     findBlock.blocks[index].employes.push(employe)
-                    block.employeBlocked.forEach((element, index) => {
+                    block.employeBlocked.forEach((element, indexTwo) => {
                         if (element.employe == employe.id) {
-                            block.employeBlocked.splice(index, 1)
+                            block.employeBlocked.splice(indexTwo, 1)
+                        }
+                    });
+                }
+            });
+            try {
+                const findBlocks = await dateBlock.findByIdAndUpdate(findBlock._id, {
+                    $set: {
+                        blocks: findBlock.blocks
+                    }
+                })
+                if (findBlocks) {
+                    res.json({ status: 'ok', data:findBlocks })
+                }
+            } catch (err) {
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    req.requestToken, 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
+            }
+        }
+    } catch (err) {
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
+})
+
+dates.post('/fixblocksinsert', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const dateFix = req.body.date
+    const start = req.body.start
+    const end = req.body.end
+    const employe = req.body.employe
+    const branch = req.body.branch
+    try {
+        const findBlock = await dateBlock.findOne({
+            $and: [
+                { 'dateData.date': dateFix },
+                { 'dateData.branch': branch }
+            ]
+        })
+        if (findBlock) {
+            var valid = false
+            findBlock.blocks.forEach((block, index) => {
+                if (block.hour == start) {
+                    valid = true
+                }
+                if (block.hour == end) {
+                    valid = false
+                }
+                if (valid) {
+                    findBlock.blocks[index].employeBlocked.push({
+                        "employe": employe.id,
+                        "type": "date"
+                    })
+                    block.employes.forEach((element, indexTwo) => {
+                        if (element.id == employe.id) {
+                            block.employes.splice(indexTwo, 1)
                         }
                     });
                 }
