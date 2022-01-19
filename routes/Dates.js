@@ -2852,6 +2852,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                         ]
                     })
                     if (findBlocksToEdit) {
+                        var valid = false
                         for (const blockEdit of findBlocksToEdit.blocks) {
                             if (blockEdit.hour == dataEdit.startEdit) {
                                 valid = true
