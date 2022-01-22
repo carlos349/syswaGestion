@@ -12,7 +12,7 @@ formats.dates = (value) => {
 
 formats.datesEdit = (value) => {
     let dateFormat = new Date(value)
-    return (dateFormat.getMonth()+1)+"-"+dateFormat.getDate()+"-"+dateFormat.getFullYear()
+    return (dateFormat.getMonth()+1 < 10 ? "0"+(dateFormat.getMonth()+1) : (dateFormat.getMonth()+1))+"-"+(dateFormat.getDate() < 10 ? "0"+dateFormat.getDate() : dateFormat.getDate())+"-"+dateFormat.getFullYear()
 }
 
 formats.dayBack = (value) => {

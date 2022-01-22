@@ -622,9 +622,10 @@ dates.delete('/:id', async (req, res) => {
     const date = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    const Employe = connect.useDb(database).model('employes', employeSchema)
     try{
         const findDate = await date.findById(req.params.id)
-        logDates.info(`********* Cita encontrada :${JSON.stringify(findDate)} ***********`);
+        logDates.info(`********* Cita encontrada : ${JSON.stringify(findDate)} ***********`);
         const dateFind = findDate.start.split(' ')[0]
         const branch = findDate.branch
         const hour = findDate.start.split(' ')[1]
@@ -641,59 +642,100 @@ dates.delete('/:id', async (req, res) => {
         logDates.info(`********* end: ${end} ***********`);
         logDates.info(`********* employe: ${JSON.stringify(employe)} ***********`);
         logDates.info(`********* query: ${JSON.stringify(query)} ***********`);
-        try {
-            const findDateBlock = await dateBlock.findOne({
-                $and: [
-                    { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind : dateFind },
-                    { 'dateData.branch': branch }
-                ]
-            })
-            logDates.info(`********* Bloques encontrados :${JSON.stringify(findDateBlock)} ***********`);
+        try{
+            const findDateEmploye = await Employe.findById(employe.id)
+            const dayDate = new Date(findDate.start).getDay()
             var valid = false
-            try {
-                for (const block of findDateBlock.blocks) {
-                    if (block.hour == hour) {
-                        valid = true
-                    }
-                    if (block.hour == end) {
-                        valid = false
-                        break
-                    }
-                    if (valid) {
-                        block.employeBlocked.forEach((element, index) => {
-                            if (element.employe == employe.id) {
-                                block.employeBlocked.splice(index, 1)
-                            }
-                        });
-                        block.employes.push({
-                            name: employe.name,
-                            id: employe.id,
-                            class: employe.class,
-                            position: 20,
-                            valid: false,
-                            img: employe.img
-                        })
-                    }
+            logDates.info(`********* Dia de la cita: ${JSON.stringify(dayDate)} ***********`);
+            logDates.info(`********* Dias del empleado: ${JSON.stringify(findDateEmploye.days)} ***********`);
+            for (const dayEmploye of findDateEmploye.days) {
+                if (dayDate == dayEmploye.day) {
+                    valid = true
+                    break
                 }
+            }
+            if (valid) {
                 try {
-                    logDates.info(`********* Bloque antes de hacer el update ${JSON.stringify(findDateBlock.blocks)} ***********`);
-                    const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock._id, {
-                        $set: {
-                            blocks: findDateBlock.blocks
-                        }
+                    const findDateBlock = await dateBlock.findOne({
+                        $and: [
+                            { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind : dateFind },
+                            { 'dateData.branch': branch }
+                        ]
                     })
-                    
+                    var valid = false
                     try {
-                        const findConfig = await Configuration.findOne({
-                            branch: findDate.branch
-                        })
-                       
+                        for (const block of findDateBlock.blocks) {
+                            if (block.hour == hour) {
+                                valid = true
+                            }
+                            if (block.hour == end) {
+                                valid = false
+                                break
+                            }
+                            if (valid) {
+                                block.employeBlocked.forEach((element, index) => {
+                                    if (element.employe == employe.id) {
+                                        block.employeBlocked.splice(index, 1)
+                                    }
+                                });
+                                block.employes.push({
+                                    name: employe.name,
+                                    id: employe.id,
+                                    class: employe.class,
+                                    position: 20,
+                                    valid: false,
+                                    img: employe.img
+                                })
+                            }
+                        }
                         try {
-                            const removeDate = await date.findByIdAndRemove(req.params.id)
-                            logDates.info(`********* Cita eliminada :${JSON.stringify(removeDate)} ***********`);
-                            logDates.info(`############## Fin -> Eliminar cita <- ############### \n`);
-                            res.json({ status: 'deleted', data: findDate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo, removed: removeDate })
-                        } catch (err) {
+                            const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock._id, {
+                                $set: {
+                                    blocks: findDateBlock.blocks
+                                }
+                            })
+                            
+                            try {
+                                const findConfig = await Configuration.findOne({
+                                    branch: findDate.branch
+                                })
+                               
+                                try {
+                                    const removeDate = await date.findByIdAndRemove(req.params.id)
+                                    logDates.info(`********* Cita eliminada :${JSON.stringify(removeDate)} ***********`);
+                                    logDates.info(`############## Fin -> Eliminar cita <- ############### \n`);
+                                    res.json({ status: 'deleted', data: findDate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo, removed: removeDate })
+                                } catch (err) {
+                                    logDates.error(`********* Error ${err} ***********`);
+                                    logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
+                                    const Log = new LogService(
+                                        req.headers.host, 
+                                        req.body, 
+                                        req.params, 
+                                        err, 
+                                        '', 
+                                        req.headers['x-database-connect'], 
+                                        req.route
+                                    )
+                                    const dataLog = await Log.createLog()
+                                    res.send('failed api with error, '+ dataLog.error)
+                                }
+                            }catch(err){
+                                logDates.error(`********* Error ${err} ***********`);
+                                logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
+                                const Log = new LogService(
+                                    req.headers.host, 
+                                    req.body, 
+                                    req.params, 
+                                    err, 
+                                    '', 
+                                    req.headers['x-database-connect'], 
+                                    req.route
+                                )
+                                const dataLog = await Log.createLog()
+                                res.send('failed api with error, '+ dataLog.error)
+                            }
+                        }catch(err){
                             logDates.error(`********* Error ${err} ***********`);
                             logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
                             const Log = new LogService(
@@ -723,6 +765,47 @@ dates.delete('/:id', async (req, res) => {
                         const dataLog = await Log.createLog()
                         res.send('failed api with error, '+ dataLog.error)
                     }
+                } catch (err) {
+                    logDates.error(`********* Error ${err} ***********`);
+                    logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        '', 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
+                }
+            }else{
+                try {
+                    const findConfig = await Configuration.findOne({
+                        branch: findDate.branch
+                    })
+                   
+                    try {
+                        const removeDate = await date.findByIdAndRemove(req.params.id)
+                        logDates.info(`********* Cita eliminada :${JSON.stringify(removeDate)} ***********`);
+                        logDates.info(`############## Fin -> Eliminar cita <- ############### \n`);
+                        res.json({ status: 'deleted', data: findDate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo, removed: removeDate })
+                    } catch (err) {
+                        logDates.error(`********* Error ${err} ***********`);
+                        logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            '', 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        const dataLog = await Log.createLog()
+                        res.send('failed api with error, '+ dataLog.error)
+                    }
                 }catch(err){
                     logDates.error(`********* Error ${err} ***********`);
                     logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
@@ -738,22 +821,8 @@ dates.delete('/:id', async (req, res) => {
                     const dataLog = await Log.createLog()
                     res.send('failed api with error, '+ dataLog.error)
                 }
-            }catch(err){
-                logDates.error(`********* Error ${err} ***********`);
-                logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
-                const Log = new LogService(
-                    req.headers.host, 
-                    req.body, 
-                    req.params, 
-                    err, 
-                    '', 
-                    req.headers['x-database-connect'], 
-                    req.route
-                )
-                const dataLog = await Log.createLog()
-                res.send('failed api with error, '+ dataLog.error)
             }
-        } catch (err) {
+        }catch(err){
             logDates.error(`********* Error ${err} ***********`);
             logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
             const Log = new LogService(
@@ -2842,6 +2911,15 @@ dates.post('/editdate', protectRoute, async (req, res) => {
             }
         })
         if (editDate) {
+            console.log({
+                start: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.startEdit,
+                end: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.endEdit,
+                split: dataEdit.employe.id,
+                employe: dataEdit.employe, 
+                duration: dataEdit.duration,
+                class: dataEdit.employe.class,
+                createdAt: new Date(dataEdit.createdAt)
+            })
             try {
                 const startFixed = dataEdit.start.split("T")[0].split("-")[1]+"-"+dataEdit.start.split("T")[0].split("-")[2]+"-"+dataEdit.start.split("T")[0].split("-")[0]
                 if (startFixed != dataEdit.createdAt) {
