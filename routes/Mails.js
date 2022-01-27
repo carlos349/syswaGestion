@@ -1,6 +1,7 @@
 const express = require('express')
 const mails = express.Router()
 const mongoose = require('mongoose')
+const formats = require("../formats")
 const protectRoute = require('../securityToken/verifyToken')
 const clientSchema = require('../models/Clients')
 const dateSchema = require('../models/Dates')
@@ -2422,11 +2423,11 @@ mails.post('/dateMail', async (req, res) => {
   const branchId = req.body.branchId
   var data = req.body.data
   const IDS = req.body.id
-  console.log(IDS)
+ 
   const date = req.body.date
   const servicesFinal = req.body.servicesFinal
   const valid = req.body.valid
-
+  const dateCompare = formats.changeDate(date)
   const database = req.headers['x-database-connect'];
   
 
@@ -2438,7 +2439,10 @@ mails.post('/dateMail', async (req, res) => {
       })
       if (getConfigurations) {
         var services = ''
-
+        var validMail = false
+        if ((new Date(dateCompare).getDate() - 1)  == new Date().getDate() && new Date(dateCompare).getMonth() == new Date().getMonth()) {
+          validMail = true
+        }
         for (const key in servicesFinal) {
           const element = servicesFinal[key]
           var micro = ''
@@ -2461,8 +2465,12 @@ mails.post('/dateMail', async (req, res) => {
               }
             }
           }
-          
-          
+          var ifConfirm = validMail ? `
+              <td align="center" bgcolor="#2dce89" role="presentation" style="border:none;border-radius:5px;cursor:auto;mso-padding-alt:9px 26px 9px 26px;background:#2dce89;" valign="middle">
+              <a href="${getConfigurations.route}/confirmacioncita?id=${IDS[key]._id}" style="display: inline-block; background: #2dce89; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
+                  <span style="font-size: 12px;">Confirmar</span>
+              </a>
+              </td>` : ``
           services = services + `
               <div style="margin:0px auto; margin-top:10px;max-width:600px;">
                           
@@ -2594,17 +2602,13 @@ mails.post('/dateMail', async (req, res) => {
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
               
                   <tr>
-                    <td align="center" vertical-align="middle" style="font-size:0px;padding:0px 20px 20px 20px;word-break:break-word;">
-                      
-            
-
-                    </td>
+                    ${ifConfirm}
                   </tr>
                 
             </table>
 
             </div>
-
+                
                 <!--[if mso | IE]>
                   </td>
                 
@@ -2612,6 +2616,8 @@ mails.post('/dateMail', async (req, res) => {
                     class="" style="vertical-align:top;width:150px;"
                   >
                 <![endif]-->
+
+                
                   
             <div class="mj-column-per-25 outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:25%;">
               

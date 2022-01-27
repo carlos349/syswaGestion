@@ -782,16 +782,94 @@ dates.delete('/:id', async (req, res) => {
                 }
             }else{
                 try {
-                    const findConfig = await Configuration.findOne({
-                        branch: findDate.branch
+                    const findDateBlock = await dateBlock.findOne({
+                        $and: [
+                            { 'dateData.date': dateFind[1] == "-" ? "0"+dateFind : dateFind },
+                            { 'dateData.branch': branch }
+                        ]
                     })
-                   
+                    var valid = false
                     try {
-                        const removeDate = await date.findByIdAndRemove(req.params.id)
-                        logDates.info(`********* Cita eliminada :${JSON.stringify(removeDate)} ***********`);
-                        logDates.info(`############## Fin -> Eliminar cita <- ############### \n`);
-                        res.json({ status: 'deleted', data: findDate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo, removed: removeDate })
-                    } catch (err) {
+                        for (const block of findDateBlock.blocks) {
+                            if (block.hour == hour) {
+                                valid = true
+                            }
+                            if (block.hour == end) {
+                                valid = false
+                                break
+                            }
+                            if (valid) {
+                                block.employeBlocked.forEach((element, index) => {
+                                    if (element.employe == employe.id) {
+                                        block.employeBlocked.splice(index, 1)
+                                    }
+                                });
+                                
+                            }
+                        }
+                        try {
+                            const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock._id, {
+                                $set: {
+                                    blocks: findDateBlock.blocks
+                                }
+                            })
+                            
+                            try {
+                                const findConfig = await Configuration.findOne({
+                                    branch: findDate.branch
+                                })
+                               
+                                try {
+                                    const removeDate = await date.findByIdAndRemove(req.params.id)
+                                    logDates.info(`********* Cita eliminada :${JSON.stringify(removeDate)} ***********`);
+                                    logDates.info(`############## Fin -> Eliminar cita <- ############### \n`);
+                                    res.json({ status: 'deleted', data: findDate, branchName: findConfig.businessName, branchEmail: findConfig.businessEmail, logo: findConfig.bussinessLogo, removed: removeDate })
+                                } catch (err) {
+                                    logDates.error(`********* Error ${err} ***********`);
+                                    logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
+                                    const Log = new LogService(
+                                        req.headers.host, 
+                                        req.body, 
+                                        req.params, 
+                                        err, 
+                                        '', 
+                                        req.headers['x-database-connect'], 
+                                        req.route
+                                    )
+                                    const dataLog = await Log.createLog()
+                                    res.send('failed api with error, '+ dataLog.error)
+                                }
+                            }catch(err){
+                                logDates.error(`********* Error ${err} ***********`);
+                                logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
+                                const Log = new LogService(
+                                    req.headers.host, 
+                                    req.body, 
+                                    req.params, 
+                                    err, 
+                                    '', 
+                                    req.headers['x-database-connect'], 
+                                    req.route
+                                )
+                                const dataLog = await Log.createLog()
+                                res.send('failed api with error, '+ dataLog.error)
+                            }
+                        }catch(err){
+                            logDates.error(`********* Error ${err} ***********`);
+                            logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
+                            const Log = new LogService(
+                                req.headers.host, 
+                                req.body, 
+                                req.params, 
+                                err, 
+                                '', 
+                                req.headers['x-database-connect'], 
+                                req.route
+                            )
+                            const dataLog = await Log.createLog()
+                            res.send('failed api with error, '+ dataLog.error)
+                        }
+                    }catch(err){
                         logDates.error(`********* Error ${err} ***********`);
                         logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
                         const Log = new LogService(
@@ -806,7 +884,7 @@ dates.delete('/:id', async (req, res) => {
                         const dataLog = await Log.createLog()
                         res.send('failed api with error, '+ dataLog.error)
                     }
-                }catch(err){
+                } catch (err) {
                     logDates.error(`********* Error ${err} ***********`);
                     logDates.info(`############## Fin -> Eliminar cita <- con error ############### \n`);
                     const Log = new LogService(

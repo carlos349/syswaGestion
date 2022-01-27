@@ -68,4 +68,9 @@ formats.datesMonth = () => {
     return dates
 }
 
+formats.changeDate = (date) => {
+    const returnDate = date.split("-")[1] + "-" + date.split("-")[0] + "-" + date.split("-")[2]
+    return returnDate
+}
+
 module.exports = formats

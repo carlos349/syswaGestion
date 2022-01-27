@@ -702,7 +702,8 @@ clients.put('/:id', protectRoute, async (req, res) => {
                       lastName: req.body.lastName,
                       email: req.body.email,
                       phone: req.body.phone,
-                      instagram: req.body.instagram
+                      instagram: req.body.instagram,
+                      birthday: req.body.birthday
                     }
                 })
                 if (updateClient) {
@@ -720,7 +721,8 @@ clients.put('/:id', protectRoute, async (req, res) => {
                           lastName:req.body.lastName,
                           email:req.body.email,
                           phone: req.body.phone,
-                          instagram: req.body.instagram
+                          instagram: req.body.instagram,
+                          birthday: req.body.birthday
                         }
                     })
                     if (updateClient) {

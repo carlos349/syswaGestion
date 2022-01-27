@@ -705,11 +705,32 @@ employes.delete('/:id', protectRoute, async (req, res) => {
     
 
     const Employe = connect.useDb(database).model('employes', employeSchema)
-
+    const Service = connect.useDb(database).model('services', serviceSchema)
     try{
         const deleteEmploye = await Employe.findByIdAndRemove(req.params.id)
         if (deleteEmploye) {
-            res.json({status: 'employe deleted', data:deleteEmploye, token: req.requestToken })
+            try{
+                const updateService = await Service.updateMany({employes: {$elemMatch:{id:deleteEmploye._id}}},{$pull:{employes:{id:deleteEmploye._id}}})
+                if (updateService) {
+                    res.json({status: 'employe deleted', data:deleteEmploye, token: req.requestToken })
+                }
+            }catch(err){
+                const Log = new LogService(
+                    req.headers.host, 
+                    req.body, 
+                    req.params, 
+                    err, 
+                    req.requestToken, 
+                    req.headers['x-database-connect'], 
+                    req.route
+                )
+                Log.createLog()
+                .then(dataLog => {
+                    res.send('failed api with error, '+ dataLog.error)
+                })
+            }
+            
+            
         }else{
             res.json({status: 'employe not found'})
         }
