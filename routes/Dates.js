@@ -3014,17 +3014,17 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                             }
                             if (valid) {
                                 blockEdit.employeBlocked.forEach((element, index) => {
-                                    if (element.employe == dataEdit.employe.id) {
+                                    if (element.employe == editDate.employe.id) {
                                         blockEdit.employeBlocked.splice(index, 1)
                                     }
                                 });
                                 blockEdit.employes.push({
-                                    name: dataEdit.employe.name,
-                                    id: dataEdit.employe.id,
-                                    class: dataEdit.employe.class,
+                                    name: editDate.employe.name,
+                                    id: editDate.employe.id,
+                                    class: editDate.employe.class,
                                     position: 20,
                                     valid: false,
-                                    img: dataEdit.employe.img
+                                    img: editDate.employe.img
                                 })
                             }
                         }
