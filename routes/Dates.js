@@ -2388,6 +2388,7 @@ dates.post('/selectDatesBlocks', async (req, res) => {
     const hourSelect = req.body.hour
     const employe = req.body.employe
     const blocks = req.body.block
+    const oldEmploye = req.body.oldEmploye
     if (req.body.firstBlock) {
         for (let i = 0; i < blocks.length; i++) {
             const element = blocks[i];
@@ -2395,11 +2396,11 @@ dates.post('/selectDatesBlocks', async (req, res) => {
                 element.validator = true
                 if (blocks[i + 1]) {
                     if (blocks[i + 1].validator == 'select') {
-                        blocks[i].employes.unshift(employe)
+                        blocks[i].employes.unshift(oldEmploye)
                     }  
                 }
                 for (const employeFor in element.employeBlocked) {
-                    if (element.employeBlocked[employeFor].employe == employe.id) {
+                    if (element.employeBlocked[employeFor].employe == oldEmploye.id) {
                         element.employeBlocked.splice(employeFor, 1)
                     }
                 }

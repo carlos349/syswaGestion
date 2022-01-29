@@ -298,12 +298,7 @@ employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
 
     const Sale = connect.useDb(database).model('sales', saleSchema)
     try{
-        var month = new Date().getMonth()
-        var year = new Date().getFullYear()
-        const findSales = await Sale.find({createdAt:{
-            $gte: new Date(year, month, 1),
-            $lte: new Date(year, month+1, 0, 23, 59)
-        }})
+        const findSales = await Sale.find({items: {$elemMatch:{"employe.id": req.params.id, "employe.closed": false}}})
         if (findSales){
             let salesOfEmploye = []
             for (let i = 0; i < findSales.length; i++) {
@@ -1255,31 +1250,13 @@ employes.put('/closeemploye/:id', protectRoute, (req, res) => {
         employe: req.body.employe,
         createdAt: new Date()
     }
-    var month = new Date().getMonth()
-    var year = new Date().getFullYear()
+    console.log("este")
+    console.log(req.params.id)
     HistoryEmploye.create(dataHistory)
     .then(createHistory => {
-        Sale.find({
-            createdAt:{
-                $gte: new Date(year, month, 1),
-                $lte: new Date(year, month+1, 0, 23, 59)
-            }
-        })
+        Sale.updateMany({items: {$elemMatch:{"employe.id":req.params.id,"employe.closed": false}}},{$set:{"items.$.employe.closed":true,"items.$.statusClose":false}})
         .then(findSales => {
-            for (let i = 0; i < findSales.length; i++) {
-                const element = findSales[i];
-                for (let e = 0; e < element.items.length; e++) {
-                    const sale = element.items[e];
-                    if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
-                        sale.statusClose = false
-                    }
-                }
-                Sale.findByIdAndUpdate(element._id, {
-                    $set: {
-                        items: element.items
-                    }
-                }).then(update => {})
-            }
+            
             Employe.findByIdAndUpdate(req.params.id, {
                 $set: {
                     commission:0,

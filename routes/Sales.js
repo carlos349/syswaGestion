@@ -418,7 +418,7 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
         if(sales.length > 0){
           for (let index = 0; index < sales.length; index++) {
             const element = sales[index];
-
+            
             var typesPay = {}
             for (let e = 0; e < element.typesPay.length; e++) {
                 const elementTwo = element.typesPay[e];
@@ -426,17 +426,27 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
                   typesPay[elementTwo.type] = elementTwo.total
                 }
             }
-            for (const items of element.items) {
+            for (const key in element.items) {
+              const items = element.items[key]
               var additionals = ''
               var totalAddi = 0
               for (const addi of items.additionals) {
                 additionals = additionals == '' ? addi.name : + ', ' + addi.name
                 totalAddi = totalAddi + addi.price
               }
-              if (items.type == 'service') {
-                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: '', Servicio: items.item.name, Precio: items.item.price,Descuento: items.discount, Adicionales: additionals == '' ? 'Sin adicional' : additionals, 'Total Adicionales': totalAddi, Total: items.totalItem, ...typesPay})
-              }else{
-                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: items.item.name+', Cantidad: '+items.quantityProduct, Servicio: '', Precio: items.item.price,Descuento: items.discount, Adicionales: 'Sin adicional', 'Total Adicionales': 'Sin adicional', Total: items.totalItem, ...typesPay})
+              if (key > 0 ) {
+                if (items.type == 'service') {
+                  dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: '', Servicio: items.item.name, Precio: items.item.price,Descuento: items.discount, Adicionales: additionals == '' ? 'Sin adicional' : additionals, 'Total Adicionales': totalAddi, Total: items.totalItem})
+                }else{
+                  dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: items.item.name+', Cantidad: '+items.quantityProduct, Servicio: '', Precio: items.item.price,Descuento: items.discount, Adicionales: 'Sin adicional', 'Total Adicionales': 'Sin adicional', Total: items.totalItem})
+                }
+              }
+              else{
+                if (items.type == 'service') {
+                  dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: '', Servicio: items.item.name, Precio: items.item.price,Descuento: items.discount, Adicionales: additionals == '' ? 'Sin adicional' : additionals, 'Total Adicionales': totalAddi, Total: items.totalItem, ...typesPay})
+                }else{
+                  dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: items.item.name+', Cantidad: '+items.quantityProduct, Servicio: '', Precio: items.item.price,Descuento: items.discount, Adicionales: 'Sin adicional', 'Total Adicionales': 'Sin adicional', Total: items.totalItem, ...typesPay})
+                }
               }
             }
           }
