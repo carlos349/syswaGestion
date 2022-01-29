@@ -1093,9 +1093,28 @@ employes.put('/', protectRoute, async (req,res) => {
                                 }
                                 
                             }, 2000);
-                    logDates.info(`############## Fin de -> Api que edita empleados <-  con base de datos:${database}############### \n`);        
-                    res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
-                    
+                    logDates.info(`############## Fin de -> Api que edita empleados <-  con base de datos:${database}############### \n`);
+                    Service.updateMany({employes: {$elemMatch:{"id":req.body.id}}},{$set:{"employes.$.days":normalDays}})
+                    .then(finalEdit =>{
+                        res.json({status: 'employe edited', data: employeEdited, token: req.requestToken})
+                    }) 
+                    .catch(err =>{
+                        logDates.error(`********* Error ${err} ***********`);
+                        logDates.info(`############## Fin -> NormalizeDatesBlocks <- con error ############### \n`);
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            req.requestToken, 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        Log.createLog()
+                        .then(dataLog => {
+                            res.send('failed api with error, '+ dataLog.error)
+                        })
+                    })  
                 }).catch(err => {
                     logDates.error(`********* Error ${err} ***********`);
                     logDates.info(`############## Fin -> NormalizeDatesBlocks <- con error ############### \n`);
