@@ -2989,15 +2989,6 @@ dates.post('/editdate', protectRoute, async (req, res) => {
             }
         })
         if (editDate) {
-            console.log({
-                start: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.startEdit,
-                end: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.endEdit,
-                split: dataEdit.employe.id,
-                employe: dataEdit.employe, 
-                duration: dataEdit.duration,
-                class: dataEdit.employe.class,
-                createdAt: new Date(dataEdit.createdAt)
-            })
             try {
                 const startFixed = dataEdit.start.split("T")[0].split("-")[1]+"-"+dataEdit.start.split("T")[0].split("-")[2]+"-"+dataEdit.start.split("T")[0].split("-")[0]
                 if (startFixed != dataEdit.createdAt) {
@@ -3009,11 +3000,14 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                     })
                     if (findBlocksToEdit) {
                         var valid = false
+                        const startBefore = editDate.start.split(' ')[1]
+                        const endBefore = editDate.end.split(' ')[1]
                         for (const blockEdit of findBlocksToEdit.blocks) {
-                            if (blockEdit.hour == dataEdit.startEdit) {
+                            console.log()
+                            if (blockEdit.hour == startBefore) {
                                 valid = true
                             }
-                            if (blockEdit.end == dataEdit.endEdit) {
+                            if (blockEdit.hour == endBefore) {
                                 valid = false
                                 break
                             }
