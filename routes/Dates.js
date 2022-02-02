@@ -2986,7 +2986,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                 employe: dataEdit.employe, 
                 duration: dataEdit.duration,
                 class: dataEdit.employe.class,
-                createdAt: new Date(dataEdit.createdAt)
+                createdAt: new Date(dataEdit.createdAt+" 10:00")
             }
         })
         if (editDate) {
