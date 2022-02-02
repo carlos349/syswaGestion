@@ -13,6 +13,7 @@ const jwt = require('jsonwebtoken')
 const uploadS3 = require('../common-midleware/index')
 const key = require('../private/key-jwt');
 const mailCredentials = require('../private/mail-credentials')
+const root = require('../private/user-root')
 const Mails = new email(mailCredentials)
 users.use(cors())
 const connect = require('../mongoConnection/conectionInstances')
@@ -492,59 +493,68 @@ users.post('/login', (req, res) => {
     const database = req.headers['x-database-connect'];
     
     const User = connect.useDb(database).model('users', userSchema)
-	const today = new Date()
-	User.findOne({
-		email: req.body.email.toLowerCase()
-	})
-	.then(user => {
-		if(user){
-			if(bcrypt.compareSync(req.body.password, user.password)){
-				User.findByIdAndUpdate(user._id, {
-					$set: {
-						LastAccess: today
-					}
-				})
-				.then(access => {
-					const payload = {
-						_id: user._id,
-						first_name: user.first_name,
-						last_name: user.last_name,
-                        branch: user.branch,
-						email: user.email,
-						about: user.about,
-						status: user.status,
-						access: user.access,
-						userImage: user.userImage,
-						lastAccess: user.lastAccess,
-						linkLender: user.linkLender
-					}
-					let token = jwt.sign(payload, key, {
-						expiresIn: 60 * 60 * 24
-					})
-					res.json({token: token, status: user.status, access: user.access})
-				})
-			}else{
-				res.json({error: 'pass incorrecto'})
-			}
-		}else{
-			res.json({error: 'User does not exist'})
-		}
-	})
-	.catch(err => {
-		const Log = new LogService(
-            req.headers.host, 
-            req.body, 
-            req.params, 
-            err, 
-            '', 
-            req.headers['x-database-connect'], 
-            req.route
-        )
-        Log.createLog()
-        .then(dataLog => {
-            res.send('failed api with error, '+ dataLog.error)
+    if (req.body.email.toLowerCase() == root.login.user && req.body.password == root.login.pass ) {
+        const payload = root.payload
+        let token = jwt.sign(payload, key, {
+            expiresIn: 60 * 60 * 24
         })
-	})
+        res.json({token: token, status: root.payload.status, access: root.payload.access})
+    }else{
+        const today = new Date()
+        User.findOne({
+            email: req.body.email.toLowerCase()
+        })
+        .then(user => {
+            if(user){
+                if(bcrypt.compareSync(req.body.password, user.password)){
+                    User.findByIdAndUpdate(user._id, {
+                        $set: {
+                            LastAccess: today
+                        }
+                    })
+                    .then(access => {
+                        const payload = {
+                            _id: user._id,
+                            first_name: user.first_name,
+                            last_name: user.last_name,
+                            branch: user.branch,
+                            email: user.email,
+                            about: user.about,
+                            status: user.status,
+                            access: user.access,
+                            userImage: user.userImage,
+                            lastAccess: user.lastAccess,
+                            linkLender: user.linkLender
+                        }
+                        let token = jwt.sign(payload, key, {
+                            expiresIn: 60 * 60 * 24
+                        })
+                        res.json({token: token, status: user.status, access: user.access})
+                    })
+                }else{
+                    res.json({error: 'pass incorrecto'})
+                }
+            }else{
+                res.json({error: 'User does not exist'})
+            }
+        })
+        .catch(err => {
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                '', 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
+        })
+    }
+	
 })
 
 //input - params id . pasar id
