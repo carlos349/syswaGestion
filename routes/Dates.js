@@ -2977,6 +2977,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const blocks = req.body.blocks
     const dataEdit = req.body.data
+    const createdAtEdit = dataEdit.createdAt.split("T")[1] ? dataEdit.createdAt.split("T")[0] : dataEdit.createdAt
     try {
         const editDate = await Dates.findByIdAndUpdate(dataEdit._id, {
             $set: {
@@ -2986,7 +2987,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                 employe: dataEdit.employe, 
                 duration: dataEdit.duration,
                 class: dataEdit.employe.class,
-                createdAt: new Date(dataEdit.createdAt+" 10:00")
+                createdAt: createdAtEdit
             }
         })
         if (editDate) {
