@@ -1706,10 +1706,21 @@ dates.post('/editBlocksFirst', async (req, res) => {
                 blockEmploye.push({ hour: block.hour, validator: 'unavailable', origin: true })
             } else {
                 var valid = false
+                var validSameEmploye = true
                 if (block.validator == 'select') {
-                    blockEmploye.push({ hour: block.hour, validator: true, origin: true })
-                    block.validator = true
-                    block.employes.unshift(req.body.employeObject)
+                    block.employeBlocked.forEach(emp => {
+                        if (emp.employe == employeSelect) {
+                            validSameEmploye = false
+                            block.validator = false
+                            blockEmploye.push({ hour: block.hour, validator: false, origin: true })
+                            console.log("ENTROOOOOO"+ block)
+                        }
+                    });
+                    if (validSameEmploye) {
+                        block.validator = true
+                        blockEmploye.push({ hour: block.hour, validator: true, origin: true })
+                        block.employes.unshift(req.body.employeObject)
+                    }
                 }else{
                     for (const employe of block.employes) {
                         if (employe.id == employeSelect) {
@@ -2334,51 +2345,58 @@ dates.post('/editdateblockbefore', async (req, res) => {
     const employe = req.body.employe
     const start = req.body.start
     const end = req.body.end
+    const originalEmploye = req.body.originalEmploye
     employe.valid = true
     var valid = false
-    try{
-        for (const block of blocks) {
-            if (valid) {
-                if (block.hour == end) {
-                    valid = false
-                    break
-                }else{
+    console.log(originalEmploye +"=="+ employe.id)
+    if (originalEmploye == employe.id) {
+        try{
+            for (const block of blocks) {
+                if (valid) {
+                    if (block.hour == end) {
+                        valid = false
+                        break
+                    }else{
+                        block.employeBlocked.forEach((element, index) => {
+                            if (element.employe == employe.id) {
+                                block.employeBlocked.splice(index, 1)
+                            }
+                        });
+                        block.employes.push(employe)
+                        block.validator = true
+                    }
+                }
+                if (block.hour == start) {
                     block.employeBlocked.forEach((element, index) => {
                         if (element.employe == employe.id) {
                             block.employeBlocked.splice(index, 1)
                         }
                     });
+                    valid = true
                     block.employes.push(employe)
                     block.validator = true
                 }
             }
-            if (block.hour == start) {
-                block.employeBlocked.forEach((element, index) => {
-                    if (element.employe == employe.id) {
-                        block.employeBlocked.splice(index, 1)
-                    }
-                });
-                valid = true
-                block.employes.push(employe)
-                block.validator = true
-            }
+            res.json({ data: blocks })
+        }catch(err){
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
         }
+    }else{
         res.json({ data: blocks })
-    }catch(err){
-        const Log = new LogService(
-            req.headers.host, 
-            req.body, 
-            req.params, 
-            err, 
-            req.requestToken, 
-            req.headers['x-database-connect'], 
-            req.route
-        )
-        Log.createLog()
-        .then(dataLog => {
-            res.send('failed api with error, '+ dataLog.error)
-        })
     }
+    
 })
 
 //Api que busca y crea los bloques de horarios (Ingreso: date, timedate, hour, branch, employe) -- api that find and create first time blocks (Input: date, timedate, hour, branch, employe)
