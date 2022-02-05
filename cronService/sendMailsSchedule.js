@@ -93,6 +93,7 @@ class Main {
             const mail = {
                 from: branchData.name,
                 to: datee.client.email,
+                bcc: branchData.email,
                 subject: 'Recordatorio de tu agendamiento en ' + branchData.name,
                 html: `<!doctype html>
                 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">

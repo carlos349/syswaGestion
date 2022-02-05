@@ -2662,6 +2662,7 @@ mails.post('/dateMail', async (req, res) => {
         const mail = {
             from: "SYSWA",
             to: req.body.email,
+            bcc: getConfigurations.businessEmail,
             subject: 'Detalles de tu agendamiento en ' + getConfigurations.businessName,
             html: `<!doctype html>
             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
