@@ -60,6 +60,32 @@ dates.get('/:branch', protectRoute, async (req, res) => {
     }
 })
 
+dates.get('/getDate/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    
+    const date = connect.useDb(database).model('dates', dateSchema)
+    try {
+        const getDates = await date.findById(req.params.id)
+        if (getDates.length > 0) {  
+            res.json({ status: 'ok', data: getDates, token: req.requestToken })
+        } else {
+            res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
+        }
+    } catch (err) {
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
+})
+
 dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const date = connect.useDb(database).model('dates', dateSchema)
@@ -1703,7 +1729,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
         const blockEmploye = []
         for (const block of blocks) {
             if (block.sameDay) {
-                blockEmploye.push({ hour: block.hour, validator: 'unavailable', origin: true })
+                blockEmploye.push({ hour: block.hour, validator: 'unavailable', origin: 'unavailable' })
             } else {
                 var valid = false
                 var validSameEmploye = true
@@ -1712,7 +1738,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                         if (emp.employe == employeSelect) {
                             validSameEmploye = false
                             block.validator = false
-                            blockEmploye.push({ hour: block.hour, validator: false, origin: true })
+                            blockEmploye.push({ hour: block.hour, validator: false, origin: false })
                             console.log("ENTROOOOOO"+ block)
                         }
                     });
@@ -1730,7 +1756,7 @@ dates.post('/editBlocksFirst', async (req, res) => {
                         }
                     }
                     if (!valid) {
-                        blockEmploye.push({ hour: block.hour, validator: false, origin: true })
+                        blockEmploye.push({ hour: block.hour, validator: false, origin: false })
                     }
                 }
             }
@@ -2995,65 +3021,62 @@ dates.post('/editdate', protectRoute, async (req, res) => {
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const blocks = req.body.blocks
     const dataEdit = req.body.data
-    const createdAtEdit = dataEdit.createdAt.split("T")[1] ? dataEdit.createdAt.split("T")[0] : dataEdit.createdAt+" 10:00"
+    
     try {
         const editDate = await Dates.findByIdAndUpdate(dataEdit._id, {
             $set: {
-                start: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.startEdit,
-                end: formats.datesEdit(dataEdit.createdAt) + ' ' + dataEdit.endEdit,
+                start: dataEdit.date+ " "+dataEdit.start,
+                end: dataEdit.date+ " "+dataEdit.end,
                 split: dataEdit.employe.id,
                 employe: dataEdit.employe, 
                 duration: dataEdit.duration,
                 class: dataEdit.employe.class,
-                createdAt: createdAtEdit
+                createdAt: dataEdit.date+ " 10:00"
             }
         })
         if (editDate) {
             try {
-                const startFixed = dataEdit.start.split("T")[0].split("-")[1]+"-"+dataEdit.start.split("T")[0].split("-")[2]+"-"+dataEdit.start.split("T")[0].split("-")[0]
-                if (startFixed != dataEdit.createdAt) {
-                    const findBlocksToEdit = await dateBlock.findOne({
-                        $and: [
-                            { 'dateData.branch': editDate.branch },
-                            { 'dateData.date': startFixed }
-                        ]
-                    })
-                    if (findBlocksToEdit) {
-                        var valid = false
-                        const startBefore = editDate.start.split(' ')[1]
-                        const endBefore = editDate.end.split(' ')[1]
-                        for (const blockEdit of findBlocksToEdit.blocks) {
-                            console.log()
-                            if (blockEdit.hour == startBefore) {
-                                valid = true
+                const findBlocksToEdit = await dateBlock.findOne({
+                    $and: [
+                        { 'dateData.branch': editDate.branch },
+                        { 'dateData.date': editDate.start.split(" ")[0] }
+                    ]
+                })
+                
+                var valid = false
+                const startBefore = editDate.start.split(' ')[1]
+                const endBefore = editDate.end.split(' ')[1]
+                for (const blockEdit of findBlocksToEdit.blocks) {
+                    console.log()
+                    if (blockEdit.hour == startBefore) {
+                        valid = true
+                    }
+                    if (blockEdit.hour == endBefore) {
+                        valid = false
+                        break
+                    }
+                    if (valid) {
+                        blockEdit.employeBlocked.forEach((element, index) => {
+                            if (element.employe == editDate.employe.id) {
+                                blockEdit.employeBlocked.splice(index, 1)
                             }
-                            if (blockEdit.hour == endBefore) {
-                                valid = false
-                                break
-                            }
-                            if (valid) {
-                                blockEdit.employeBlocked.forEach((element, index) => {
-                                    if (element.employe == editDate.employe.id) {
-                                        blockEdit.employeBlocked.splice(index, 1)
-                                    }
-                                });
-                                blockEdit.employes.push({
-                                    name: editDate.employe.name,
-                                    id: editDate.employe.id,
-                                    class: editDate.employe.class,
-                                    position: 20,
-                                    valid: false,
-                                    img: editDate.employe.img
-                                })
-                            }
-                        }
-                        const EditBlocks = await dateBlock.findByIdAndUpdate(findBlocksToEdit._id, {
-                            $set: {
-                                blocks: findBlocksToEdit.blocks
-                            }
+                        });
+                        blockEdit.employes.push({
+                            name: editDate.employe.name,
+                            id: editDate.employe.id,
+                            class: editDate.employe.class,
+                            position: 20,
+                            valid: false,
+                            img: editDate.employe.img
                         })
                     }
                 }
+                const EditBlocks = await dateBlock.findByIdAndUpdate(findBlocksToEdit._id, {
+                    $set: {
+                        blocks: findBlocksToEdit.blocks
+                    }
+                })
+            
                 blocks.forEach((block, index) => {
                     if (blocks[index + 1]) {
                         if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
