@@ -3063,11 +3063,10 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                         }
                     }
                 });
-                const findBlocks = await dateBlock.findOne({
-                    $and: [
-                        { 'dateData.branch': editDate.branch },
-                        { 'dateData.date': dataEdit.date }
-                    ]
+                const findBlocks = await dateBlock.findByIdAndUpdate(dataEdit.idBlock, {
+                    $set: {
+                        blocks: blocks
+                    }
                 })
 
                 try {
