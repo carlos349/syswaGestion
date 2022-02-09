@@ -3036,47 +3036,6 @@ dates.post('/editdate', protectRoute, async (req, res) => {
         })
         if (editDate) {
             try {
-                const findBlocksToEdit = await dateBlock.findOne({
-                    $and: [
-                        { 'dateData.branch': editDate.branch },
-                        { 'dateData.date': editDate.start.split(" ")[0] }
-                    ]
-                })
-                
-                var valid = false
-                const startBefore = editDate.start.split(' ')[1]
-                const endBefore = editDate.end.split(' ')[1]
-                for (const blockEdit of findBlocksToEdit.blocks) {
-                    console.log()
-                    if (blockEdit.hour == startBefore) {
-                        valid = true
-                    }
-                    if (blockEdit.hour == endBefore) {
-                        valid = false
-                        break
-                    }
-                    if (valid) {
-                        blockEdit.employeBlocked.forEach((element, index) => {
-                            if (element.employe == editDate.employe.id) {
-                                blockEdit.employeBlocked.splice(index, 1)
-                            }
-                        });
-                        blockEdit.employes.push({
-                            name: editDate.employe.name,
-                            id: editDate.employe.id,
-                            class: editDate.employe.class,
-                            position: 20,
-                            valid: false,
-                            img: editDate.employe.img
-                        })
-                    }
-                }
-                const EditBlocks = await dateBlock.findByIdAndUpdate(findBlocksToEdit._id, {
-                    $set: {
-                        blocks: findBlocksToEdit.blocks
-                    }
-                })
-            
                 blocks.forEach((block, index) => {
                     if (blocks[index + 1]) {
                         if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
@@ -3110,10 +3069,77 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                     }
                 })
 
-                if (findBlocks) {
-                    res.json({ status: 'ok', data:findBlocks, token:req.requestToken })
+                try {
+                    const findBlocksToEdit = await dateBlock.findOne({
+                        $and: [
+                            { 'dateData.branch': editDate.branch },
+                            { 'dateData.date': editDate.start.split(" ")[0] }
+                        ]
+                    })
+
+                    var valid = false
+                    const startBefore = editDate.start.split(' ')[1]
+                    const endBefore = editDate.end.split(' ')[1]
+                    for (const blockEdit of findBlocksToEdit.blocks) {
+                        if (blockEdit.hour == startBefore) {
+                            valid = true
+                        }
+                        if (blockEdit.hour == endBefore) {
+                            valid = false
+                            break
+                        }
+                        if (valid) {
+                            blockEdit.employeBlocked.forEach((element, index) => {
+                                if (element.employe == editDate.employe.id) {
+                                    blockEdit.employeBlocked.splice(index, 1)
+                                }
+                            });
+                            blockEdit.employes.push({
+                                name: editDate.employe.name,
+                                id: editDate.employe.id,
+                                class: editDate.employe.class,
+                                position: 20,
+                                valid: false,
+                                img: editDate.employe.img
+                            })
+                        }
+                    }
+                    try {
+                        const EditBlocks = await dateBlock.findByIdAndUpdate(findBlocksToEdit._id, {
+                            $set: {
+                                blocks: findBlocksToEdit.blocks
+                            }
+                        })
+                        if (findBlocks) {
+                            res.json({ status: 'ok', data:findBlocks, token:req.requestToken })
+                        }
+                    }catch (err) {
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            req.requestToken, 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        const dataLog = await Log.createLog()
+                        res.send('failed api with error, '+ dataLog.error)
+                    }
+                }catch (err) {
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        req.requestToken, 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    const dataLog = await Log.createLog()
+                    res.send('failed api with error, '+ dataLog.error)
                 }
-            } catch (err) {
+            }catch (err) {
                 const Log = new LogService(
                     req.headers.host, 
                     req.body, 
@@ -3127,7 +3153,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                 res.send('failed api with error, '+ dataLog.error)
             }
         }
-    } catch (err) {
+    }catch (err) {
         const Log = new LogService(
             req.headers.host, 
             req.body, 
