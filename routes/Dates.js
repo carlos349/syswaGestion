@@ -700,18 +700,19 @@ dates.delete('/:id', async (req, res) => {
                             }
                             if (valid) {
                                 block.employeBlocked.forEach((element, index) => {
-                                    if (element.employe == employe.id) {
+                                    if (element.employe == employe.id && element.type == 'date') {
                                         block.employeBlocked.splice(index, 1)
+                                        block.employes.push({
+                                            name: employe.name,
+                                            id: employe.id,
+                                            class: employe.class,
+                                            position: 20,
+                                            valid: false,
+                                            img: employe.img
+                                        })
                                     }
                                 });
-                                block.employes.push({
-                                    name: employe.name,
-                                    id: employe.id,
-                                    class: employe.class,
-                                    position: 20,
-                                    valid: false,
-                                    img: employe.img
-                                })
+                                
                             }
                         }
                         try {
@@ -826,7 +827,7 @@ dates.delete('/:id', async (req, res) => {
                             }
                             if (valid) {
                                 block.employeBlocked.forEach((element, index) => {
-                                    if (element.employe == employe.id) {
+                                    if (element.employe == employe.id && element.type == "date") {
                                         block.employeBlocked.splice(index, 1)
                                     }
                                 });
