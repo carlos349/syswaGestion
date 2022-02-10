@@ -55,7 +55,6 @@ class Main {
       
         const dates = await this.getDates()
         const configurations = await this.getConfigurations()
-        console.log(dates)
         for (const datee of dates) {
             const formatDate = {
                 date: `${datee.start.split(' ')[0].split('-')[1]}-${datee.start.split(' ')[0].split('-')[0]}-${datee.start.split(' ')[0].split('-')[2]}`,
@@ -886,11 +885,15 @@ class Main {
 
 const mailTask = cron.schedule('10 10 * * *', () => {
   console.log("Se corrio")
-    // for (const database of databases) {
-        const data = new Main('kkprettynails-syswa')
-        data.sendMails()
-        
-    // }
+  const databases = [
+    'kkprettynails-syswa',
+    'house58-syswa',
+    'syswa-gestion-qa'
+  ]
+  for (const database of databases) {
+    const data = new Main(database)
+    data.sendMails()
+  }
 })
 
 module.exports = mailTask
