@@ -3019,9 +3019,8 @@ dates.post('/editdate', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Dates = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
-    const blocks = req.body.blocks
     const dataEdit = req.body.data
-    
+
     try {
         const editDate = await Dates.findByIdAndUpdate(dataEdit._id, {
             $set: {
@@ -3036,12 +3035,15 @@ dates.post('/editdate', protectRoute, async (req, res) => {
         })
         if (editDate) {
             try {
+                const findBlocksToEditSameDay = await dateBlock.findById(dataEdit.idBlock)
+                const blocks = findBlocksToEditSameDay.blocks
                 blocks.forEach((block, index) => {
-                    if (blocks[index + 1]) {
-                        if (block.validator == 'select' && blocks[index + 1].validator == 'select') {
+                    if (req.body.blocks[index + 1]) {
+                        if (req.body.blocks[index].validator == 'select' && req.body.blocks[index + 1].validator == 'select') {
                             if (block.employes.length > 0) {
                                 block.employes.forEach((element, index2) => {
                                     if (element.id == dataEdit.employe.id) {
+                                        //bloquear
                                         block.employes.splice(index2, 1)
                                         block.employeBlocked.push({employe:dataEdit.employe.id, type: 'date'})
                                     }
@@ -3080,7 +3082,8 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                     var valid = false
                     const startBefore = editDate.start.split(' ')[1]
                     const endBefore = editDate.end.split(' ')[1]
-                    for (const blockEdit of findBlocksToEdit.blocks) {
+                    for (const key in findBlocksToEdit.blocks) {
+                        const blockEdit = findBlocksToEdit.blocks[key]
                         if (blockEdit.hour == startBefore) {
                             valid = true
                         }
@@ -3089,19 +3092,21 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                             break
                         }
                         if (valid) {
-                            blockEdit.employeBlocked.forEach((element, index) => {
-                                if (element.employe == editDate.employe.id) {
-                                    blockEdit.employeBlocked.splice(index, 1)
-                                }
-                            });
-                            blockEdit.employes.push({
-                                name: editDate.employe.name,
-                                id: editDate.employe.id,
-                                class: editDate.employe.class,
-                                position: 20,
-                                valid: false,
-                                img: editDate.employe.img
-                            })
+                            if(req.body.blocks[key].validator != 'select'){
+                                blockEdit.employeBlocked.forEach((element, index) => {
+                                    if (element.employe == editDate.employe.id) {
+                                        blockEdit.employeBlocked.splice(index, 1)
+                                    }
+                                });
+                                blockEdit.employes.push({
+                                    name: editDate.employe.name,
+                                    id: editDate.employe.id,
+                                    class: editDate.employe.class,
+                                    position: 20,
+                                    valid: false,
+                                    img: editDate.employe.img
+                                })
+                            }
                         }
                     }
                     try {
