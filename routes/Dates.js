@@ -3087,6 +3087,9 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                     if (dataEdit.date != editDate.start.split(' ')[0]) {
                         diff = true
                     }
+                    if (dataEdit.employe.id != editDate.employe.id) {
+                        diff = true
+                    }
                     for (const key in findBlocksToEdit.blocks) {
                         const blockEdit = findBlocksToEdit.blocks[key]
                         if (blockEdit.hour == startBefore) {
@@ -3099,7 +3102,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                         if (valid) {
                             if(diff){
                                 blockEdit.employeBlocked.forEach((element, index) => {
-                                    if (element.employe == editDate.employe.id && element.type == 'date') {
+                                    if (element.employe == editDate.employe.id) {
                                         blockEdit.employeBlocked.splice(index, 1)
                                         blockEdit.employes.push({
                                             name: editDate.employe.name,
@@ -3114,7 +3117,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                             }else{
                                 if(req.body.blocks[key].validator != 'select'){
                                     blockEdit.employeBlocked.forEach((element, index) => {
-                                        if (element.employe == editDate.employe.id && element.type == 'date') {
+                                        if (element.employe == editDate.employe.id) {
                                             blockEdit.employeBlocked.splice(index, 1)
                                             blockEdit.employes.push({
                                                 name: editDate.employe.name,
