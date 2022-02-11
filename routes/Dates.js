@@ -3083,6 +3083,10 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                     var valid = false
                     const startBefore = editDate.start.split(' ')[1]
                     const endBefore = editDate.end.split(' ')[1]
+                    var diff = false
+                    if (dataEdit.date != editDate.start.split(' ')[0]) {
+                        diff = true
+                    }
                     for (const key in findBlocksToEdit.blocks) {
                         const blockEdit = findBlocksToEdit.blocks[key]
                         if (blockEdit.hour == startBefore) {
@@ -3093,7 +3097,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                             break
                         }
                         if (valid) {
-                            if(req.body.blocks[key].validator != 'select'){
+                            if(diff){
                                 blockEdit.employeBlocked.forEach((element, index) => {
                                     if (element.employe == editDate.employe.id && element.type == 'date') {
                                         blockEdit.employeBlocked.splice(index, 1)
@@ -3107,6 +3111,22 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                                         })
                                     }
                                 });
+                            }else{
+                                if(req.body.blocks[key].validator != 'select'){
+                                    blockEdit.employeBlocked.forEach((element, index) => {
+                                        if (element.employe == editDate.employe.id && element.type == 'date') {
+                                            blockEdit.employeBlocked.splice(index, 1)
+                                            blockEdit.employes.push({
+                                                name: editDate.employe.name,
+                                                id: editDate.employe.id,
+                                                class: editDate.employe.class,
+                                                position: 20,
+                                                valid: false,
+                                                img: editDate.employe.img
+                                            })
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
