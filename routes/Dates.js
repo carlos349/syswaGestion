@@ -688,17 +688,17 @@ dates.delete('/:id', async (req, res) => {
                             { 'dateData.branch': branch }
                         ]
                     })
-                    var valid = false
+                    var validBlock = false
                     try {
                         for (const block of findDateBlock.blocks) {
                             if (block.hour == hour) {
-                                valid = true
+                                validBlock = true
                             }
                             if (block.hour == end) {
-                                valid = false
+                                validBlock = false
                                 break
                             }
-                            if (valid) {
+                            if (validBlock) {
                                 block.employeBlocked.forEach((element, index) => {
                                     if (element.employe == employe.id && element.type == 'date') {
                                         block.employeBlocked.splice(index, 1)
@@ -715,6 +715,7 @@ dates.delete('/:id', async (req, res) => {
                                 
                             }
                         }
+                        logDates.info(`********* bloques: ${JSON.stringify(findDateBlock)} ***********`);
                         try {
                             const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock._id, {
                                 $set: {
