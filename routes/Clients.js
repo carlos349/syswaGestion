@@ -289,7 +289,7 @@ clients.post('/', async (req, res) => {
     
     const Client = connect.useDb(database).model('clients', clientSchema)
 
-    var finalRecommender = req.body.recommender == null ? 'Ninguno' : req.body.recommender
+    var finalRecommender = req.body.recommender == '' ? 'Ninguno' : req.body.recommender
     const today = new Date()
     var birthday = req.body.birthday != '' ? new Date(req.body.birthday) : ''
 
