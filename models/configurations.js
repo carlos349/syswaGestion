@@ -43,6 +43,9 @@ const configurationSchema = new Schema({
     },
     microServices: {
         type: Array
+    },
+    notificationDiscount: {
+        type: Boolean
     }
 })
 
