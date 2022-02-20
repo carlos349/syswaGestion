@@ -697,7 +697,6 @@ employes.post('/registerexpenseforemploye', protectRoute, async (req, res) => {
 
 employes.delete('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
 
     const Employe = connect.useDb(database).model('employes', employeSchema)
     const Service = connect.useDb(database).model('services', serviceSchema)
@@ -705,7 +704,7 @@ employes.delete('/:id', protectRoute, async (req, res) => {
         const deleteEmploye = await Employe.findByIdAndRemove(req.params.id)
         if (deleteEmploye) {
             try{
-                const updateService = await Service.updateMany({employes: {$elemMatch:{id:deleteEmploye._id}}},{$pull:{employes:{id:deleteEmploye._id}}})
+                const updateService = await Service.updateMany({employes: {$elemMatch:{id:req.params.id}}},{$pull:{employes:{id:req.params.id}}})
                 if (updateService) {
                     res.json({status: 'employe deleted', data:deleteEmploye, token: req.requestToken })
                 }
