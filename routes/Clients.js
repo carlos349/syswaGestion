@@ -687,7 +687,12 @@ clients.delete('/:id', protectRoute, async (req, res) => {
 clients.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Client = connect.useDb(database).model('clients', clientSchema)
-
+    var birthday = req.body.birthday
+    if (req.body.birthday.split('T')[1]) {
+        birthday = req.body.birthday
+    }else {
+        birthday = req.body.birthday.split('-')[1]+'-'+req.body.birthday.split('-')[0]+'-'+req.body.birthday.split('-')[2]
+    }
     try {
         const findClient = await Client.findOne({
             email: req.body.email
@@ -701,7 +706,7 @@ clients.put('/:id', protectRoute, async (req, res) => {
                       email: req.body.email,
                       phone: req.body.phone,
                       instagram: req.body.instagram,
-                      birthday: req.body.birthday.split('-')[1]+'-'+req.body.birthday.split('-')[0]+'-'+req.body.birthday.split('-')[2]
+                      birthday: birthday
                     }
                 })
                 if (updateClient) {
