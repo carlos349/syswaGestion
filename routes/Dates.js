@@ -64,10 +64,20 @@ dates.get('/getDate/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     
     const date = connect.useDb(database).model('dates', dateSchema)
+    const Service = connect.useDb(database).model('services', serviceSchema)
     try {
         const getDates = await date.findById(req.params.id)
-        if (getDates.length > 0) {  
-            res.json({ status: 'ok', data: getDates, token: req.requestToken })
+        if (getDates) { 
+            console.log("entre") 
+            const getService = await Service.findOne({
+                $and: [
+                    {name: getDates.services[0].name},
+                    {branch: getDates.branch}
+                ]
+            })
+            if (getService) {
+                res.json({ status: 'ok', data: getDates, service: getService,  token: req.requestToken })  
+            }
         } else {
             res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
         }
