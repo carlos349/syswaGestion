@@ -726,7 +726,7 @@ clients.put('/:id', protectRoute, async (req, res) => {
                           email:req.body.email,
                           phone: req.body.phone,
                           instagram: req.body.instagram,
-                          birthday: req.body.birthday.split('-')[1]+'-'+req.body.birthday.split('-')[0]+'-'+req.body.birthday.split('-')[2]
+                          birthday: birthday
                         }
                     })
                     if (updateClient) {
