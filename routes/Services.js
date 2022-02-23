@@ -265,7 +265,7 @@ services.post('/newCategory', protectRoute, async (req, res) => {
     const Category = connect.useDb(database).model('categories', categorySchema)
     
     const dataCategory = {
-        name: req.body.name,
+        name: req.body.name.trim(),
         branch: req.body.branch
     }
     try{
