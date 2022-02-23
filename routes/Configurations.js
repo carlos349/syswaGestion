@@ -327,7 +327,8 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                     editDates: false,
                     deleteDates: true
                 },
-                microService:[]
+                microService:[],
+                notificationDiscount: false
             }
             try {
                 const getConfigurations = await Configuration.findOne({branch: req.body.branch})
@@ -526,7 +527,8 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
         currency: req.body.currency,
         typesPay: req.body.typesPay,
         datesPolitics: req.body.datesPolitics,
-        microServices: req.body.microServices
+        microServices: req.body.microServices,
+        notificationDiscount: req.body.notificationDiscount
     }
     try {
         const createConfiguration = await Configuration.findByIdAndUpdate(req.params.id, {

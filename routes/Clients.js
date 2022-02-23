@@ -686,16 +686,20 @@ clients.delete('/:id', protectRoute, async (req, res) => {
 //output - status and token
 clients.put('/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
     const Client = connect.useDb(database).model('clients', clientSchema)
-
+    var birthday = req.body.birthday
+    if (req.body.birthday.split('T')[1]) {
+        console.log("entry here")
+        birthday = req.body.birthday
+    }else {
+        birthday = req.body.birthday.split('-')[1]+'-'+req.body.birthday.split('-')[0]+'-'+req.body.birthday.split('-')[2]
+    }
     try {
         const findClient = await Client.findOne({
             email: req.body.email
         })
         if (!findClient) {
             try {
-                
                 const updateClient = await Client.findByIdAndUpdate(req.params.id, {
                     $set: {
                       firstName: req.body.firstName,
@@ -703,7 +707,7 @@ clients.put('/:id', protectRoute, async (req, res) => {
                       email: req.body.email,
                       phone: req.body.phone,
                       instagram: req.body.instagram,
-                      birthday: req.body.birthday
+                      birthday: birthday
                     }
                 })
                 if (updateClient) {
@@ -722,7 +726,7 @@ clients.put('/:id', protectRoute, async (req, res) => {
                           email:req.body.email,
                           phone: req.body.phone,
                           instagram: req.body.instagram,
-                          birthday: req.body.birthday
+                          birthday: birthday
                         }
                     })
                     if (updateClient) {

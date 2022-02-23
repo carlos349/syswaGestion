@@ -2467,7 +2467,7 @@ mails.post('/dateMail', async (req, res) => {
           }
           var ifConfirm = validMail ? `
               <td align="center" bgcolor="#2dce89" role="presentation" style="border:none;border-radius:5px;cursor:auto;mso-padding-alt:9px 26px 9px 26px;background:#2dce89;" valign="middle">
-              <a href="${getConfigurations.route}/confirmacioncita?id=${IDS[key]._id}" style="display: inline-block; background: #2dce89; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
+              <a href="${getConfigurations.bussinessRoute}/confirmacioncita?id=${IDS[key]._id}" style="display: inline-block; background: #2dce89; color: #ffffff; font-family: Ubuntu, Helvetica, Arial, sans-serif, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: normal; line-height: 15px; margin: 0; text-decoration: none; text-transform: none; padding: 9px 26px 9px 26px; mso-padding-alt: 0px; border-radius: 5px;" target="_blank">
                   <span style="font-size: 12px;">Confirmar</span>
               </a>
               </td>` : ``

@@ -64,10 +64,20 @@ dates.get('/getDate/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     
     const date = connect.useDb(database).model('dates', dateSchema)
+    const Service = connect.useDb(database).model('services', serviceSchema)
     try {
         const getDates = await date.findById(req.params.id)
-        if (getDates.length > 0) {  
-            res.json({ status: 'ok', data: getDates, token: req.requestToken })
+        if (getDates) { 
+            console.log("entre") 
+            const getService = await Service.findOne({
+                $and: [
+                    {name: getDates.services[0].name},
+                    {branch: getDates.branch}
+                ]
+            })
+            if (getService) {
+                res.json({ status: 'ok', data: getDates, service: getService,  token: req.requestToken })  
+            }
         } else {
             res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
         }
@@ -688,17 +698,17 @@ dates.delete('/:id', async (req, res) => {
                             { 'dateData.branch': branch }
                         ]
                     })
-                    var valid = false
+                    var validBlock = false
                     try {
                         for (const block of findDateBlock.blocks) {
                             if (block.hour == hour) {
-                                valid = true
+                                validBlock = true
                             }
                             if (block.hour == end) {
-                                valid = false
+                                validBlock = false
                                 break
                             }
-                            if (valid) {
+                            if (validBlock) {
                                 block.employeBlocked.forEach((element, index) => {
                                     if (element.employe == employe.id && element.type == 'date') {
                                         block.employeBlocked.splice(index, 1)
@@ -715,6 +725,7 @@ dates.delete('/:id', async (req, res) => {
                                 
                             }
                         }
+                        logDates.info(`********* bloques: ${JSON.stringify(findDateBlock)} ***********`);
                         try {
                             const editDateBlock = await dateBlock.findByIdAndUpdate(findDateBlock._id, {
                                 $set: {
@@ -2705,7 +2716,6 @@ dates.post('/verifydate', async (req, res) => {
 
 dates.post('/noOneLender', (req, res) => {
     const database = req.headers['x-database-connect'];
-    logDates.info(`############## Inicio de -> noOneLender <-  con base de datos:${database} ###############`);
 
     const dates = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -2722,12 +2732,6 @@ dates.post('/noOneLender', (req, res) => {
     }
     const dateID = new Date()
     const id = dateID.getTime()
-    logDates.info(`********* client:${JSON.stringify(client)}  ***********`);
-    logDates.info(`********* date:${date}  ***********`);
-    logDates.info(`********* (Bloques despues) blocks:${JSON.stringify(blocks)}  ***********`);
-    logDates.info(`********* nameFile:${nameFile}  ***********`);
-    logDates.info(`********* dateID:${dateID}  ***********`);
-    logDates.info(`********* id:${id}  ***********`);
     
     for (let index = 0; index < dataDate.serviceSelectds.length; index++) {
         const element = dataDate.serviceSelectds[index];
@@ -2774,7 +2778,7 @@ dates.post('/noOneLender', (req, res) => {
         }
         dataCitas.push(data)
     }
-    logDates.info(`********* dataDate:${JSON.stringify(dataCitas)}  ***********`);
+
     var ids = [];
     for (let i = 0; i < dataCitas.length; i++) {
         dates.create(dataCitas[i])
@@ -2798,26 +2802,21 @@ dates.post('/noOneLender', (req, res) => {
             blocks: blocks
         }
     }).then(edit => {
-        logDates.info(`********* Respuesta del update (Bloques antes) ${JSON.stringify(edit)} ***********`);
+
         if (ids.length > 0) {
-            logDates.info(`############## Fin de -> noOneLender <-  con base de datos:${database} ############### \n`);
             res.json({ status: 'ok', id: ids })
         }else{
             setTimeout(() => {
                 if (ids.length > 0) {
-                    logDates.info(`############## Fin de -> noOneLender <-  con base de datos:${database} ############### \n`);
                     res.json({ status: 'ok', id: ids })
                 }else {
                     setTimeout(() => {
-                        logDates.info(`############## Fin de -> noOneLender <-  con base de datos:${database} ############### \n`);
                         res.json({ status: 'ok', id: ids })
                     }, 1000);
                 }
             }, 500);
         }
     }).catch(err => {
-        logDates.error(`********* Error ${err} ***********`);
-        logDates.info(`############## Fin -> noOneLender <- con error ############### \n`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 

@@ -778,6 +778,7 @@ sales.post('/process', protectRoute, (req, res) => {
   const Employe = connect.useDb(database).model('employes', employeSchema)
   const Dates = connect.useDb(database).model('dates', dateSchema)
   const Inventory = connect.useDb(database).model('inventories', inventorySchema)
+  const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
   const items = req.body.items
   const total = req.body.total
@@ -814,11 +815,15 @@ sales.post('/process', protectRoute, (req, res) => {
     createdAt: req.body.date
   }
   var timeItem = new Date().getTime()
+  var discounRegistered = false
   for (const item of items) {
     dataSale.localGain = dataSale.localGain + item.totalLocal
     item.employe.commission = item.tag == 'service' ? item.commissionEmploye : ''
     item.employe = item.tag == 'service' ? item.employe : 'none'
     timeItem++
+    if (item.discount > 0) {
+      discounRegistered = true
+    }
     dataSale.items.push({
       item: item.item,
       price: item.price,
@@ -858,6 +863,31 @@ sales.post('/process', protectRoute, (req, res) => {
               $push: {historical: dataSale}
             })
             .then(editClient => {
+              Configuration.findOne({
+                branch: req.body.branch
+              }).then(getConfig => {
+                if (getConfig.notificationDiscount) {
+                  if (editClient.recommender != "") {
+                    Client.findByIdAndUpdate(editClient.recommender, {
+                      $inc: {recommendations: 1},
+                    }).then(upRecomend => {
+                      Client.findByIdAndUpdate(clientId, {
+                        $set: {recommender: ""},
+                      }).then(setRecomend => {
+                        
+                      })
+                    })
+                  }
+                  if (discounRegistered && editClient.recommendations > 0) {
+                    Client.findByIdAndUpdate(clientId, {
+                      $inc: {recommendations: -1},
+                    }).then(setRecomend => {
+                      
+                    })
+                  }
+                }
+              })
+
               DaySale.create(daySale)
               .then(createDaySale => {
                 for (let index = 0; index < items.length; index++) {
