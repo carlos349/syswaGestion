@@ -306,7 +306,7 @@ employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
                 for (let e = 0; e < element.items.length; e++) {
                     const sale = element.items[e];
                     if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
-                        salesOfEmploye.push({createdAt: element.createdAt, client: element.client.firstName + ' ' + element.client.lastName, commission: sale.employe.commission, total: element.totals.total, service: sale.item.name,id: sale.id, saleData: element})
+                        salesOfEmploye.push({createdAt: element.createdAt, client: element.client.firstName + ' ' + element.client.lastName, commission: sale.employe.commission, total: sale.totalItem, service: sale.item.name,id: sale.id, saleData: element})
                     }
                 }
             }
