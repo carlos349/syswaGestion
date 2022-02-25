@@ -3078,7 +3078,7 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                             { 'dateData.date': editDate.start.split(" ")[0] }
                         ]
                     })
-
+                    logDates.info(`********* Dias del empleado: ${JSON.stringify(findBlocksToEdit.blocks)} ***********`);
                     var valid = false
                     const startBefore = editDate.start.split(' ')[1]
                     const endBefore = editDate.end.split(' ')[1]
@@ -3115,6 +3115,22 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                                 });
                             }else{
                                 if(req.body.blocks[key].validator != 'select'){
+                                    console.log(blockEdit.hour)
+                                    blockEdit.employeBlocked.forEach((element, index) => {
+                                        if (element.employe == editDate.employe.id) {
+                                            blockEdit.employeBlocked.splice(index, 1)
+                                            blockEdit.employes.push({
+                                                name: editDate.employe.name,
+                                                id: editDate.employe.id,
+                                                class: editDate.employe.class,
+                                                position: 20,
+                                                valid: false,
+                                                img: editDate.employe.img
+                                            })
+                                        }
+                                    });
+                                }else if (dataEdit.end == blockEdit.hour) {
+                                    console.log(blockEdit.hour)
                                     blockEdit.employeBlocked.forEach((element, index) => {
                                         if (element.employe == editDate.employe.id) {
                                             blockEdit.employeBlocked.splice(index, 1)
