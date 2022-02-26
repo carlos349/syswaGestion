@@ -41,6 +41,28 @@ configurations.get('/profiles', protectRoute, async (req, res) => {
     }
 })
 
+configurations.get('/', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+
+    try {
+        const getConfigurations = await Configuration.find()
+        res.json({status: 'ok', data: getConfigurations})
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
+})
+
 configurations.get('/clientlog', async (req, res) => {
     const database = req.headers['x-database-connect'];
 
