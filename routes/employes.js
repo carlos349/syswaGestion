@@ -1244,7 +1244,7 @@ employes.put('/closeemploye/:id', protectRoute, (req, res) => {
     console.log(req.params.id)
     HistoryEmploye.create(dataHistory)
     .then(createHistory => {
-        Sale.updateMany({items: {$elemMatch:{"employe.id":req.params.id,"employe.closed": false}}},{$set:{"items.$.employe.closed":true,"items.$.statusClose":false}})
+        Sale.updateMany({items: {$elemMatch:{"employe.id":req.params.id}}},{$set:{"items.$.statusClose":false}})
         .then(findSales => {
             
             Employe.findByIdAndUpdate(req.params.id, {
