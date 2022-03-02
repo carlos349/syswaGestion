@@ -1244,34 +1244,19 @@ employes.put('/closeemploye/:id', protectRoute, (req, res) => {
     console.log(req.params.id)
     HistoryEmploye.create(dataHistory)
     .then(createHistory => {
-        Sale.updateMany({items: {$elemMatch:{"employe.id":req.params.id}}},{$set:{"items.$.statusClose":false}})
-        .then(findSales => {
-            
-            Employe.findByIdAndUpdate(req.params.id, {
-                $set: {
-                    commission:0,
-                    advancement:0,
-                    bonus:0
-                }
-            })
-            .then(employeClosed => {
-                res.json({status: 'employe closed', data: employeClosed, token: req.requestToken})
-            })
-            .catch(err => {
-                const Log = new LogService(
-                    req.headers.host, 
-                    req.body, 
-                    req.params, 
-                    err, 
-                    req.requestToken, 
-                    req.headers['x-database-connect'], 
-                    req.route
-                )
-                Log.createLog()
-                .then(dataLog => {
-                    res.send('failed api with error, '+ dataLog.error)
-                })
-            })
+        for (let index = 0; index < 15; index++) {
+            Sale.updateMany({items: {$elemMatch:{"employe.id":req.params.id, statusClose: true}}},{$set:{"items.$.statusClose":false}})
+            .then(findSales => { })
+        }
+        Employe.findByIdAndUpdate(req.params.id, {
+            $set: {
+                commission:0,
+                advancement:0,
+                bonus:0
+            }
+        })
+        .then(employeClosed => {
+            res.json({status: 'employe closed', data: employeClosed, token: req.requestToken})
         })
         .catch(err => {
             const Log = new LogService(
