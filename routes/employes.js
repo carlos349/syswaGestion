@@ -294,23 +294,39 @@ employes.get('/employesbybranchForClients/:branch', async (req, res) =>{
 
 employes.get('/salesbyemploye/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
-
+    const DaySale = connect.useDb(database).model('daySales', daySaleSchema)
     const Sale = connect.useDb(database).model('sales', saleSchema)
+
     try{
         const findSales = await Sale.find({items: {$elemMatch:{"employe.id": req.params.id, "statusClose": true}}})
         if (findSales){
             let salesOfEmploye = []
-            for (let i = 0; i < findSales.length; i++) {
-                const element = findSales[i];
-                for (let e = 0; e < element.items.length; e++) {
-                    const sale = element.items[e];
-                    if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
-                        salesOfEmploye.push({createdAt: element.createdAt, client: element.client.firstName + ' ' + element.client.lastName, commission: sale.employe.commission, total: sale.totalItem, service: sale.item.name,id: sale.id, saleData: element})
+            try{
+                const dSales = await DaySale.find()
+                if (dSales) {
+                    for (let i = 0; i < findSales.length; i++) {
+                        const element = findSales[i];
+                        for (let e = 0; e < element.items.length; e++) {
+                            const sale = element.items[e];
+                            if (sale.employe.id == req.params.id && element.status && sale.statusClose) {
+                                let valid = true
+                                dSales.forEach(elem => {
+                                    if (elem.idTableSales == element._id) {
+                                        valid = false
+                                    }
+                                });
+                                
+                                salesOfEmploye.push({createdAt: element.createdAt, client: element.client.firstName + ' ' + element.client.lastName, commission: sale.employe.commission, total: sale.totalItem, service: sale.item.name,id: sale.id, saleData: element,validNull: valid})
+                            }
+                        }
                     }
+                    res.json({status: 'ok', data: salesOfEmploye, token: req.requestToken})
                 }
+
+            }catch(err){
+                console.log(err)
             }
-            res.json({status: 'ok', data: salesOfEmploye, token: req.requestToken})
+            
         }else{
             res.json({status: 'sales not found'})
         }
