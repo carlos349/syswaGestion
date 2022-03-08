@@ -90,7 +90,7 @@ class Main {
             }
             
             const mail = {
-                from: branchData.name,
+                from: branchData.name+' no-reply@syswa.net',
                 to: datee.client.email,
                 bcc: branchData.email,
                 subject: 'Recordatorio de tu agendamiento en ' + branchData.name,

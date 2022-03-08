@@ -544,7 +544,7 @@ mails.post('/mailGiftCardKK', async (req, res) => {
 
 mails.post('/welcome', (req, res) => {
     const mail = {
-        from: "SYSWA",
+        from: 'Syswa gestion no-reply@syswa.net',
         to: req.body.email,
         subject: 'Bienvenido a SYSWA',
         html: `
@@ -1506,7 +1506,7 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
         });
         
         const mail = {
-            from: "SYSWA",
+            from: 'SYSWA no-reply@syswa.net',
             to: findSale.client.email,
             subject: 'Detalles de tu venta',
             html: `
@@ -2660,7 +2660,7 @@ mails.post('/dateMail', async (req, res) => {
           `
         }
         const mail = {
-            from: "SYSWA",
+            from: getConfigurations.businessName+' no-reply@syswa.net',
             to: req.body.email,
             bcc: getConfigurations.businessEmail,
             subject: 'Detalles de tu agendamiento en ' + getConfigurations.businessName,
@@ -3284,7 +3284,7 @@ mails.post('/responseDate', async (req, res) => {
   }
   console.log(req.body.email)
   const mail = {
-      from: "SYSWA GESTION",
+      from: req.body.branchName+' no-reply@syswa.net',
       to: req.body.email,
       subject: subject,
       html: `<!doctype html>
@@ -3706,7 +3706,7 @@ mails.post('/responseDate', async (req, res) => {
       </html>`
   }
   const mail2 = {
-    from: "SYSWA GESTION",
+    from: req.body.branchName+' no-reply@syswa.net',
     to: req.body.clientMail,
     subject: subject2,
     html: `<!doctype html>
