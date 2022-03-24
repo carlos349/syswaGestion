@@ -8,6 +8,7 @@ const key = require('../private/key-jwt');
 const protectRoute = require('../securityToken/verifyToken')
 const clientSchema = require('../models/Clients')
 const dateSchema = require('../models/Dates')
+const branchSchema = require('../models/Branch')
 const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const LogService = require('../logService/logService')
@@ -363,18 +364,37 @@ clients.post('/datesperclient', protectRoute, async (req, res) => {
     }
 })
 
-clients.post('/sendPromotionEmail', protectRoute, (req, res) => {
-
-    const mail = {
-        from: req.body.email,
-        bcc: req.body.clients,
-        subject: req.body.subject,
-        html: req.body.html
-    }
-
+clients.post('/sendPromotionEmail', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
     try {
-        Mails.sendMail(mail)
-        res.json({status: 'ok'})
+        const findConfiguration = await Configuration.findOne({branch:req.body.branch})
+    
+        const mail = {
+            from: findConfiguration.businessName +' no-reply@syswa.net',
+            bcc: req.body.clients,
+            subject: req.body.subject,
+            html: req.body.html
+        }
+
+        try {
+            Mails.sendMail(mail)
+            res.json({status: 'ok'})
+        }catch(err){
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                req.requestToken, 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
+        }
     }catch(err){
         const Log = new LogService(
             req.headers.host, 
