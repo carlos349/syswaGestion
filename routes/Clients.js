@@ -283,6 +283,39 @@ clients.get('/sendMailChange/:id', (req, res) => {
     })
 })
 
+clients.post('/findClientsByDate', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    
+    const Client = connect.useDb(database).model('clients', clientSchema)
+  
+    try {
+        const Clients = await Client.find({
+          $and: [
+            {createdAt: { $gte: req.body.dates[0]+' 00:00', $lte: req.body.dates[1]+' 24:00' }}
+          ]
+        })
+        if (Clients.length == 0) {
+          res.json({status: 'clients does no exist'})
+        }else{
+          res.json({status: 'ok', data: Clients, token: req.requestToken})
+        }
+    }catch(err) {
+      const Log = new LogService(
+        req.headers.host, 
+        req.body, 
+        req.params, 
+        err, 
+        req.requestToken, 
+        req.headers['x-database-connect'], 
+        req.route
+      )
+      Log.createLog()
+      .then(dataLog => {
+          res.send('failed api with error, '+ dataLog.error)
+      })
+    }
+  })
+
 //input - form with firstName, lastName, email, phone, instagram, birthday, recomendador . formulario con firstName, lastName, email, phone, instagram, birthday, recomendador
 //output - status and token
 clients.post('/', async (req, res) => {
