@@ -2440,21 +2440,24 @@ mails.post('/dateMail', async (req, res) => {
       if (getConfigurations) {
         var services = ''
         var validMail = false
-        if ((new Date(dateCompare).getDate() - 1)  == new Date().getDate() && new Date(dateCompare).getMonth() == new Date().getMonth()) {
+        if ((new Date(dateCompare).getDate() - 1)  == new Date().getDate() && new Date(dateCompare).getMonth() == new Date().getMonth() || new Date(dateCompare).getDate()  == new Date().getDate() && new Date(dateCompare).getMonth() == new Date().getMonth()) {
           validMail = true
         }
         for (const key in servicesFinal) {
           const element = servicesFinal[key]
           var micro = ''
           if (valid) {
-            for (let i = 0; i < element.microServiceSelect.length; i++) {
-              const elementM = element.microServiceSelect[i];
-              if (element.microServiceSelect[i+1]) {
-                micro = micro + elementM.name + ' - '
-              }else{
-                micro = micro + elementM.name
+            if(element.microServiceSelect){
+              for (let i = 0; i < element.microServiceSelect.length; i++) {
+                const elementM = element.microServiceSelect[i];
+                if (element.microServiceSelect[i+1]) {
+                  micro = micro + elementM.name + ' - '
+                }else{
+                  micro = micro + elementM.name
+                }
               }
             }
+            
           }else{
             for (let i = 0; i < data.microServices.length; i++) {
               const elementM = data.microServices[i];
@@ -3274,6 +3277,8 @@ mails.post('/responseDate', async (req, res) => {
   var subject = ''
   var subject2 = ''
   var textAlt = ''
+  var textConfirm = ''
+  var textConfirmClient = ''
   var dateFormat = req.body.date
   var splitDate = dateFormat.split("-")
   dateFormat = splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2]
@@ -3282,9 +3287,22 @@ mails.post('/responseDate', async (req, res) => {
     subject2 = req.body.client + ' Has confirmado tu cita para el: ' + dateFormat
     textAlt = '<em><strong><span style="color: #2dc26b;">confirmado</span></strong></em>'
   }else{
-    subject = req.body.client + ' Cancelo su cita para el: ' + dateFormat
-    subject2 = req.body.client + ' Has cancelado tu cita para el: ' + dateFormat
     textAlt = '<em><strong><span style="color: #e03e2d;">cancelado</span></strong></em>'
+    if(req.body.system){
+      subject =  'Has cancelado la cita de ' + req.body.client + ' para el: ' + dateFormat
+      subject2 = req.body.client + ' se ha cancelado tu cita para el: ' + dateFormat
+      textConfirm = `<p style="font-family: Ubuntu, Helvetica, Arial;"><span style="font-size: 14px;"><span style="font-size: 16px;">
+       ${req.body.user} ha ${textAlt} la cita de <strong>${req.body.client}</strong> para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span></span></p>`
+      textConfirmClient = `<p style="font-family: Ubuntu, Helvetica, Arial;"><span style="font-size: 14px;"><span style="font-size: 16px;">
+      <strong>${req.body.client}</strong> le informamos que su cita agendada para el <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span> ha sido <em><strong><span style="color: #e03e2d;">cancelada</span></strong></em></span>&nbsp; </span> <br><br> Nota: En caso de no haber solicitado dicha acción contáctanos para regularizar situación.</p>` 
+    }else{
+      subject = req.body.client + ' Cancelo su cita para el: ' + dateFormat
+      subject2 = req.body.client + ' Has cancelado tu cita para el: ' + dateFormat
+      textConfirm = `<p style="font-family: Ubuntu, Helvetica, Arial;"><span style="font-size: 14px;"><span style="font-size: 16px;">
+      <strong>${req.body.client}</strong> ha ${textAlt} su cita para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span></span></p>`
+      textConfirmClient = `<p style="font-family: Ubuntu, Helvetica, Arial;"><span style="font-size: 14px;"><span style="font-size: 16px;">
+      <strong>${req.body.client}</strong> has ${textAlt} tu cita para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span></span></p>`
+    }
   }
   console.log(req.body.email)
   const mail = {
@@ -3459,8 +3477,7 @@ mails.post('/responseDate', async (req, res) => {
                   
         <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;">
         <center>
-        <p style="font-family: Ubuntu, Helvetica, Arial;"><span style="font-size: 14px;"><span style="font-size: 16px;">
-        <strong>${req.body.client}</strong> ha ${textAlt} su cita para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span></span></p>
+        ${textConfirm}
         </center>
         
         </div>
@@ -3881,8 +3898,7 @@ mails.post('/responseDate', async (req, res) => {
                 
       <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;">
       <center>
-      <p style="font-family: Ubuntu, Helvetica, Arial;"><span style="font-size: 14px;"><span style="font-size: 16px;">
-      <strong>${req.body.client}</strong> has ${textAlt} tu cita para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span></span></p>
+      ${textConfirmClient}
       </center>
       
       </div>
