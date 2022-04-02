@@ -291,7 +291,7 @@ clients.post('/findClientsByDate', protectRoute, async (req, res) => {
     try {
         const Clients = await Client.find({
           $and: [
-            {createdAt: { $gte: req.body.dates[0]+' 00:00', $lte: req.body.dates[1]+' 24:00' }}
+            {lastAttend: { $gte: req.body.dates[0]+' 00:00', $lte: req.body.dates[1]+' 24:00' }}
           ]
         })
         if (Clients.length == 0) {
