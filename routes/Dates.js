@@ -985,7 +985,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const data = {
         branch: req.body.branch,
         dateBlocking: splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2],
-        dateBlockings: new Date(splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2]),
+        dateBlockings: new Date(splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2] + " 12:00"),
         employe: req.body.employe,
         start: req.body.start,
         end: req.body.end
