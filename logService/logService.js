@@ -17,7 +17,7 @@ class Log {
     }
 
     getUserByToken(){
-        if (this.token.length > 0 || this.token == undefined) {
+        if (this.token != undefined) {
             const decoded = jwt_decode(this.token)
             return {
                 name: decoded.first_name + ' '+ decoded.last_name,

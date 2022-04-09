@@ -1004,20 +1004,21 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
             var valid2 = true
             var validAll = true
             var validStep = true
-            findDay.blocks.forEach((block,index) => {
+            for (const index in findDay.blocks) {
+                const block = findDay.blocks[index]
                 if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0]) && validStep) {
-                    valid = true
                     console.log("valid1")
                     if (valid2) {
+                        valid = true
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                         valid2 = false
                     }
                 }
                 
                 if (validStep && parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
-                    valid = true
                     console.log("valid2")
                     if (valid2) {
+                        valid = true
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                         valid2 = false
                     }
@@ -1031,9 +1032,11 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 }
                 if (block.hour == req.body.end) {
                     valid = false
+                    break
                 }
                 if (block.hour == findDay.blocks[findDay.blocks.length -1] && parseFloat(req.body.end.split(":")[0]) > parseFloat(findDay.blocks[findDay.blocks.length -1].split(":")[0])) {
                     valid = false
+                    break
                 }
                 if (valid) {
                     block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
@@ -1045,7 +1048,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         }
                     }
                 }
-            });
+            }
             if (validAll) {
                 try {
                     const editBlockDate = await dateBlock.findByIdAndUpdate(findDay._id, {
@@ -2723,7 +2726,6 @@ dates.post('/noOneLender', (req, res) => {
     const dataDate = req.body.dataDate
     const client = req.body.client
     const date = new Date(req.body.date + ' 10:00')
-    const blocks = req.body.block
     var nameFile = ''
     if (req.body.pdf == 'not') {
         nameFile = ''
@@ -2779,43 +2781,74 @@ dates.post('/noOneLender', (req, res) => {
         dataCitas.push(data)
     }
 
-    var ids = [];
-    for (let i = 0; i < dataCitas.length; i++) {
-        dates.create(dataCitas[i])
-        .then(citas => {
-            ids.push({_id : citas._id})
-        })
-        .catch(err => console.log(err))
-    }
     
-    for (const block of blocks) {
-        if (block.validator == 'select') {
-            if (block.employes.length > 0) {
-                block.validator = true
-            } else {
-                block.validator = false
+    dateBlock.findById(req.body.blockId)
+    .then(blocks => {
+        var ids = [];
+        for (let i = 0; i < dataCitas.length; i++) {
+            dates.create(dataCitas[i])
+            .then(citas => {
+                ids.push({_id : citas._id})
+            })
+            .catch(err => console.log(err))
+            var valid = false
+            for (const block of blocks.blocks){
+                if(block.hour == dataCitas[i].start.split(" ")[1]){
+                    valid = true
+                }
+                if(block.hour == dataCitas[i].end.split(" ")[1]){
+                    valid = false
+                    break
+                }
+                if(valid){
+                    block.employes.forEach((element, index2) => {
+                        if (element.id == dataCitas[i].employe.id) {
+                            //bloquear
+                            block.employes.splice(index2, 1)
+                            block.employeBlocked.push({employe: dataCitas[i].employe.id, type: 'date'})
+                        }
+                    });
+                    if (block.employes.length > 0) {
+                        block.validator = true
+                    }else {
+                        block.validator = false
+                    }
+                }
             }
         }
-    }
-    dateBlock.findByIdAndUpdate(req.body.blockId, {
-        $set: {
-            blocks: blocks
-        }
-    }).then(edit => {
-
-        if (ids.length > 0) {
-            res.json({ status: 'ok', id: ids })
-        }else{
-            setTimeout(() => {
-                if (ids.length > 0) {
-                    res.json({ status: 'ok', id: ids })
-                }else {
-                    setTimeout(() => {
+        dateBlock.findByIdAndUpdate(req.body.blockId, {
+            $set: {
+                blocks: blocks.blocks
+            }
+        }).then(edit => {
+            if (ids.length > 0) {
+                res.json({ status: 'ok', id: ids })
+            }else{
+                setTimeout(() => {
+                    if (ids.length > 0) {
                         res.json({ status: 'ok', id: ids })
-                    }, 1000);
-                }
-            }, 500);
-        }
+                    }else {
+                        setTimeout(() => {
+                            res.json({ status: 'ok', id: ids })
+                        }, 1000);
+                    }
+                }, 500);
+            }
+        }).catch(err => {
+            const Log = new LogService(
+                req.headers.host, 
+                req.body, 
+                req.params, 
+                err, 
+                '', 
+                req.headers['x-database-connect'], 
+                req.route
+            )
+            Log.createLog()
+            .then(dataLog => {
+                res.send('failed api with error, '+ dataLog.error)
+            })
+        })
     }).catch(err => {
         const Log = new LogService(
             req.headers.host, 
