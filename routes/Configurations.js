@@ -275,6 +275,7 @@ configurations.post('/', protectRoute, async (req, res) => {
         bussinessRoute: req.body.route,
         typesPay: req.body.typesPay,
         currency: req.body.currency,
+        datesPolicies: req.body.datesPolicies,
         datesPolitics: {
             reminderDate: 1,
             minTypeDate: 3,
@@ -338,6 +339,7 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                 bussinessRoute: req.body.route,
                 typesPay: req.body.typesPay,
                 currency: req.body.currency,
+                datesPolicies: "<p>Crea tu contenido de políticas.</p>",
                 datesPolitics: {
                     reminderDate: 1,
                     minTypeDate: 3,
@@ -550,6 +552,7 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
         typesPay: req.body.typesPay,
         datesPolitics: req.body.datesPolitics,
         microServices: req.body.microServices,
+        datesPolicies: req.body.datesPolicies,
         notificationDiscount: req.body.notificationDiscount
     }
     try {
