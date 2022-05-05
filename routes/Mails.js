@@ -3139,6 +3139,76 @@ mails.post('/dateMail', async (req, res) => {
               
             
               <!-- HASTA AQUI -->
+
+            <!--POLITICAAAAAAAAAAAAS #####################################-->
+
+            <div style="background:#E9E9E9;background-color:#E9E9E9;margin:0px auto;max-width:600px;">
+              
+              <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#E9E9E9;background-color:#E9E9E9;width:100%;">
+                <tbody>
+                  <tr>
+                    <td style="direction:ltr;font-size:0px;padding:0px 0px 0px 0px;text-align:center;">
+                      <!--[if mso | IE]>
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                      
+              <tr>
+            
+                  <td
+                    class="" style="vertical-align:top;width:300px;"
+                  >
+                <![endif]-->
+                  
+            <div class="mj-column-per-100 outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+              
+            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#E9E9E9;vertical-align:top;" width="100%">
+              
+                  <tr>
+                    <td align="left" style="font-size:0px;padding:0px 15px 15px 15px;word-break:break-word;">
+                      
+            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial;">Politicas, texto de prueba</p></div>
+
+                    </td>
+                  </tr>
+                
+            </table>
+
+            </div>
+
+                <!--[if mso | IE]>
+                  </td>
+                
+                  <td
+                    class="" style="vertical-align:top;width:150px;"
+                  >
+                <![endif]-->
+                
+                <!--[if mso | IE]>
+                  </td>
+                
+                  <td
+                    class="" style="vertical-align:top;width:150px;"
+                  >
+                <![endif]-->
+
+                
+                  
+            
+
+                <!--[if mso | IE]>
+                  </td>
+                
+              </tr>
+            
+                        </table>
+                      <![endif]-->
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              
+            </div>
+
+            <!--POLITICAAAAAS #################################-->
         
               
               <!--[if mso | IE]>
