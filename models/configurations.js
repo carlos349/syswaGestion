@@ -32,6 +32,9 @@ const configurationSchema = new Schema({
     bussinessRoute: {
         type: String
     },
+    datesPolicies: {
+        type: String
+    },
     typesPay: {
         type: Array
     },
