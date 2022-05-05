@@ -3142,9 +3142,9 @@ mails.post('/dateMail', async (req, res) => {
 
             <!--POLITICAAAAAAAAAAAAS #####################################-->
 
-            <div style="background:#E9E9E9;background-color:#E9E9E9;margin:0px auto;max-width:600px;">
+            <div style="margin:0px auto;max-width:600px; margin-top: 70px;">
               
-              <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#E9E9E9;background-color:#E9E9E9;width:100%;">
+              <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                 <tbody>
                   <tr>
                     <td style="direction:ltr;font-size:0px;padding:0px 0px 0px 0px;text-align:center;">
@@ -3160,12 +3160,19 @@ mails.post('/dateMail', async (req, res) => {
                   
             <div class="mj-column-per-100 outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
               
-            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#E9E9E9;vertical-align:top;" width="100%">
+            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
               
                   <tr>
-                    <td align="left" style="font-size:0px;padding:0px 15px 15px 15px;word-break:break-word;">
+                    <td align="left" style="font-size:0px;padding:0px 15px 0px 15px;word-break:break-word;">
                       
-            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial;">Politicas, texto de prueba</p></div>
+            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#5f5f5f;">
+              <center>
+                <h3>Politicas de ${getConfigurations.businessName}</h3> <br>
+              </center>
+              
+              ${getConfigurations.datesPolicies}
+            
+            </div>
 
                     </td>
                   </tr>
@@ -3245,7 +3252,7 @@ mails.post('/dateMail', async (req, res) => {
               <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                 
                     <tr>
-                      <td style="font-size:0px;padding:47px 10px;padding-top:47px;word-break:break-word;">
+                      <td style="font-size:0px;padding:47px 10px;padding-top:0px;word-break:break-word;">
                         
               <p style="font-family: Ubuntu, Helvetica, Arial; border-top: solid 1px #000000; font-size: 1; margin: 0px auto; width: 100%;">
               </p>
