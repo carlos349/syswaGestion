@@ -3281,7 +3281,7 @@ mails.post('/dateMail', async (req, res) => {
                   <tr>
                     <td style="width:204px;">
                       
-                <a href="Links pagina de siswa" target="_blank" style="color: #0000EE;">
+                <a href="Links pagina de syswa" target="_blank" style="color: #0000EE;">
                   
               <img height="auto" src="https://s3-eu-west-1.amazonaws.com/topolio/uploads/6114035a78f23/1628706676.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="204">
             
@@ -3298,7 +3298,7 @@ mails.post('/dateMail', async (req, res) => {
                     <tr>
                       <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                         
-              <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;">Copyright 2021 | ${branch} | Todos los derechos reservados</p></div>
+              <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; text-align: center;">Copyright 2022 | ${branch} | Todos los derechos reservados</p></div>
             
                       </td>
                     </tr>
