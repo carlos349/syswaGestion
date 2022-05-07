@@ -783,9 +783,6 @@ class Main {
                     <td align="left" style="font-size:0px;padding:0px 15px 0px 15px;word-break:break-word;">
                       
             <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#5f5f5f;">
-              <center>
-                <h3>Politicas de ${branchData.name}</h3> <br>
-              </center>
               
               ${branchData.datesPolicies}
             
