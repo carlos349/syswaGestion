@@ -3158,7 +3158,7 @@ mails.post('/dateMail', async (req, res) => {
                   >
                 <![endif]-->
                   
-            <div class="mj-column-per-100 outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;background-color:#e9e9e9;padding-top: 5px;padding-bottom:5px;margin-bottom:10px;">
+            <div class="mj-column-per-100 outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
               
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
               
