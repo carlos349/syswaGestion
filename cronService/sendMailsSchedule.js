@@ -775,14 +775,14 @@ class Main {
                   >
                 <![endif]-->
                   
-            <div class="mj-column-per-100 outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+            <div class="mj-column-per-100 outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;backgroun-color:#e9e9e9;">
               
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
               
                   <tr>
                     <td align="left" style="font-size:0px;padding:0px 15px 0px 15px;word-break:break-word;">
                       
-            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#5f5f5f;">
+            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:left;color:#282727;">
               
               ${branchData.datesPolicies}
             
