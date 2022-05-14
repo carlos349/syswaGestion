@@ -68,15 +68,11 @@ dates.get('/getDate/:id', protectRoute, async (req, res) => {
     try {
         const getDates = await date.findById(req.params.id)
         if (getDates) { 
-            console.log("entre") 
-            const getService = await Service.findOne({
-                $and: [
-                    {name: getDates.services[0].name},
-                    {branch: getDates.branch}
-                ]
-            })
+            const getService = await Service.findById(getDates.services[0].id)
             if (getService) {
                 res.json({ status: 'ok', data: getDates, service: getService,  token: req.requestToken })  
+            }else{
+                res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
             }
         } else {
             res.json({ status: 'nothing to found', data: getDates, token: req.requestToken })
@@ -2746,6 +2742,7 @@ dates.post('/noOneLender', (req, res) => {
             content: req.body.client.name,
             split: element.employeId,
             services: {
+                id: element.service_id,
                 name: element.name,
                 commission: element.commission,
                 price: element.price,
