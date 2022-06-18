@@ -2299,7 +2299,9 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                     }
                                 }
                                 if (blocksFirst.length - 1 == e) {
+                                    console.log("REALIZO")
                                     for (let u = 0; u < hoursdate / 15; u++) {
+
                                         if (blocksFirst[e - u]) {
                                             blocksFirst[e - u].validator = 'unavailable'
                                         }
@@ -2307,21 +2309,11 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-                        for (const block of blocksFirst) {
-                            if (block.employes.length > 0) {
-                                var valid = true
-                                block.employes.forEach(element => {
-                                    if (element.valid) {
-                                        valid = false
-                                        block.validator = true
-                                    }
-                                })
-                                if (valid) {
-                                    block.validator = 'unavailable'
-                                }
-                            }
-                        }
-                        res.json({ status: 'ok', data: blocksFirst, id: createBlockdate._id })
+                        console.log(blocksFirst)
+                        
+
+                        
+                        res.json({ status: 'ok', data: blocksFirst, id: createBlockdate._id, Stat: "from create" })
                     }
                 } catch (err) {
                     const Log = new LogService(
