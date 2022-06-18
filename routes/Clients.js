@@ -53,7 +53,7 @@ clients.get('/', protectRoute, async (req, res) => {
 clients.get('/getDatesClient/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const date = connect.useDb(database).model('dates', dateSchema)
-    const dateT = formats.dates(new Date())
+    const dateT = formats.datesEdit(new Date())
     try {
         const findDates = await date.find({
             $and: [
