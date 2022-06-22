@@ -23,6 +23,9 @@ const clientSchema = new Schema({
     phone: {
         type: Object
     },
+    extraData: {
+        type: Object
+    },
     instagram: {
         type: String
     },

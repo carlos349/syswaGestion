@@ -2733,6 +2733,7 @@ dates.post('/noOneLender', (req, res) => {
             title: element.name,
             content: req.body.client.name,
             split: element.employeId,
+            extraData: req.body.extraData,
             services: {
                 id: element.service_id,
                 name: element.name,
@@ -2747,6 +2748,7 @@ dates.post('/noOneLender', (req, res) => {
                 id: client.id,
                 name: client.name,
                 email: client.email,
+                location: client.location,
                 phone: client.phone,
             },
             employe: {
@@ -3231,6 +3233,29 @@ dates.post('/editdate', protectRoute, async (req, res) => {
         )
         const dataLog = await Log.createLog()
         res.send('failed api with error, '+ dataLog.error)
+    }
+})
+
+dates.post('/editDataDate', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Dates = connect.useDb(database).model('dates', dateSchema)
+
+    try {
+        const editDate = await Dates.findByIdAndUpdate(req.body.id, {
+            $set: {
+                "client.location": req.body.location,
+                "extraData.linkPhotos": req.body.link,
+                "extraData.details": req.body.details,
+                "extraData.phase": req.body.phase,
+                "extraData.material": req.body.material,
+                "extraData.nature": req.body.nature
+            }
+        })
+        if(editDate){
+            res.json({status:"ok"})
+        }
+    }catch(err){
+        console.log(err)
     }
 })
 

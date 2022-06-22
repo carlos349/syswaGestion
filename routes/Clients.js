@@ -336,6 +336,7 @@ clients.post('/', async (req, res) => {
         password: '',
         phone: req.body.phone,
         codeRescue: '',
+        extraData: req.body.extraData,
         instagram: req.body.instagram,
         attends: 0,
         idRecommender: req.body.idRecommender,
@@ -759,6 +760,7 @@ clients.put('/:id', protectRoute, async (req, res) => {
                       lastName: req.body.lastName,
                       email: req.body.email,
                       phone: req.body.phone,
+                      extraData: req.body.extraData,
                       instagram: req.body.instagram,
                       birthday: birthday
                     }
@@ -778,6 +780,7 @@ clients.put('/:id', protectRoute, async (req, res) => {
                           lastName:req.body.lastName,
                           email:req.body.email,
                           phone: req.body.phone,
+                          extraData: req.body.extraData,
                           instagram: req.body.instagram,
                           birthday: birthday
                         }

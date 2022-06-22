@@ -41,6 +41,9 @@ const dateSchema = new Schema({
     employe: {
         type: Object
     },
+    extraData: {
+        type: Object
+    },
     process: {
         type: Boolean
     },
