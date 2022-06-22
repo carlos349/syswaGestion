@@ -13,6 +13,7 @@ const configurationSchema = require('../models/Configurations')
 const email = require('../modelsMail/Mails')
 const LogService = require('../logService/logService')
 const mailCredentials = require('../private/mail-credentials')
+const formats = require('../formats')
 const Mails = new email(mailCredentials)
 const cors = require('cors')
 clients.use(cors())
@@ -47,6 +48,39 @@ clients.get('/', protectRoute, async (req, res) => {
         res.send('failed api with error, '+ dataLog.error)
     }
 
+})
+
+clients.get('/getDatesClient/:id', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const date = connect.useDb(database).model('dates', dateSchema)
+    const dateT = formats.datesEdit(new Date())
+    try {
+        const findDates = await date.find({
+            $and: [
+                {"client.id": req.params.id}, 
+                { "createdAt": { $gte: dateT + ' 00:00' } },
+            ]
+        })
+        if (findDates.length > 0) {
+            res.json({status: 'ok', data: findDates})
+        }else{
+            res.json({status: 'bad', data: findDates})
+        }
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
+    }
 })
 
 clients.get('/regex/:str', protectRoute, async (req, res) => {
@@ -362,39 +396,6 @@ clients.post('/', async (req, res) => {
         }
     }catch(err){
         res.send(err)
-    }
-})
-
-//input - form with client . formulario con cliente
-//output - status, data and token
-clients.post('/datesperclient', protectRoute, async (req, res) => {
-    const database = req.headers['x-database-connect'];
-    
-    const Date = connect.useDb(database).model('clients', dateSchema)
-
-    try {
-        const findDates = await Date.find({
-            $and: [{"client.name": req.body.client}, {confirmation: false}]
-        })
-        if (findDates.length > 0) {
-            res.json({status: 'ok', data: findDates, token: req.requestToken})
-        }else{
-            res.json({status: 'bad', data: findDates, token: req.requestToken})
-        }
-    }catch(err){
-        const Log = new LogService(
-            req.headers.host, 
-            req.body, 
-            req.params, 
-            err, 
-            req.requestToken, 
-            req.headers['x-database-connect'], 
-            req.route
-        )
-        Log.createLog()
-        .then(dataLog => {
-            res.send('failed api with error, '+ dataLog.error)
-        })
     }
 })
 
