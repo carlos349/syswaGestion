@@ -10,6 +10,7 @@ const logSchema = require('../models/Log')
 const profilesSchema = require('../models/accessProfile')
 const credentialSchema = require('../models/userCrendentials')
 const employeSchema = require('../models/Employes')
+const branchSchema = require('../models/Branch')
 const LogService = require('../logService/logService')
 const uploadS3 = require('../common-midleware/index')
 const jwt = require('jsonwebtoken')
@@ -533,9 +534,8 @@ configurations.post('/addFirstProfile', async (req, res) => {
 
 configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
-
+    const Branch = connect.useDb(database).model('branches', branchSchema)
     const dataConfiguration = {
         blockHour: req.body.blockHour,
         blackList: req.body.blackList,
@@ -557,7 +557,26 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
             $set: dataConfiguration
         })
         if (createConfiguration) {
-            res.json({status: 'ok', token: req.requestToken})  
+            try {
+                const editBranch = await Branch.findByIdAndUpdate(req.body.branch, {
+                    $set: {
+                        branch: req.body.businessName
+                    }
+                })
+                res.json({status: 'ok', token: req.requestToken})  
+            }catch(err){
+                const Log = new LogService(
+                    req.headers.host,
+                    req.body,
+                    req.params,
+                    err,
+                    req.requestToken,
+                    req.headers['x-database-connect'],
+                    req.route
+                )
+                const dataLog = await Log.createLog()
+                res.send('failed api with error, '+ dataLog.error)
+            }
         }
     }catch(err){
         const Log = new LogService(
