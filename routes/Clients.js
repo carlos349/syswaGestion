@@ -744,7 +744,6 @@ clients.put('/:id', protectRoute, async (req, res) => {
     const Client = connect.useDb(database).model('clients', clientSchema)
     var birthday = req.body.birthday
     if (req.body.birthday.split('T')[1]) {
-        console.log("entry here")
         birthday = req.body.birthday
     }else {
         birthday = req.body.birthday.split('-')[1]+'-'+req.body.birthday.split('-')[0]+'-'+req.body.birthday.split('-')[2]

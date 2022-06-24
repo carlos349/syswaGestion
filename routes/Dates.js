@@ -100,7 +100,6 @@ dates.get('/getDataDate/:branch', protectRoute, async (req, res) => {
             branch: req.params.branch
         }, {services: 0, microServices: 0, imgDesign: 0 }).sort({createdAt: 1})
         if (getDates.length > 0) {
-            console.log(getDates.length)
             res.json(getDates)
         } 
     } catch (err) {
@@ -705,9 +704,30 @@ dates.delete('/:id', async (req, res) => {
                                 break
                             }
                             if (validBlock) {
+                                var validBlocked = false
+
                                 block.employeBlocked.forEach((element, index) => {
                                     if (element.employe == employe.id && element.type == 'date') {
                                         block.employeBlocked.splice(index, 1)
+                                        validBlocked = true
+                                    }
+                                });
+                                
+                                block.employeBlocked.forEach((element, index) => {
+                                    if (element.employe == employe.id && element.type == 'blocking') {
+                                        validBlocked = false
+                                    }
+                                });
+                                
+                                if(validBlocked){
+                                    var validEmp = true
+                                    block.employes.forEach(elementEmp => {
+                                        if(elementEmp.id == employe.id){
+                                            validEmp = false
+                                        }
+                                    })
+                                    
+                                    if(validEmp){
                                         block.employes.push({
                                             name: employe.name,
                                             id: employe.id,
@@ -717,8 +737,8 @@ dates.delete('/:id', async (req, res) => {
                                             img: employe.img
                                         })
                                     }
-                                });
-                                
+                                    
+                                }
                             }
                         }
                         logDates.info(`********* bloques: ${JSON.stringify(findDateBlock)} ***********`);
@@ -1003,7 +1023,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
             for (const index in findDay.blocks) {
                 const block = findDay.blocks[index]
                 if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0]) && validStep) {
-                    console.log("valid1")
                     if (valid2) {
                         valid = true
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
@@ -1012,7 +1031,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 }
                 
                 if (validStep && parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
-                    console.log("valid2")
                     if (valid2) {
                         valid = true
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
@@ -1750,7 +1768,6 @@ dates.post('/editBlocksFirst', async (req, res) => {
                             validSameEmploye = false
                             block.validator = false
                             blockEmploye.push({ hour: block.hour, validator: false, origin: false })
-                            console.log("ENTROOOOOO"+ block)
                         }
                     });
                     if (validSameEmploye) {
@@ -1853,14 +1870,12 @@ dates.put('/confirmDate/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const date = connect.useDb(database).model('dates', dateSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
-    console.log(req.body.id)
     date.findByIdAndUpdate(req.body.id, {
         $set: {
             confirmation: true
         }
     })
     .then(confirmDate => {
-        console.log(confirmDate)
         Configuration.findOne({
             branch: confirmDate.branch
         })
@@ -2299,7 +2314,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                     }
                                 }
                                 if (blocksFirst.length - 1 == e) {
-                                    console.log("REALIZO")
                                     for (let u = 0; u < hoursdate / 15; u++) {
 
                                         if (blocksFirst[e - u]) {
@@ -2309,7 +2323,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-                        console.log(blocksFirst)
                         
 
                         
@@ -2377,7 +2390,6 @@ dates.post('/editdateblockbefore', async (req, res) => {
     const originalEmploye = req.body.originalEmploye
     employe.valid = true
     var valid = false
-    console.log(originalEmploye +"=="+ employe.id)
     if (originalEmploye == employe.id) {
         try{
             for (const block of blocks) {
@@ -3139,7 +3151,6 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                                 });
                             }else{
                                 if(req.body.blocks[key].validator != 'select'){
-                                    console.log(blockEdit.hour)
                                     blockEdit.employeBlocked.forEach((element, index) => {
                                         if (element.employe == editDate.employe.id) {
                                             blockEdit.employeBlocked.splice(index, 1)
@@ -3154,7 +3165,6 @@ dates.post('/editdate', protectRoute, async (req, res) => {
                                         }
                                     });
                                 }else if (dataEdit.end == blockEdit.hour) {
-                                    console.log(blockEdit.hour)
                                     blockEdit.employeBlocked.forEach((element, index) => {
                                         if (element.employe == editDate.employe.id) {
                                             blockEdit.employeBlocked.splice(index, 1)

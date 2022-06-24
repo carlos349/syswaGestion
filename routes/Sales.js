@@ -253,10 +253,8 @@ sales.get('/getSale/:id', protectRoute, async (req, res) => {
   const database = req.headers['x-database-connect'];
   
   const Sale = connect.useDb(database).model('sales', saleSchema)
-  console.log(req.params.id)
   try{ 
       const findSale = await Sale.findById(req.params.id)
-      console.log(findSale)
       if (findSale) {
         res.json({status: 'ok', data: findSale, token: req.requestToken})
       }else{
@@ -999,7 +997,6 @@ sales.post('/registerFund', protectRoute, async (req, res) => {
 
     try {
       const find = await CashFund.findOne({branch: req.body.branch})
-      console.log(find)
       if (find) {
         try {
           const register = await CashFund.findByIdAndUpdate(find._id, {
@@ -1092,7 +1089,6 @@ sales.put('/:id', protectRoute, async (req, res, next) => {
         $set: { status: false}
       })
       if (cancelSale) {
-        console.log(cancelSale)
         const items = cancelSale.items
         for (let index = 0; index < items.length; index++) {
           const item = items[index];

@@ -48,7 +48,6 @@ metrics.get('/compareSales/:branch', protectRoute, async (req, res) => {
       for (const sale of prevMonthSales) {
         totals.prevMonth = totals.prevMonth + sale.totals.total
       }
-      console.log(totals)
       res.json({status: 'ok', data: totals})
     }catch(err){
       const Log = new LogService(
@@ -853,7 +852,6 @@ metrics.post('/totalExpenses', protectRoute, async (req, res) => {
       }
       
       for (const total in series[0].data) {
-        console.log(totalsByExpense[total].total)
         series[0].data[total] = totalsByExpense[total].total.toFixed(2)
       }
       
@@ -1225,7 +1223,6 @@ metrics.post('/dataExpense', protectRoute, async (req, res) => {
 
     for (const history of thisYear) {
       const monthAndYear = history.createdAt.getMonth()
-      console.log(monthAndYear)
       series[0].data[monthAndYear] = series[0].data[monthAndYear] + history.totals.expenses
       series[1].data[monthAndYear] = series[1].data[monthAndYear] + history.totals.totalFinal
     }

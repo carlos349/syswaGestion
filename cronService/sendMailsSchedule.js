@@ -47,7 +47,6 @@ class Main {
             return arrayDates
         }catch(err){
             console.log(err)
-            console.log('cant get branches')
         }
     }
 
@@ -959,7 +958,7 @@ class Main {
 }
 
 const mailTask = cron.schedule('10 10 * * *', () => {
-  console.log("Se corrio")
+  
   const databases = [
     'kkprettynails-syswa',
     'house58-syswa',

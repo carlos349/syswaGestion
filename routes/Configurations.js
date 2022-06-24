@@ -122,9 +122,6 @@ configurations.get('/:branch', async (req, res) => {
 
 configurations.get('/getProfiles', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    console.log(database)
-    
-    console.log(database)
     // res.json({status: 'ok', data: database, token: req.requestToken})
     
 })
