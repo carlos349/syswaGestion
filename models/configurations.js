@@ -8,6 +8,9 @@ const configurationSchema = new Schema({
     blockHour: {
         type: Object
     },
+    blockedDays: {
+        type: Array
+    },
     blackList: {
         type: Array
     },
