@@ -366,7 +366,7 @@ clients.post('/', async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         block: false,
-        email: req.body.email,
+        email: req.body.email.toLowerCase().trim(),
         password: '',
         phone: req.body.phone,
         codeRescue: '',
