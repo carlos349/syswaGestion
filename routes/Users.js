@@ -611,7 +611,6 @@ users.put('/changestatus/:id', protectRoute, async (req, res, next) => {
                     users: update._id
                 }
             })
-            console.log(updateEmploye)
             res.json({status: 'ok', data: update, token: req.requestToken})
         }
     }catch(err){

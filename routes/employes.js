@@ -1256,8 +1256,6 @@ employes.put('/closeemploye/:id', protectRoute, (req, res) => {
         employe: req.body.employe,
         createdAt: new Date()
     }
-    console.log("este")
-    console.log(req.params.id)
     HistoryEmploye.create(dataHistory)
     .then(createHistory => {
         for (let index = 0; index < 15; index++) {

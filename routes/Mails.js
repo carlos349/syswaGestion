@@ -1457,7 +1457,6 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
         }catch(err){
             res.send(err)
         }
-        console.log(logo)
         var vuelt = ((findSale.totals.total - findSale.totals.totalPay) * (-1))
 
         let dateFormat = new Date(findSale.createdAt)
@@ -3378,7 +3377,6 @@ mails.post('/responseDate', async (req, res) => {
       <strong>${req.body.client}</strong> has ${textAlt} tu cita para el:</span>&nbsp; <span style="text-decoration: underline;"><strong>${dateFormat}</strong></span></span></p>`
     }
   }
-  console.log(req.body.email)
   const mail = {
       from: req.body.branchName+' no-reply@syswa.net',
       to: req.body.email,

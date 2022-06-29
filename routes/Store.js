@@ -1358,7 +1358,6 @@ stores.post('/deletestoreproduct', protectRoute, async (req, res) => {
                             try{
                                 const deleteFromBranches = await Inventory.deleteMany({storeId:req.body.id})
                                 if (deleteFromBranches) {
-                                    console.log(deleteFromBranches)
                                     res.json({status: 'product deleted', data: deleteProduct, token: req.requestToken})
                                 }
                             }catch(err){

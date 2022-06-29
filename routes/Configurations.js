@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
 const protectRoute = require('../securityToken/verifyToken')
 const userSchema = require('../models/Users')
 const datesBlockSchema = require('../models/datesBlocks')
-const configurationSchema = require('../models/Configurations')
+const configurationSchema = require('../models/configurations')
 const logSchema = require('../models/Log')
 const profilesSchema = require('../models/accessProfile')
 const credentialSchema = require('../models/userCrendentials')
@@ -123,9 +123,6 @@ configurations.get('/:branch', async (req, res) => {
 
 configurations.get('/getProfiles', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    console.log(database)
-    
-    console.log(database)
     // res.json({status: 'ok', data: database, token: req.requestToken})
     
 })
@@ -260,7 +257,6 @@ configurations.get('/getHours/:branch', protectRoute, async (req, res) => {
 
 configurations.post('/', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
-    
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
     const dataConfiguration = {
@@ -316,6 +312,49 @@ configurations.post('/uploadLogo', protectRoute, uploadS3.single("image"), (req,
         res.json({status: 'ok', file: req.file.location})
     }else{
         res.json({status: 'bad'})
+    }
+})
+
+configurations.post('/deletehourforday', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+
+    try {
+        const removeDay = await Configuration.updateOne({blockedDays: {$elemMatch:{key:req.body.key}}},{$pull:{blockedDays:{key:req.body.key}}})
+        if (removeDay) {
+            res.json({status: 'ok'})
+        }
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+configurations.post('/addBlockedday', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+
+    try{
+        var valid = true
+        req.body.dates.forEach(element => {
+            if(element.date == req.body.date){
+                valid = false
+            }
+        });
+        if (valid) {
+            const addDay = await Configuration.findByIdAndUpdate(req.body.id, {
+                $push: {
+                    blockedDays: {date:req.body.date, key: new Date().getTime()}
+                }
+            })
+            if(addDay){
+                res.json({status: 'ok'})
+            }
+        }else{
+            res.json({status: 'repeated'})
+        }
+        
+    }catch(err){
+        console.log(err)
     }
 })
 
