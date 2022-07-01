@@ -1018,13 +1018,50 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
         if (findDay) {
             var valid = false
             var valid2 = true
+            var valid3 = false 
+            var valid4 = false
             var validAll = true
             var validStep = true
             for (const index in findDay.blocks) {
                 const block = findDay.blocks[index]
+                
+                if (block.hour == req.body.start) {
+                    if (index == 0 && valid2) {
+                        findDay.blocks[0].employeBlocked.forEach(element => {
+                            if(element.type == 'blocking'){
+                                if(element.employe == data.employe.id){
+                                    validAll = false
+                                    valid3 = true
+                                }
+                            }
+                        });
+                        if(valid3){
+                            break
+                        }
+                        findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                    }
+                    valid = true
+                    valid4 = true
+                    validStep = false
+                }
+                if (block.hour == req.body.end) {
+                    valid = false
+                    break
+                }
                 if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0]) && validStep) {
                     if (valid2) {
                         valid = true
+                        findDay.blocks[0].employeBlocked.forEach(element => {
+                            if(element.type == 'blocking'){
+                                if(element.employe == data.employe.id){
+                                    validAll = false
+                                    valid3 = true
+                                }
+                            }
+                        });
+                        if(valid3){
+                            break
+                        }
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                         valid2 = false
                     }
@@ -1033,26 +1070,40 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                 if (validStep && parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
                     if (valid2) {
                         valid = true
+                        findDay.blocks[0].employeBlocked.forEach(element => {
+                            if(element.type == 'blocking'){
+                                if(element.employe == data.employe.id){
+                                    validAll = false
+                                    valid3 = true
+                                }
+                            }
+                        });
+                        if(valid3){
+                            break
+                        }
                         findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                         valid2 = false
                     }
-                }
-                if (block.hour == req.body.start) {
-                    if (index == 0 && valid2) {
-                        findDay.blocks[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
-                    }
-                    valid = true
-                    validStep = false
-                }
-                if (block.hour == req.body.end) {
-                    valid = false
-                    break
                 }
                 if (block.hour == findDay.blocks[findDay.blocks.length -1] && parseFloat(req.body.end.split(":")[0]) > parseFloat(findDay.blocks[findDay.blocks.length -1].split(":")[0])) {
                     valid = false
                     break
                 }
                 if (valid) {
+                    if(valid4){
+                        block.employeBlocked.forEach(element => {
+                            if(element.type == 'blocking'){
+                                if(element.employe == data.employe.id){
+                                    validAll = false
+                                    valid3 = true
+                                }
+                            }
+                        });
+                        if(valid3){
+                            break
+                        }
+                    }
+                    
                     block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                     for (const key in block.employes) {
                         const employe = block.employes[key]
@@ -1190,8 +1241,22 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     if (createBlockdate) {
                         var valid = false
                         var valid2 = true
+                        var validStep = true
                         for (const block of blocksFirst) {
-                            if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0])) {
+
+                            if (block.hour == req.body.start) {
+                                if (blocksFirst[0] == req.body.start) {
+                                    blocksFirst[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
+                                    valid2 = false
+                                }
+                                valid = true
+                                validStep = false
+                            }
+                            if (block.hour == req.body.end) {
+                                valid = false
+                                break
+                            }
+                            if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0]) && validStep) {
                                 valid = true
                                 if (valid2) {
                                     blocksFirst[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
@@ -1199,23 +1264,12 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 }
                             }
                             
-                            if (parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
+                            if (parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1]) && validStep) {
                                 valid = true
                                 if (valid2) {
                                     blocksFirst[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                                     valid2 = false
                                 }
-                            }
-                            if (block.hour == req.body.start) {
-                                if (blocksFirst[0] == req.body.start) {
-                                    blocksFirst[0].employeBlocked.push({employe: data.employe.id, type: 'blocking'})
-                                    valid2 = false
-                                }
-                                valid = true
-                            }
-                            if (block.hour == req.body.end) {
-                                valid = false
-                                break
                             }
                             
                             if (valid) {
