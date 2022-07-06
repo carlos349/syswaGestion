@@ -29,6 +29,9 @@ const userSchema = new Schema ({
     linkLender: {
         type: String
     },
+    notificationLimited: {
+        type: Boolean
+    },
     userImage: {
         type: String
     },

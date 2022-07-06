@@ -816,7 +816,7 @@ configurations.put('/editAccessUsers/:name', protectRoute, async (req, res) => {
                 status: req.params.name
             },
             {
-                $set: {access: req.body.access}
+                $set: {access: req.body.access, notificationLimited: req.body.notificationLimited}
             }
         )
         if (findUsers) {

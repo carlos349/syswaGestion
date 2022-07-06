@@ -14,6 +14,9 @@ const notificationSchema = new Schema({
     userImg: {
         type: String
     },
+    employeId: {
+        type: String
+    },
     detail: {
         type: String
     },
