@@ -402,34 +402,30 @@ clients.post('/', async (req, res) => {
 clients.post('/sendPromotionEmail', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    const clients = req.body.clients.split(',')
+    
     try {
         const findConfiguration = await Configuration.findOne({branch:req.body.branch})
-    
-        const mail = {
-            from: findConfiguration.businessName +' no-reply@syswa.net',
-            bcc: req.body.clients,
-            subject: req.body.subject,
-            html: req.body.html
+        var countClients = 0
+        for (let index = 0; index < (parseInt(clients.length / 100)) + 1; index++) {
+            if (clients[countClients]) {
+                var sendClients = []
+                if(countClients == 0){
+                    sendClients = clients.slice(countClients, (countClients + 100))
+                }else[
+                    sendClients = clients.slice((countClients + 1), (countClients + 100))
+                ]
+                const mail = {
+                    from: findConfiguration.businessName +' no-reply@syswa.net',
+                    bcc: sendClients.toString(),
+                    subject: req.body.subject,
+                    html: req.body.html
+                }
+                Mails.sendMail(mail)
+                countClients = (countClients + 100);
+            }
         }
-
-        try {
-            Mails.sendMail(mail)
-            res.json({status: 'ok'})
-        }catch(err){
-            const Log = new LogService(
-                req.headers.host, 
-                req.body, 
-                req.params, 
-                err, 
-                req.requestToken, 
-                req.headers['x-database-connect'], 
-                req.route
-            )
-            Log.createLog()
-            .then(dataLog => {
-                res.send('failed api with error, '+ dataLog.error)
-            })
-        }
+        res.json({status: 'ok'})
     }catch(err){
         const Log = new LogService(
             req.headers.host, 
