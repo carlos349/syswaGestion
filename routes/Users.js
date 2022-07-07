@@ -293,6 +293,32 @@ users.get('/:id', protectRoute, async (req, res) => {
     }
 })
 
+users.get('/getbylinklender/:id', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    
+    const User = connect.useDb(database).model('users', userSchema)
+    try{
+        const findUser = await User.findOne({linkLender: req.params.id})
+        if (findUser) {
+            res.json({status: 'ok', data: findUser.userImage, token: req.requestToken})
+        }else{
+            res.json({status: 'user does not have lender', data: "no"})
+        }
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
+})
+
 //input - email
 //output - ok, y envia un correo al usuario con una nueva contraseña provisional . ok, and mail for user with a new provisional password
 users.post('/sendNewPass', async (req, res) => {

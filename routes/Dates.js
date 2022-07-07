@@ -2774,6 +2774,7 @@ dates.post('/verifydate', async (req, res) => {
 dates.post('/noOneLender', (req, res) => {
     const database = req.headers['x-database-connect'];
 
+    const User = connect.useDb(database).model('users', userSchema)
     const dates = connect.useDb(database).model('dates', dateSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const dataCitas = []
@@ -2791,6 +2792,7 @@ dates.post('/noOneLender', (req, res) => {
     
     for (let index = 0; index < dataDate.serviceSelectds.length; index++) {
         const element = dataDate.serviceSelectds[index];
+        
         var data = {
             branch: req.body.branch,
             start: req.body.date + ' ' + element.start,
@@ -2821,7 +2823,7 @@ dates.post('/noOneLender', (req, res) => {
                 id: element.employeId,
                 name: element.realEmploye,
                 class: element.class,
-                img: element.employeImg
+                img: 'no'
             },
             microServices: element.microServiceSelect ? element.microServiceSelect : [],
             typeCreation: req.body.typeCreation,
@@ -2845,7 +2847,7 @@ dates.post('/noOneLender', (req, res) => {
         for (let i = 0; i < dataCitas.length; i++) {
             dates.create(dataCitas[i])
             .then(citas => {
-                ids.push({_id : citas._id})
+                ids.push({_id : citas._id, employeId: citas.employe.id})
             })
             .catch(err => console.log(err))
             var valid = false
