@@ -44,6 +44,9 @@ const clientSchema = new Schema({
     recommendations: {
         type: Number
     },
+    clientNotes: {
+        type: Array
+    },
     lastAttend: {
         type: Date
     },

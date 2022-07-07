@@ -50,6 +50,29 @@ clients.get('/', protectRoute, async (req, res) => {
 
 })
 
+clients.get('/getNotesClient/:id', async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Client = connect.useDb(database).model('clients', clientSchema)
+    try {
+        const getNotes = await Client.findOne({_id: req.params.id}, {historical:0,password:0})
+        res.json({status: 'ok', notes: getNotes.clientNotes, token: req.requestToken})
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
+    }
+})
+
 clients.get('/getDatesClient/:id', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const date = connect.useDb(database).model('dates', dateSchema)
@@ -157,7 +180,7 @@ clients.get('/findOneWithoutToken/:email', async (req, res) => {
     const Client = connect.useDb(database).model('clients', clientSchema)
 
     try {
-        const getClient = await Client.findOne({email: req.params.email}, {password: 0})
+        const getClient = await Client.findOne({email: req.params.email}, {password: 0, clientNotes: 0})
         if (getClient) {
             res.json({status: 'ok', data: getClient, token: req.requestToken})
         }else{
@@ -372,6 +395,7 @@ clients.post('/', async (req, res) => {
         codeRescue: '',
         extraData: req.body.extraData,
         instagram: req.body.instagram,
+        clientNotes: [],
         attends: 0,
         idRecommender: req.body.idRecommender,
         recommender: finalRecommender, 
@@ -396,6 +420,34 @@ clients.post('/', async (req, res) => {
         }
     }catch(err){
         res.send(err)
+    }
+})
+
+clients.post('/insertNotesToClient', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Client = connect.useDb(database).model('clients', clientSchema)
+    try {
+        const insertNotes = await Client.findByIdAndUpdate(req.body.id, {
+            $push: { 
+                clientNotes: req.body.note 
+            }
+        })
+        console.log(insertNotes)
+        res.json({status: 'ok', notes: insertNotes.clientNotes, token: req.requestToken})
+    }catch(err){
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        Log.createLog()
+        .then(dataLog => {
+            res.send('failed api with error, '+ dataLog.error)
+        })
     }
 })
 
@@ -555,6 +607,7 @@ clients.post('/registerwithpass', (req, res) => {
         attends: 1,
         block: false, 
         codeRescue: '',
+        clientNotes: [],
         idRecommender: '',
         recommender: '',
         recommendations: 0,
