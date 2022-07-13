@@ -324,7 +324,7 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
 dates.get('/deleteEndingDates/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const EndingDates = connect.useDb(database).model('endingdates', endingDateSchema)
-    const dates = formats.dayBack(new Date())
+    const dates = formats.dayBack(new Date().setHours(new Date().getHours() - 4))
     try {
         const find = await EndingDates.deleteMany({
             $and: [
