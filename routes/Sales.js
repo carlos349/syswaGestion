@@ -801,7 +801,7 @@ sales.post('/process', protectRoute, (req, res) => {
       totalPay: totalPay
     },
     uuid: new Date().getTime(),
-    createdAt: req.body.date
+    createdAt: new Date().toLocaleString()
   }
 
   const daySale = {
