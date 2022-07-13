@@ -618,7 +618,7 @@ sales.post('/closeDay/:name', protectRoute, async (req, res) => {
         manual: manual,
         system: system,
         closerName: req.params.name,
-        createdAt: new Date()
+        createdAt: new Date().setHours(new Date().getHours() - 4)
     }
 
     try {
@@ -785,7 +785,7 @@ sales.post('/process', protectRoute, (req, res) => {
   const client = req.body.client
   const clientId = req.body.clientId
   const restPay = req.body.restPay
-  
+  const dateSale = new Date()
   const dataSale = {
     branch: req.body.branch,
     items: [],
@@ -801,7 +801,7 @@ sales.post('/process', protectRoute, (req, res) => {
       totalPay: totalPay
     },
     uuid: new Date().getTime(),
-    createdAt: req.body.date
+    createdAt: dateSale.setHours(new Date().getHours() - 4)
   }
 
   const daySale = {
@@ -810,7 +810,7 @@ sales.post('/process', protectRoute, (req, res) => {
     typesPay: typesPay,
     total: total,
     idTableSales: '',
-    createdAt: req.body.date
+    createdAt: dateSale.setHours(new Date().getHours() - 4)
   }
   var timeItem = new Date().getTime()
   var discounRegistered = false

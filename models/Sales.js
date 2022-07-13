@@ -36,8 +36,7 @@ const saleSchema = new Schema({
         type: Object
     },
     createdAt: {
-        type: Date,
-        default: Date.now
+        type: Date
     }
 })
 
