@@ -998,6 +998,8 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const splitDate = req.body.dateBlocking.split('-')
     const Day = new Date(splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2] + ' 10:00').getDay()
     const employes = req.body.employes
+
+
     const data = {
         branch: req.body.branch,
         dateBlocking: splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2],
@@ -1256,6 +1258,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 valid = false
                                 break
                             }
+
                             if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0]) && validStep) {
                                 valid = true
                                 if (valid2) {
@@ -1275,10 +1278,11 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                             if (valid) {
                                 for (const key in block.employes) {
                                     const employe = block.employes[key]
-                                    block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                                     if (employe.id == data.employe.id) {
+                                        block.employeBlocked.push({employe: data.employe.id, type: 'blocking'})
                                         data.employe = employe
                                         block.employes.splice(key, 1)
+                                        break
                                     }
                                 }
                             }
