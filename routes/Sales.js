@@ -618,7 +618,7 @@ sales.post('/closeDay/:name', protectRoute, async (req, res) => {
         manual: manual,
         system: system,
         closerName: req.params.name,
-        createdAt: new Date()
+        createdAt: new Date().setHours(new Date().getHours() - 4)
     }
 
     try {
