@@ -808,14 +808,15 @@ employes.put('/', protectRoute, async (req,res) => {
                         valid: false,
                         img: employeEdited.img 
                     }
-                    
+                    var yesterday = new Date()
+                    yesterday.setDate(yesterday.getDate() - 1)
                         for (let days = 0; days <= 7; days++) {
                             var validDay = true
                             for (let n = 0; n < normalDays.length; n++) {
                                 const element = normalDays[n];
                                 
                                 if (element.day == days) {
-                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                     .then(dateBlockFind => {
                                         if (dateBlockFind.length > 0) {
                                             logDates.info(`********* Bloques encontrados:${JSON.stringify(dateBlockFind)} ***********`);
@@ -853,7 +854,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                 }
                             }
                             if (validDay) {
-                                dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}]})
+                                dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                 .then(blockFindValid => {
                                     if (blockFindValid.length > 0) {
                                         logDates.info(`********* Bloques encontrados:${JSON.stringify(blockFindValid)} ***********`);
@@ -883,7 +884,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                 const element = normalDays[n];
                                 
                                 if (element.day == days) {
-                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                     .then(findBlockTwice => {
                                         if (findBlockTwice.length > 0) {
                                             logDates.info(`********* Bloques encontrados:${JSON.stringify(findBlockTwice)} ***********`);
@@ -920,7 +921,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                 }
                             }
                             if (validDay) {
-                                dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}]})
+                                dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                 .then(ValidFindBlocksTwice => {
                                     if (ValidFindBlocksTwice.length > 0) {
                                         logDates.info(`********* Bloques encontrados:${JSON.stringify(ValidFindBlocksTwice)} ***********`);
@@ -947,7 +948,7 @@ employes.put('/', protectRoute, async (req,res) => {
                             setTimeout(() => {
                                 for (let i = 0; i < normalDays.length; i++) {
                                     const element = normalDays[i]
-                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                     .then(normalFind => {
                                         
                                         for (let t = 0; t < originalDays.length; t++) {
@@ -1020,7 +1021,7 @@ employes.put('/', protectRoute, async (req,res) => {
                             setTimeout(() => {
                                 for (let i = 0; i < normalDays.length; i++) {
                                     const element = normalDays[i]
-                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
+                                    dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                     .then(res => {
                                         
                                         for (let t = 0; t < originalDays.length; t++) {
