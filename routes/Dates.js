@@ -60,6 +60,33 @@ dates.get('/:branch', protectRoute, async (req, res) => {
     }
 })
 
+dates.get('/getNewDate/:branch', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const date = connect.useDb(database).model('dates', dateSchema)
+
+    try {
+        const newDate = await date.find({branch: req.params.branch}).sort({_id: -1}).limit(1)
+        console.log(newDate)
+        if (newDate[0]) { 
+            res.json({ status: 'nothing to found', data: newDate[0], token: req.requestToken })
+        } else {
+            res.json({ status: 'nothing to found', token: req.requestToken })
+        }
+    } catch (err) {
+        const Log = new LogService(
+            req.headers.host, 
+            req.body, 
+            req.params, 
+            err, 
+            req.requestToken, 
+            req.headers['x-database-connect'], 
+            req.route
+        )
+        const dataLog = await Log.createLog()
+        res.send('failed api with error, '+ dataLog.error)
+    }
+})
+
 dates.get('/getDate/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     
