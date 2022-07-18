@@ -1061,7 +1061,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         findDay.blocks[0].employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
-                                    validAll = false
+                                    
                                     valid3 = true
                                 }
                             }
@@ -1085,7 +1085,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         findDay.blocks[0].employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
-                                    validAll = false
+                                    
                                     valid3 = true
                                 }
                             }
@@ -1104,7 +1104,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         findDay.blocks[0].employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
-                                    validAll = false
                                     valid3 = true
                                 }
                             }
@@ -1125,7 +1124,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         block.employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
-                                    validAll = false
+                                    
                                     valid3 = true
                                 }
                             }
