@@ -17,6 +17,9 @@ const dateBlockingSchema = new Schema({
     start: {
         type: String
     },
+    dateId: {
+        type: String
+    },
     end: {
         type: String
     }

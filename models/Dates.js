@@ -56,6 +56,9 @@ const dateSchema = new Schema({
     typePay: {
         type: String
     },
+    isBlocked: {
+        type: Boolean
+    },
     payPdf: {
         type: String
     },

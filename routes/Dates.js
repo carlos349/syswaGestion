@@ -995,6 +995,8 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
+
     const splitDate = req.body.dateBlocking.split('-')
     const Day = new Date(splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2] + ' 10:00').getDay()
     const employes = req.body.employes
@@ -1110,7 +1112,6 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                     for (const key in block.employes) {
                         const employe = block.employes[key]
                         if (employe.id == data.employe.id) {
-                            data.employe = employe
                             block.employes.splice(key, 1)
                         }
                     }
@@ -1122,21 +1123,44 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         $set: { blocks: findDay.blocks }
                     })
                     try {
-                        const createHour = await HourBlocking.create(data)
-                        res.json({ status: 'ok' })
-                    } catch (err) {
-                        const Log = new LogService(
-                            req.headers.host, 
-                            req.body, 
-                            req.params, 
-                            err, 
-                            req.requestToken, 
-                            req.headers['x-database-connect'], 
-                            req.route
-                        )
-                        const dataLog = await Log.createLog()
-                        res.send('failed api with error, '+ dataLog.error)
+                        const createDateBlocking = await date.create({
+                            branch: data.branch,
+                            start: data.dateBlocking + " " + data.start,
+                            end: data.dateBlocking + " " + data.end,
+                            title: "Bloqueo",
+                            split: data.employe.id,
+                            class: "classBlock",
+                            createdAt: data.dateBlockings,
+                            employe: data.employe,
+                            isBlocked: true
+                        })
+                        if (createDateBlocking) {
+                            data.dateId = createDateBlocking._id
+                            try {
+                                const createHour = await HourBlocking.create(data)
+                                if(createHour){
+                                    res.json({ status: 'ok' })
+                                }
+                            } catch (err) {
+                                const Log = new LogService(
+                                    req.headers.host, 
+                                    req.body, 
+                                    req.params, 
+                                    err, 
+                                    req.requestToken, 
+                                    req.headers['x-database-connect'], 
+                                    req.route
+                                )
+                                const dataLog = await Log.createLog()
+                                res.send('failed api with error, '+ dataLog.error)
+                            }
+
+                            
+                        }
+                    }catch(err){
+                        console.log(err)
                     }
+                    
                 }catch (err) {
                     const Log = new LogService(
                         req.headers.host, 
@@ -1292,20 +1316,42 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 $set: { blocks: blocksFirst }
                             })
                             try {
-                                const createHour = await HourBlocking.create(data)
-                                res.json({ status: 'ok' })
-                            } catch (err) {
-                                const Log = new LogService(
-                                    req.headers.host, 
-                                    req.body, 
-                                    req.params, 
-                                    err, 
-                                    req.requestToken, 
-                                    req.headers['x-database-connect'], 
-                                    req.route
-                                )
-                                const dataLog = await Log.createLog()
-                                res.send('failed api with error, '+ dataLog.error)
+                                const createDateBlocking = await date.create({
+                                    branch: data.branch,
+                                    start: data.dateBlocking + " " + data.start,
+                                    end: data.dateBlocking + " " + data.end,
+                                    title: "Bloqueo",
+                                    split: data.employe.id,
+                                    class: "classBlock",
+                                    createdAt: data.dateBlockings,
+                                    employe: data.employe,
+                                    isBlocked: true
+                                })
+                                if (createDateBlocking) {
+                                    data.dateId = createDateBlocking._id
+                                    try {
+                                        const createHour = await HourBlocking.create(data)
+                                        if(createHour){
+                                            res.json({ status: 'ok' })
+                                        }
+                                    } catch (err) {
+                                        const Log = new LogService(
+                                            req.headers.host, 
+                                            req.body, 
+                                            req.params, 
+                                            err, 
+                                            req.requestToken, 
+                                            req.headers['x-database-connect'], 
+                                            req.route
+                                        )
+                                        const dataLog = await Log.createLog()
+                                        res.send('failed api with error, '+ dataLog.error)
+                                    }
+        
+                                    
+                                }
+                            }catch(err){
+                                console.log(err)
                             }
                         } catch (err) {
                             const Log = new LogService(
@@ -1366,6 +1412,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
 
     const data = {
         branch: req.body.branch,
@@ -1387,20 +1434,23 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
             if (parseFloat(req.body.start.split(":")[0]) < parseFloat(block.hour.split(":")[0])) {
                 valid = true
                 if (valid2) {
-                    findDay.blocks[0].employeBlocked.forEach((element,index) => {
-                        if (element.employe == data.employe.id && element.type == 'blocking') {
-                            findDay.blocks[0].employeBlocked.splice(index, 1)
-                            findDay.blocks[0].employes.unshift(data.employe)
-                        }
-                        if (element.employe == data.employe.id && element.type == 'date') {
-                            for (let indexB = 0; indexB < findDay.blocks[0].employes.length; indexB++) {
-                                const elementB = findDay.blocks[0].employes[indexB];
-                                if (elementB.id == data.employe.id) {
-                                    findDay.blocks[0].employes.splice(indexB, 1)
+                    for (let c = 0; c < 5; c++) {
+                        findDay.blocks[0].employeBlocked.forEach((element,index) => {
+                            if (element.employe == data.employe.id && element.type == 'blocking') {
+                                findDay.blocks[0].employeBlocked.splice(index, 1)
+                                findDay.blocks[0].employes.unshift(data.employe)
+                            }
+                            if (element.employe == data.employe.id && element.type == 'date') {
+                                for (let indexB = 0; indexB < findDay.blocks[0].employes.length; indexB++) {
+                                    const elementB = findDay.blocks[0].employes[indexB];
+                                    if (elementB.id == data.employe.id) {
+                                        findDay.blocks[0].employes.splice(indexB, 1)
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+
+                    }
                     valid2 = false
                 }
             }
@@ -1408,27 +1458,7 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
             if (parseFloat(req.body.start.split(":")[0]) == parseFloat(block.hour.split(":")[0]) && parseFloat(req.body.start.split(":")[1]) < parseFloat(block.hour.split(":")[1])) {
                 valid = true
                 if (valid2) {
-                    findDay.blocks[0].employeBlocked.forEach((element,index) => {
-                        if (element.employe == data.employe.id && element.type == 'blocking') {
-                            findDay.blocks[0].employeBlocked.splice(index, 1)
-                            findDay.blocks[0].employes.unshift(data.employe)
-                        }
-                        if (element.employe == data.employe.id && element.type == 'date') {
-                            for (let indexB = 0; indexB < findDay.blocks[0].employes.length; indexB++) {
-                                const elementB = findDay.blocks[0].employes[indexB];
-                                
-                                if (elementB.id == data.employe.id) {
-                                    findDay.blocks[0].employes.splice(indexB, 1)
-                                }
-                            }
-                        }
-                    });
-                    valid2 = false
-                }
-            }
-            if (block.hour == req.body.start) {
-                if (findDay.blocks[0] == req.body.start) {
-                    if (valid2) {
+                    for (let c = 0; c < 5; c++) {
                         findDay.blocks[0].employeBlocked.forEach((element,index) => {
                             if (element.employe == data.employe.id && element.type == 'blocking') {
                                 findDay.blocks[0].employeBlocked.splice(index, 1)
@@ -1444,6 +1474,32 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
                                 }
                             }
                         });
+
+                    }
+                    valid2 = false
+                }
+            }
+            if (block.hour == req.body.start) {
+                if (findDay.blocks[0] == req.body.start) {
+                    if (valid2) {
+                        for (let c = 0; c < 5; c++) {
+                            findDay.blocks[0].employeBlocked.forEach((element,index) => {
+                                if (element.employe == data.employe.id && element.type == 'blocking') {
+                                    findDay.blocks[0].employeBlocked.splice(index, 1)
+                                    findDay.blocks[0].employes.unshift(data.employe)
+                                }
+                                if (element.employe == data.employe.id && element.type == 'date') {
+                                    for (let indexB = 0; indexB < findDay.blocks[0].employes.length; indexB++) {
+                                        const elementB = findDay.blocks[0].employes[indexB];
+                                        
+                                        if (elementB.id == data.employe.id) {
+                                            findDay.blocks[0].employes.splice(indexB, 1)
+                                        }
+                                    }
+                                }
+                            });
+
+                        }
                         valid2 = false
                     }
                 }
@@ -1457,13 +1513,17 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
             if (valid) {
                 
                 if (block.employeBlocked && block.employeBlocked.length > 0) {
-                    block.employeBlocked.forEach((element,index) => {
-                        if (element.employe == data.employe.id && element.type == 'blocking') {
-                            block.employeBlocked.splice(index, 1)
-                            block.employes.unshift(data.employe)
-                        }
+                    for (let c = 0; c < 5; c++) {
+                        block.employeBlocked.forEach((element,index) => {
+                            if (element.employe == data.employe.id && element.type == 'blocking') {
+                                block.employeBlocked.splice(index, 1)
+                                block.employes.unshift(data.employe)
+                            }
+                            
+                        });
                         
-                    });
+                    }
+                    
                 }
             }
         }
@@ -1485,7 +1545,22 @@ dates.post('/deleteBlockingHour', protectRoute, async (req, res) => {
             })
             try {
                 const createHour = await HourBlocking.findByIdAndRemove(req.body.id)
-                res.json({ status: 'ok' })
+                if(createHour){
+                    if(req.body.idDate){
+                        try{
+                            const deleteDate = await date.findByIdAndRemove(req.body.idDate)
+                            if(deleteDate){
+                                res.json({ status: 'ok' })
+                            }
+                        }catch(err){
+                            console.log(err)
+                        }
+                    }else{
+                        res.json({ status: 'ok' })
+                    }
+                    
+                }
+                
             } catch (err) {
                 const Log = new LogService(
                     req.headers.host, 
