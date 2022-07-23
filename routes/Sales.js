@@ -496,9 +496,9 @@ sales.post('/generateDataExcel', protectRoute, async (req, res) => {
                 totalAddi = totalAddi + addi.price
               }
               if (items.type == 'service') {
-                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: '', Servicio: items.item.name, Precio: items.item.price,Descuento: items.discount, Adicionales: additionals == '' ? 'Sin adicional' : additionals, 'Total Adicionales': totalAddi, Total: items.totalItem, ...typesPay})
+                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: '', Servicio: items.item.name,  Profesional: items.employe.name, Precio: items.item.price,Descuento: items.discount, Adicionales: additionals == '' ? 'Sin adicional' : additionals, 'Total Adicionales': totalAddi, Total: items.totalItem, ...typesPay})
               }else{
-                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: items.item.name+', Cantidad: '+items.quantityProduct, Servicio: '', Precio: items.item.price,Descuento: items.discount, Adicionales: 'Sin adicional', 'Total Adicionales': 'Sin adicional', Total: items.totalItem, ...typesPay})
+                dataTable.push({Fecha: formats.dates(element.createdAt), ID: 'V-'+element.count, Cliente: element.client.firstName+' '+element.client.lastName, Producto: items.item.name+', Cantidad: '+items.quantityProduct,  Profesional: "", Servicio: '', Precio: items.item.price,Descuento: items.discount, Adicionales: 'Sin adicional', 'Total Adicionales': 'Sin adicional', Total: items.totalItem, ...typesPay})
               }
             }
           }
