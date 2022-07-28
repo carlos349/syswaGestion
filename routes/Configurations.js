@@ -599,8 +599,9 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
             $set: dataConfiguration
         })
         if (createConfiguration) {
+            console.log(createConfiguration)
             try {
-                const editBranch = await Branch.findByIdAndUpdate(req.body.branch, {
+                const editBranch = await Branch.findByIdAndUpdate(createConfiguration.branch, {
                     $set: {
                         name: req.body.businessName
                     }
