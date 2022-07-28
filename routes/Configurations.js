@@ -602,7 +602,7 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
             try {
                 const editBranch = await Branch.findByIdAndUpdate(req.body.branch, {
                     $set: {
-                        branch: req.body.businessName
+                        name: req.body.businessName
                     }
                 })
                 res.json({status: 'ok', token: req.requestToken})  
