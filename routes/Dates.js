@@ -59,12 +59,8 @@ dates.get('/:branch', protectRoute, async (req, res) => {
         res.send('failed api with error, '+ dataLog.error)
     }
 })
-<<<<<<< HEAD
-dates.get('/getNewDate/:branch', protectRoute, async (req, res) => {
-=======
 
 dates.get('/getNewDate/:id', protectRoute, async (req, res) => {
->>>>>>> 9386c917e74ce35720158c270fcfa923caf9efcd
     const database = req.headers['x-database-connect'];
     const date = connect.useDb(database).model('dates', dateSchema)
 
