@@ -59,7 +59,6 @@ dates.get('/:branch', protectRoute, async (req, res) => {
         res.send('failed api with error, '+ dataLog.error)
     }
 })
-
 dates.get('/getNewDate/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const date = connect.useDb(database).model('dates', dateSchema)
@@ -86,7 +85,6 @@ dates.get('/getNewDate/:branch', protectRoute, async (req, res) => {
         res.send('failed api with error, '+ dataLog.error)
     }
 })
-
 dates.get('/getDate/:id', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     
@@ -1061,7 +1059,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         findDay.blocks[0].employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
-                                    
+                                    validAll = false
                                     valid3 = true
                                 }
                             }
@@ -1085,7 +1083,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         findDay.blocks[0].employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
-                                    
+                                    validAll = false
                                     valid3 = true
                                 }
                             }
@@ -1104,6 +1102,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         findDay.blocks[0].employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
+                                    validAll = false
                                     valid3 = true
                                 }
                             }
@@ -1124,7 +1123,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                         block.employeBlocked.forEach(element => {
                             if(element.type == 'blocking'){
                                 if(element.employe == data.employe.id){
-                                    
+                                    validAll = false
                                     valid3 = true
                                 }
                             }
