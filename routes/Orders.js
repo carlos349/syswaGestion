@@ -174,9 +174,9 @@ orders.post('/', async (req, res) => {
                 let mail = {}
                 
                 mail = {
-                    from: data.branch.name,
+                    from: data.branch.name + ' no-reply@syswa.net',
                     to: data.client.email,
-                    subject: 'Proceso de compra de tarjeta de regalo para ' + data.branch.name,
+                    subject: 'Compra de Gift Card en ' + data.branch.name + 'en proceso',
                     html: `
                             <!doctype html>
                             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -844,7 +844,7 @@ orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
                             content: fs.createReadStream('./private/output.pdf')
                         }
                     ],
-                    from: useCode.branch.name,
+                    from: useCode.branch.name +' no-reply@syswa.net',
                     to: useCode.client.email,
                     subject: 'Tarjeta de regalo para ' + useCode.branch.name,
                     html: `
