@@ -176,7 +176,7 @@ orders.post('/', async (req, res) => {
                 mail = {
                     from: data.branch.name + ' no-reply@syswa.net',
                     to: data.client.email,
-                    subject: 'Compra de Gift Card en ' + data.branch.name + 'en proceso',
+                    subject: 'Compra de Gift Card en ' + data.branch.name + ' en proceso',
                     html: `
                             <!doctype html>
                             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -655,7 +655,7 @@ orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
                                 <tr>
                                     <td align="center" style="font-size:0px;padding:13px 20px 13px 20px;word-break:break-word;">
                                     
-                            <div style="font-family:Ubuntu, sans-serif;font-size:13px;line-height:1.5;text-align:center;color:#2b729e;"><p style="font-size: 11px;"><span style="font-size: 25px; font-family: 'Lobster', cursive;"><span style="color: #002d5b;"><strong>Tarjeta de regalo para ${useCode.branch.name}</strong></span></span></p></div>
+                            <div style="font-family:Ubuntu, sans-serif;font-size:13px;line-height:1.5;text-align:center;color:#2b729e;"><p style="font-size: 11px;"><span style="font-size: 25px; font-family: 'Lobster', cursive;"><span style="color: #002d5b;"><strong>Gift Card para ${useCode.branch.name}</strong></span></span></p></div>
                         
                                     </td>
                                 </tr>
@@ -846,7 +846,7 @@ orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
                     ],
                     from: useCode.branch.name +' no-reply@syswa.net',
                     to: useCode.client.email,
-                    subject: 'Tarjeta de regalo para ' + useCode.branch.name,
+                    subject: 'Gift Card para ' + useCode.branch.name,
                     html: `
                             <!doctype html>
                             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -1145,7 +1145,7 @@ orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
                                     <tr>
                                     <td align="center" style="font-size:0px;padding:13px 20px 13px 20px;word-break:break-word;">
                                         
-                            <div style="font-family:Ubuntu, sans-serif;font-size:13px;line-height:1.5;text-align:center;color:#2b729e;"><p style="font-size: 11px; font-family: 'Lobster', cursive;"><span style="font-size: 30px; "><span style="color: #002d5b;"><strong>Tarjeta de regalo para ${useCode.branch.name}</strong></span></span></p></div>
+                            <div style="font-family:Ubuntu, sans-serif;font-size:13px;line-height:1.5;text-align:center;color:#2b729e;"><p style="font-size: 11px; font-family: 'Lobster', cursive;"><span style="font-size: 30px; "><span style="color: #002d5b;"><strong>Gift Card para ${useCode.branch.name}</strong></span></span></p></div>
                             
                                     </td>
                                     </tr>
