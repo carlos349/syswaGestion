@@ -38,6 +38,9 @@ const configurationSchema = new Schema({
     datesPolicies: {
         type: String
     },
+    giftCard: {
+        type: Object
+    },
     typesPay: {
         type: Array
     },

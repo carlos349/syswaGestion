@@ -587,6 +587,7 @@ configurations.post('/editConfiguration/:id', protectRoute, async (req, res) => 
         businessLocation: req.body.businessLocation,
         businessEmail: req.body.businessEmail,
         bussinessLogo: req.body.bussinessLogo,
+        giftCard: req.body.giftCard,
         currency: req.body.currency,
         typesPay: req.body.typesPay,
         datesPolitics: req.body.datesPolitics,

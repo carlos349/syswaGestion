@@ -91,15 +91,23 @@ orders.get('/used', protectRoute, async (req, res) => {
 
 })
 
-orders.get('/validcode/:code', protectRoute, async (req, res) => {
+orders.get('/validcode/:order', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Order = connect.useDb(database).model('orders', ordersSchema)
 
     try{
-        const findByCode = await Order.findOne({code: req.params.code})
+        const findByOrder = await Order.findOne({orderNumber: req.params.order})
 
-        if(findByCode.length > 0){
-            res.json({status: "ok", data: findByCode})
+        if(findByOrder){
+            const dataOrder = {
+                products: findByOrder.products,
+                client: findByOrder.client,
+                payType: findByOrder.payType,
+                total: findByOrder.total,
+                status: findByOrder.status,
+                orderNumber: findByOrder.orderNumber
+            }
+            res.json({status: "ok", data: dataOrder})
         }else{
             res.json({status: "nothing"})
         }
@@ -124,7 +132,7 @@ orders.post('/', async (req, res) => {
 
         var expired = new Date()
 
-        expired.setDate(expired.getDate()+3)
+        expired.setDate(expired.getDate()+req.body.branch.politics.timeLimit)
 
         const data = {
             products: req.body.products,
@@ -138,6 +146,7 @@ orders.post('/', async (req, res) => {
             orderNumber: nOrder,
             expiredDate: expired
         }
+        data.branch.politics = req.body.branch.politics.politics
         let dollarUSLocale = Intl.NumberFormat('de-DE');
         var products = ''
         var total = 0
@@ -394,7 +403,7 @@ orders.post('/', async (req, res) => {
                                     <tr>
                                     <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                                         
-                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;"><span style="font-size: 14px; font-family: Poppins, sans-serif;"><strong>Informaci&oacute;n importante:</strong> Este c&oacute;digo tiene fecha de vencimiento de <strong>3</strong> d&iacute;as h&aacute;biles a pagar en la siguiente direcci&oacute;n:</span></p>
+                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;"><span style="font-size: 14px; font-family: Poppins, sans-serif;"><strong>Informaci&oacute;n importante:</strong> Este c&oacute;digo tiene fecha de vencimiento de <strong>${data.branch.politics.timeLimit}</strong> d&iacute;as h&aacute;biles a pagar en la siguiente direcci&oacute;n:</span></p>
                         <p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;">&nbsp;</p>
                         <p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;"><span style="font-size: 14px; font-family: Poppins, sans-serif;">${data.branch.location}</span></p></div>
                             
@@ -505,6 +514,7 @@ orders.post('/', async (req, res) => {
                                     </tr>
                                 
                             </table>
+                            <span style="font-size:12px; text-align:center; color:#7e7c7cc4;">${data.branch.politics}</span>
                             
                             </div>
                             
@@ -528,7 +538,7 @@ orders.post('/', async (req, res) => {
                                 </tr>
                             </table>
                             <![endif]-->
-                            
+                                
                             
                             </div>
                             
@@ -555,24 +565,32 @@ orders.post('/', async (req, res) => {
     
 })
 
-orders.put('/usecode/:id', protectRoute, async (req, res) => {
+orders.put('/usecode/:code', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Order = connect.useDb(database).model('orders', ordersSchema)
 
     try{
-        const useCode = await Order.findByIdAndUpdate(req.params.id, {
-            status: "used",
-            processDate: new Date()
-        })
-
-        if(useCode.length > 0){
-            res.json({status: "ok", data: useCode})
+        const valid = await Order.findOne({code: req.params.code, orderNumber: req.body.orderNumber})
+        if(valid){
+            try{
+                const useCode = await Order.findByIdAndUpdate(valid._id, {
+                    status: "used",
+                    processDate: new Date()
+                })
+        
+                if(useCode){
+                    res.json({status: "ok", data: useCode})
+                }
+            }catch(err){
+                console.log(err)
+            }
         }else{
             res.json({status: "nothing"})
         }
     }catch(err){
         console.log(err)
     }
+
 })
 
 orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
@@ -771,7 +789,13 @@ orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
                                 <tr>
                                     <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                                     
-                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="background-color: #002d5b; color: #ffffff;"><span style="font-size: 16px; font-family: Poppins, sans-serif; background-color: #002d5b; padding: 5px; border-radius: 5px;">${useCode.code}</span></span></p></div>
+                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="background-color: #002d5b; color: #ffffff;"><span style="font-size: 16px; font-family: Poppins, sans-serif; background-color: #002d5b; padding: 5px; border-radius: 5px;">${useCode.code}</span></span></p><br> <p style="font-size: 16px;
+                            font-family: Ubuntu,Helvetica,Arial;
+                            text-align: center;
+                            margin-top: 10px;
+                            font-weight: 600;
+                            border: 1px solid #00315a;
+                            border-radius: 3px;">Número de orden: ${useCode.orderNumber}</p></div>
                         
                                     </td>
                                 </tr>
@@ -1262,7 +1286,13 @@ orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
                                     <tr>
                                     <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                                         
-                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="background-color: #002d5b; color: #ffffff;"><span style="font-size: 16px; font-family: Poppins, sans-serif; background-color: #002d5b; padding: 5px; border-radius: 5px;">${useCode.code}</span></span></p></div>
+                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: center;"><span style="background-color: #002d5b; color: #ffffff;"><span style="font-size: 16px; font-family: Poppins, sans-serif; background-color: #002d5b; padding: 5px; border-radius: 5px;">${useCode.code}</span></span></p> <p style="font-size: 16px;
+                            font-family: Ubuntu,Helvetica,Arial;
+                            text-align: center;
+                            margin-top: 10px;
+                            font-weight: 600;
+                            border: 1px solid #00315a;
+                            border-radius: 3px;"> Número de orden: ${useCode.orderNumber} </p></div>
                             
                                     </td>
                                     </tr>
@@ -1391,7 +1421,7 @@ orders.put('/confirmorder/:id', protectRoute, async (req, res) => {
                                     <tr>
                                     <td align="center" style="font-size:0px;padding:15px 0px 16px 0px;word-break:break-word;">
                                         
-                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:center;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; font-size: 11px;"><em><span style="font-family: Poppins, sans-serif; font-size: 13px;">Puedes descargar un pdf de esta tarjeta de regalo en el archivo adjunto del correo.</span></em></p></div>
+                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:1.5;text-align:center;color:#000000;"><p style="font-family: Ubuntu, Helvetica, Arial; font-size: 11px;"><em><span style="font-family: Poppins, sans-serif; font-size: 13px;">Puedes descargar un pdf de esta tarjeta de regalo en el archivo adjunto del correo.</span></em></p><span style="font-size:12px; text-align:center; color:#7e7c7cc4;">${useCode.branch.politics}</span></div>
                             
                                     </td>
                                     </tr>
