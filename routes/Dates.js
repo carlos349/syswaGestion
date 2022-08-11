@@ -2296,7 +2296,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
+                    const hour = (thisDate.getHours() - 4) + findConfiguration.datesPolitics.minTypeDate
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
                         if (blocksFirst[0].hour.split(':')[0] >= hour) {
@@ -2480,31 +2480,31 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-                        // var index = 0
-                        // for (const block of blocksFirst) {
-                        //     if (block.employes.length > 0) {
-                        //         var valid = true
-                        //         block.employes.forEach(element => {
-                        //             if (element.valid) {
-                        //                 valid = false
-                        //                 block.validator = true
-                        //             }
-                        //         })
-                        //         if (valid) {
-                        //             block.validator = 'unavailable'
-                        //         }
-                        //     }else{
-                        //         block.validator = false
-                        //     }
-                        //     if (blocksFirst.length - 1 == index) {
-                        //         for (let u = 0; u < hoursdate / 15; u++) {
-                        //             if (blocksFirst[index - u]) {
-                        //                 blocksFirst[index - u].validator = 'unavailable'
-                        //             }
-                        //         }
-                        //     }
-                        //     index++
-                        // } 
+                        var index = 0
+                        for (const block of blocksFirst) {
+                            if (block.employes.length > 0) {
+                                var valid = true
+                                block.employes.forEach(element => {
+                                    if (element.valid) {
+                                        valid = false
+                                        block.validator = true
+                                    }
+                                })
+                                if (valid) {
+                                    block.validator = 'unavailable'
+                                }
+                            }else{
+                                block.validator = false
+                            }
+                            if (blocksFirst.length - 1 == index) {
+                                for (let u = 0; u < hoursdate / 15; u++) {
+                                    if (blocksFirst[index - u]) {
+                                        blocksFirst[index - u].validator = 'unavailable'
+                                    }
+                                }
+                            }
+                            index++
+                        } 
                         res.json({ status: 'ok', data: blocksFirst, id: createBlockdate._id, Stat: "from create" })
                     }
                 } catch (err) {
