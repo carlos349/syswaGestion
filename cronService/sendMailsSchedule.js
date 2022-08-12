@@ -57,7 +57,6 @@ class Main {
         const dates = await this.getDates()
         const configurations = await this.getConfigurations()
         logDates.info(`********* dates length: ${dates.length} ***********`);
-        logDates.info(`********* branch: ${JSON.stringify(configurations)} ***********`);
         for (const datee of dates) {
             const formatDate = {
                 date: `${datee.start.split(' ')[0].split('-')[1]}-${datee.start.split(' ')[0].split('-')[0]}-${datee.start.split(' ')[0].split('-')[2]}`,
@@ -81,17 +80,17 @@ class Main {
                 location: '',
                 route: ''
             }
-            for (const config of configurations) {
-                if (config.branch == datee.branch) {
-                    branchData.name = config.businessName
-                    branchData.email = config.businessEmail
-                    branchData.phone = config.businessPhone
-                    branchData.image = config.bussinessLogo
-                    branchData.location = config.businessLocation
-                    branchData.route = config.bussinessRoute
-                    branchData.datesPolicies = config.datesPolicies
-                }
+            const branchFind = configurations.find(element => element.branch == datee.branch)
+            if(branchFind){
+              branchData.name = branchFind.businessName
+              branchData.email = branchFind.businessEmail
+              branchData.phone = branchFind.businessPhone
+              branchData.image = branchFind.bussinessLogo
+              branchData.location = branchFind.businessLocation
+              branchData.route = branchFind.bussinessRoute
+              branchData.datesPolicies = branchFind.datesPolicies
             }
+            logDates.info(`********* dates length: ${branchData} ***********`);
             
             const mail = {
                 from: branchData.name+' no-reply@syswa.net',
