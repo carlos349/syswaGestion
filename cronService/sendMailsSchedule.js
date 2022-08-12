@@ -8,6 +8,8 @@ const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const connect = require('../mongoConnection/conectionInstances')
+const logger = require('../Logs/serviceExport');
+const logDates = logger.getLogger("dates");
 
 class Main {
 
@@ -54,6 +56,8 @@ class Main {
       
         const dates = await this.getDates()
         const configurations = await this.getConfigurations()
+        logDates.info(`********* dates length: ${dates.length} ***********`);
+        logDates.info(`********* branch: ${JSON.stringify(configurations)} ***********`);
         for (const datee of dates) {
             const formatDate = {
                 date: `${datee.start.split(' ')[0].split('-')[1]}-${datee.start.split(' ')[0].split('-')[0]}-${datee.start.split(' ')[0].split('-')[2]}`,
