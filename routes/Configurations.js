@@ -284,6 +284,12 @@ configurations.post('/', protectRoute, async (req, res) => {
             editDates: false,
             deleteDates: true
         },
+        giftCard:  {
+            online: true,
+            section: true,
+            politics: '',
+            timeLimit: 3
+        },
         microService:[]
     }
     try {
@@ -390,6 +396,12 @@ configurations.post('/createConfigCertificate', async (req, res) => {
                     microServices: false,
                     editDates: false,
                     deleteDates: true
+                },
+                giftCard:  {
+                    online: true,
+                    section: true,
+                    politics: '',
+                    timeLimit: 3
                 },
                 microService:[],
                 notificationDiscount: false
