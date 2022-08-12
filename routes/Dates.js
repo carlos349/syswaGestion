@@ -2473,7 +2473,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                                 if (blocksFirst.length - 1 == e) {
                                     for (let u = 0; u < hoursdate / 15; u++) {
-
                                         if (blocksFirst[e - u]) {
                                             blocksFirst[e - u].validator = 'unavailable'
                                         }
@@ -2481,9 +2480,31 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                                 }
                             }
                         }
-                        
-
-                        
+                        var index = 0
+                        for (const block of blocksFirst) {
+                            if (block.employes.length > 0) {
+                                var valid = true
+                                block.employes.forEach(element => {
+                                    if (element.valid) {
+                                        valid = false
+                                        block.validator = true
+                                    }
+                                })
+                                if (valid) {
+                                    block.validator = 'unavailable'
+                                }
+                            }else{
+                                block.validator = false
+                            }
+                            if (blocksFirst.length - 1 == index) {
+                                for (let u = 0; u < hoursdate / 15; u++) {
+                                    if (blocksFirst[index - u]) {
+                                        blocksFirst[index - u].validator = 'unavailable'
+                                    }
+                                }
+                            }
+                            index++
+                        } 
                         res.json({ status: 'ok', data: blocksFirst, id: createBlockdate._id, Stat: "from create" })
                     }
                 } catch (err) {
