@@ -960,7 +960,7 @@ class Main {
     }
 }
 
-const mailTask = cron.schedule('11 11 * * *', () => {
+const mailTask = cron.schedule('10 10 * * *', () => {
   console.log("run mail schedule");
   logDates.info(`********* run mail schedule ***********`);
   const databases = [
