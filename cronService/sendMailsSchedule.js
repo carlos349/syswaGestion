@@ -8,6 +8,8 @@ const email = require('../modelsMail/Mails')
 const mailCredentials = require('../private/mail-credentials')
 const Mails = new email(mailCredentials)
 const connect = require('../mongoConnection/conectionInstances')
+const logger = require('../Logs/serviceExport');
+const logDates = logger.getLogger("dates");
 
 class Main {
 
@@ -54,6 +56,7 @@ class Main {
       
         const dates = await this.getDates()
         const configurations = await this.getConfigurations()
+        logDates.info(`********* dates length: ${dates.length} ***********`);
         for (const datee of dates) {
             const formatDate = {
                 date: `${datee.start.split(' ')[0].split('-')[1]}-${datee.start.split(' ')[0].split('-')[0]}-${datee.start.split(' ')[0].split('-')[2]}`,
@@ -77,17 +80,17 @@ class Main {
                 location: '',
                 route: ''
             }
-            for (const config of configurations) {
-                if (config.branch == datee.branch) {
-                    branchData.name = config.businessName
-                    branchData.email = config.businessEmail
-                    branchData.phone = config.businessPhone
-                    branchData.image = config.bussinessLogo
-                    branchData.location = config.businessLocation
-                    branchData.route = config.bussinessRoute
-                    branchData.datesPolicies = config.datesPolicies
-                }
+            const branchFind = configurations.find(element => element.branch == datee.branch)
+            if(branchFind){
+              branchData.name = branchFind.businessName
+              branchData.email = branchFind.businessEmail
+              branchData.phone = branchFind.businessPhone
+              branchData.image = branchFind.bussinessLogo
+              branchData.location = branchFind.businessLocation
+              branchData.route = branchFind.bussinessRoute
+              branchData.datesPolicies = branchFind.datesPolicies
             }
+            logDates.info(`********* dates length: ${branchData} ***********`);
             
             const mail = {
                 from: branchData.name+' no-reply@syswa.net',
@@ -958,7 +961,8 @@ class Main {
 }
 
 const mailTask = cron.schedule('10 10 * * *', () => {
-  
+  console.log("run mail schedule");
+  logDates.info(`********* run mail schedule ***********`);
   const databases = [
     'kkprettynails-syswa',
     'house58-syswa',

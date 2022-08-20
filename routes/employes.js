@@ -487,7 +487,6 @@ employes.put('/nullsale/:id', protectRoute, async (req, res) => {
 
 employes.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
-    logDates.info(`############## Inicio de -> api que registra empleados <-  con base de datos:${database} ###############`);
 
     const Employe = connect.useDb(database).model('employes', employeSchema)
     const dateBlock = connect.useDb(database).model('datesblocks', datesBlockSchema)
@@ -527,17 +526,14 @@ employes.post('/', async (req, res) => {
                     }
                     for (let n = 0; n < req.body.days.length; n++) {
                         const element = req.body.days[n];
-                            logDates.info(`********* Datos antes de hacer el FIND dateData.dateDay:${element.day}, dateData.branch:${req.body.branch} ***********`);
                             dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}]})
                             .then(res => {
                                 if (res.length > 0) {
-                                    logDates.info(`********* Bloques encontrados:${JSON.stringify(res)} ***********`);
                                     for (let e = 0; e < res.length; e++) {
                                         const blocks = res[e].blocks
                                         for (let w = 0; w < blocks.length; w++) {
                                                 blocks[w].employes.push(employeForBlock)
                                         }
-                                        logDates.info(`********* Bloque despues del primer FOR ${JSON.stringify(blocks)}  ***********`);
                                         for (let j = 0; j < blocks.length; j++) {
                                             if (blocks[j].hour == element.hours[0]) {
                                                 for (let q = 0; q < 120; q++) {
@@ -554,21 +550,17 @@ employes.post('/', async (req, res) => {
                                                 }
                                             }
                                         }
-                                        logDates.info(`********* Bloque despues del segundo FOR ${JSON.stringify(blocks)}  ***********`);
                                         dateBlock.findByIdAndUpdate(res[e]._id,{
                                             $set:{
                                                 blocks:blocks
                                             }
-                                        }).then(resEdit=>{logDates.info(`********* Respuesta del update ${e} ${JSON.stringify(resEdit)} ***********`);}) 
+                                        }).then(resEdit=>{}) 
                                     }
                                 }
                             })
                     }
-                    logDates.info(`############## Fin de -> Api que registra empleados <-  con base de datos:${database} y data: ${JSON.stringify(employeCreated)} ############### \n`);
                     res.json({status: 'employe created', data: employeCreated})
                 }).catch(err => {
-                    logDates.error(`********* Error ${err} ***********`);
-                    logDates.info(`############## Fin -> Api que registra empleados <- con error ############### \n`);
                     const Log = new LogService(
                         req.headers.host, 
                         req.body, 
@@ -584,8 +576,6 @@ employes.post('/', async (req, res) => {
                     })
                 })
             }).catch(err => {
-                logDates.error(`********* Error ${err} ***********`);
-                logDates.info(`############## Fin -> Api que registra empleados <- con error ############### \n`);
                 const Log = new LogService(
                     req.headers.host, 
                     req.body, 
@@ -602,8 +592,6 @@ employes.post('/', async (req, res) => {
             })
         }
     }).catch(err => {
-        logDates.error(`********* Error ${err} ***********`);
-        logDates.info(`############## Fin -> Api que registra empleados <- con error ############### \n`);
         const Log = new LogService(
             req.headers.host, 
             req.body, 
@@ -819,7 +807,6 @@ employes.put('/', protectRoute, async (req,res) => {
                                     dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                     .then(dateBlockFind => {
                                         if (dateBlockFind.length > 0) {
-                                            logDates.info(`********* Bloques encontrados:${JSON.stringify(dateBlockFind)} ***********`);
                                             for (let e = 0; e < dateBlockFind.length; e++) {
                                                 const blocks = dateBlockFind[e].blocks
                                                 for (let w = 0; w < blocks.length; w++) {
@@ -846,7 +833,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                                     $set:{
                                                         blocks:blocks
                                                     }
-                                                }).then(resEdit=>{logDates.info(`********* Respuesta del update ${JSON.stringify(resEdit)} ***********`);}) 
+                                                }).then(resEdit=>{}) 
                                             }
                                         }
                                     })
@@ -857,7 +844,6 @@ employes.put('/', protectRoute, async (req,res) => {
                                 dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                 .then(blockFindValid => {
                                     if (blockFindValid.length > 0) {
-                                        logDates.info(`********* Bloques encontrados:${JSON.stringify(blockFindValid)} ***********`);
                                         for (let e = 0; e < blockFindValid.length; e++) {
                                             const blocks = blockFindValid[e].blocks
                                             for (let w = 0; w < blocks.length; w++) {
@@ -887,7 +873,6 @@ employes.put('/', protectRoute, async (req,res) => {
                                     dateBlock.find({$and:[{"dateData.dateDay": element.day}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                     .then(findBlockTwice => {
                                         if (findBlockTwice.length > 0) {
-                                            logDates.info(`********* Bloques encontrados:${JSON.stringify(findBlockTwice)} ***********`);
                                             for (let e = 0; e < findBlockTwice.length; e++) {
                                                 const blocks = findBlockTwice[e].blocks
                                                 for (let w = 0; w < blocks.length; w++) {
@@ -924,7 +909,6 @@ employes.put('/', protectRoute, async (req,res) => {
                                 dateBlock.find({$and:[{"dateData.dateDay": days}, {"dateData.branch":req.body.branch}, {"dateData.dateFormat": {$gt: yesterday}}]})
                                 .then(ValidFindBlocksTwice => {
                                     if (ValidFindBlocksTwice.length > 0) {
-                                        logDates.info(`********* Bloques encontrados:${JSON.stringify(ValidFindBlocksTwice)} ***********`);
                                         for (let e = 0; e < ValidFindBlocksTwice.length; e++) {
                                             const blocks = ValidFindBlocksTwice[e].blocks
                                             for (let w = 0; w < blocks.length; w++) {
@@ -938,7 +922,7 @@ employes.put('/', protectRoute, async (req,res) => {
                                                 $set:{
                                                     blocks:blocks
                                                 }
-                                            }).then(resEdit=>{logDates.info(`********* Respuesta del update ${JSON.stringify(resEdit)} ***********`);}) 
+                                            }).then(resEdit=>{}) 
                                         }
                                     }
                                 })
