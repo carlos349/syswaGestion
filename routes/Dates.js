@@ -333,7 +333,16 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
                     try {
                         
                         var today = new Date().getTime()
-                        var len = configBlock.blockedDays.length
+                        if(configBlock.blockedDays){
+                            if(configBlock.blockedDays[0]){
+                                var len = configBlock.blockedDays.length
+                            }else{
+                                var len = 0
+                            }
+                        }else{
+                            var len = 0
+                        }
+                        
                         for (var i = 0; i < len; i++) {
                             for (var index = 0; index < configBlock.blockedDays.length; index++) {
                                 var blocked = configBlock.blockedDays[index]
@@ -345,7 +354,6 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
                                 }
                             }
                          }
-                         console.log(configBlock.blockedDays)
                         const deleteLast = await Configuration.findByIdAndUpdate(configBlock._id, {
                             blockedDays: configBlock.blockedDays
                         })
