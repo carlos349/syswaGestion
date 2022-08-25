@@ -117,7 +117,6 @@ orders.get('/validcode/:order', protectRoute, async (req, res) => {
 })
 
 
-
 orders.post('/', async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Order = connect.useDb(database).model('orders', ordersSchema)
@@ -133,7 +132,7 @@ orders.post('/', async (req, res) => {
         var expired = new Date()
 
         expired.setDate(expired.getDate()+req.body.branch.politics.timeLimit)
-
+        const timeLimit = req.body.branch.politics.timeLimit
         const data = {
             products: req.body.products,
             branch: req.body.branch,
@@ -146,6 +145,7 @@ orders.post('/', async (req, res) => {
             orderNumber: nOrder,
             expiredDate: expired
         }
+        console.log(data.branch)
         data.branch.politics = req.body.branch.politics.politics
         let dollarUSLocale = Intl.NumberFormat('de-DE');
         var products = ''
@@ -403,7 +403,7 @@ orders.post('/', async (req, res) => {
                                     <tr>
                                     <td align="left" style="font-size:0px;padding:15px 15px 15px 15px;word-break:break-word;">
                                         
-                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;"><span style="font-size: 14px; font-family: Poppins, sans-serif;"><strong>Informaci&oacute;n importante:</strong> Este c&oacute;digo tiene fecha de vencimiento de <strong>${data.branch.politics.timeLimit}</strong> d&iacute;as h&aacute;biles a pagar en la siguiente direcci&oacute;n:</span></p>
+                            <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1.5;text-align:left;color:#000000;"><p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;"><span style="font-size: 14px; font-family: Poppins, sans-serif;"><strong>Informaci&oacute;n importante:</strong> Este c&oacute;digo tiene fecha de vencimiento de <strong>${timeLimit}</strong> d&iacute;as h&aacute;biles a pagar en la siguiente direcci&oacute;n:</span></p>
                         <p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;">&nbsp;</p>
                         <p style="font-size: 11px; font-family: Ubuntu, Helvetica, Arial; text-align: justify;"><span style="font-size: 14px; font-family: Poppins, sans-serif;">${data.branch.location}</span></p></div>
                             
@@ -565,6 +565,24 @@ orders.post('/', async (req, res) => {
     
 })
 
+orders.put('/usecodef/:code', protectRoute, async (req, res) => {
+    const database = req.headers['x-database-connect'];
+    const Order = connect.useDb(database).model('orders', ordersSchema)
+
+    try{
+        const valid = await Order.findOne({code: req.params.code, orderNumber: req.body.orderNumber})
+        if(valid){
+            res.json({status: "ok", data: valid})
+            
+        }else{
+            res.json({status: "nothing"})
+        }
+    }catch(err){
+        console.log(err)
+    }
+
+})
+
 orders.put('/usecode/:code', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const Order = connect.useDb(database).model('orders', ordersSchema)
@@ -572,15 +590,29 @@ orders.put('/usecode/:code', protectRoute, async (req, res) => {
     try{
         const valid = await Order.findOne({code: req.params.code, orderNumber: req.body.orderNumber})
         if(valid){
+            
             try{
-                const useCode = await Order.findByIdAndUpdate(valid._id, {
-                    status: "used",
-                    processDate: new Date()
-                })
-        
-                if(useCode){
-                    res.json({status: "ok", data: useCode})
+                valid.total = parseFloat(valid.total) - parseFloat(req.body.total)
+                if(valid.total == 0){
+                    const useCode = await Order.findByIdAndUpdate(valid._id, {
+                        total: 0,
+                        status: "used",
+                        processDate: new Date()
+                    })
+            
+                    if(useCode){
+                        res.json({status: "ok", data: useCode})
+                    }
+                }else{
+                    const useCodeE = await Order.findByIdAndUpdate(valid._id, {
+                        total: valid.total
+                    })
+            
+                    if(useCodeE){
+                        res.json({status: "ok", data: useCodeE})
+                    }
                 }
+                
             }catch(err){
                 console.log(err)
             }
