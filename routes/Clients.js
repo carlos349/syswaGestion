@@ -111,15 +111,17 @@ clients.get('/regex/:str', protectRoute, async (req, res) => {
     
 
     const Client = connect.useDb(database).model('clients', clientSchema)
-
+    // Client.aggregate([
+    //     {$project: { "name" : { $concat : [ "$firstName", " ", "$lastName" ] } }},
+    //     {$match: {"name": {$regex: req.params.str.split(' ')[1] ? req.params.str.split(' ')[1] : req.params.str, $options:'i'}}}
+    // ]).limit(30).exec(function(err, results) {
+    //     console.log(results)
+    // })
     try {
-        const getClients = await Client.find({
-            $or:[
-                {firstName:{$regex:req.params.str, $options:'i'}},
-                {lastName:{$regex:req.params.str.split(' ')[1] ? req.params.str.split(' ')[1] : req.params.str, $options:'i'}},
-                {email:{$regex:req.params.str, $options:'i'}}
-            ]
-        },{historical:0,password:0}).limit(30)
+        const getClients = await Client.aggregate([
+            {$project: { "name" : { $concat : [ "$firstName", " ", "$lastName", " (", "$email", ")"] } }},
+            {$match: {"name": {$regex: req.params.str, $options:'i'}}}
+        ]).limit(30)
         if (getClients.length > 0) {
             res.json({status: 'ok', data: getClients, token: req.requestToken})
         }else{

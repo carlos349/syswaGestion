@@ -2257,12 +2257,17 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                 const dateSelected = new Date(req.body.date)
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
                     const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
+                    const minutes = thisDate.getMinutes()
                     for (const key in blocksFirst) {
                         const element = blocksFirst[key]
-                        if (blocksFirst[0].hour.split(':')[0] >= hour) {
+                        if (blocksFirst[0].hour.split(':')[0] >= hour && blocksFirst[0].hour.split(':')[1] >= minutes) {
                             break
                         }
-                        if (element.hour.split(':')[0] == hour) {
+                        console.log(minutes)
+                        var minutesBlock = minutes >= 45 ? 0 : minutes
+                        console.log(minutesBlock)
+                        const hourBlock = minutes >= 45 ? (hour + 1) : hour
+                        if (element.hour.split(':')[0] == hourBlock && element.hour.split(':')[1] >= minutesBlock) {
                             break
                         }
                         element.validator = 'unavailable'
@@ -2341,22 +2346,6 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     const element = blocksFirst[i];
                     if (element.employes.length == 0) {
                         element.validator = false
-                    }
-                }
-                const thisDate = new Date()
-                const dateSelected = new Date(req.body.date)
-                if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                    const hour = thisDate.getHours() - findConfiguration.datesPolitics.minTypeDate
-                    for (const key in blocksFirst) {
-                        const element = blocksFirst[key]
-                        if (blocksFirst[0].hour.split(':')[0] >= hour) {
-                            break
-                        }
-                        if (element.hour.split(':')[0] == hour) {
-                            break
-                        }
-                        element.validator = 'unavailable'
-                        element.sameDay = true
                     }
                 }
 
@@ -2465,6 +2454,22 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                             }
                             index++
                         } 
+                        const thisDate = new Date()
+                        const dateSelected = new Date(req.body.date)
+                        if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
+                            const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
+                            for (const key in blocksFirst) {
+                                const element = blocksFirst[key]
+                                if (blocksFirst[0].hour.split(':')[0] >= hour) {
+                                    break
+                                }
+                                if (element.hour.split(':')[0] == hour) {
+                                    break
+                                }
+                                element.validator = 'unavailable'
+                                element.sameDay = true
+                            }
+                        }
                         res.json({ status: 'ok', data: blocksFirst, id: createBlockdate._id, Stat: "from create" })
                     }
                 } catch (err) {
