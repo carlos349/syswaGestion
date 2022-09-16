@@ -317,7 +317,7 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
 
-    const dates = formats.dayBack(new Date())
+    const dates = formats.dayToday(new Date())
     try {
         const find = await HourBlocking.deleteMany({
             $and: [
@@ -3175,21 +3175,56 @@ dates.post('/endDate/:id', protectRoute, (req, res) => {
     const Dates = connect.useDb(database).model('dates', dateSchema)
     const id = req.params.id
 
-    Client.findById(req.body.client.id)
-    .then(client => {
-        const data = {
-            services: req.body.service,
-            branch: req.body.branch,
-            client: req.body.client,
-            employe: req.body.employe,
-            microServices: req.body.microServices,
-            createdAt: new Date()
-        }
-        EndingDates.create(data)
-        .then(closed => {
-            Dates.findByIdAndUpdate(id, { $set: { process: false } })
-            .then(end => {
-                res.json({ status: 'ok', token:req.requestToken })
+    Dates.findById(id)
+    .then(dateFind => {
+        if (dateFind.process) {
+            Client.findById(req.body.client.id)
+            .then(client => {
+                const data = {
+                    services: req.body.service,
+                    branch: req.body.branch,
+                    client: req.body.client,
+                    employe: req.body.employe,
+                    microServices: req.body.microServices,
+                    createdAt: new Date()
+                }
+                EndingDates.create(data)
+                .then(closed => {
+                    Dates.findByIdAndUpdate(id, { $set: { process: false } })
+                    .then(end => {
+                        res.json({ status: 'ok', token:req.requestToken })
+                    })
+                    .catch(err => {
+                        const Log = new LogService(
+                            req.headers.host, 
+                            req.body, 
+                            req.params, 
+                            err, 
+                            '', 
+                            req.headers['x-database-connect'], 
+                            req.route
+                        )
+                        Log.createLog()
+                        .then(dataLog => {
+                            res.send('failed api with error, '+ dataLog.error)
+                        })
+                    })
+                })
+                .catch(err => {
+                    const Log = new LogService(
+                        req.headers.host, 
+                        req.body, 
+                        req.params, 
+                        err, 
+                        '', 
+                        req.headers['x-database-connect'], 
+                        req.route
+                    )
+                    Log.createLog()
+                    .then(dataLog => {
+                        res.send('failed api with error, '+ dataLog.error)
+                    })
+                })
             })
             .catch(err => {
                 const Log = new LogService(
@@ -3206,22 +3241,9 @@ dates.post('/endDate/:id', protectRoute, (req, res) => {
                     res.send('failed api with error, '+ dataLog.error)
                 })
             })
-        })
-        .catch(err => {
-            const Log = new LogService(
-                req.headers.host, 
-                req.body, 
-                req.params, 
-                err, 
-                '', 
-                req.headers['x-database-connect'], 
-                req.route
-            )
-            Log.createLog()
-            .then(dataLog => {
-                res.send('failed api with error, '+ dataLog.error)
-            })
-        })
+        }else{
+            res.json({ status: 'already end', token:req.requestToken })
+        }
     })
     .catch(err => {
         const Log = new LogService(
