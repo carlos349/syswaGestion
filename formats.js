@@ -21,6 +21,11 @@ formats.dayBack = (value) => {
     return (dateFormat.getMonth()+1)+"-"+dateFormat.getDate()+"-"+dateFormat.getFullYear()
 }
 
+formats.dayToday = (value) => {
+    let dateFormat = new Date(value)
+    return (dateFormat.getMonth()+1)+"-"+dateFormat.getDate()+"-"+dateFormat.getFullYear()
+}
+
 formats.dayAfter = (value) => {
     let dateFormat = new Date(value)
     dateFormat.setDate(dateFormat.getDate() + 1)
