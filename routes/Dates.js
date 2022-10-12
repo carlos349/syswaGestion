@@ -316,6 +316,7 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
     const database = req.headers['x-database-connect'];
     const HourBlocking = connect.useDb(database).model('hoursblocking', dateBlockingSchema)
     const Configuration = connect.useDb(database).model('configurations', configurationSchema)
+    const date = connect.useDb(database).model('dates', dateSchema)
 
     const dates = formats.dayToday(new Date())
     try {
@@ -326,46 +327,55 @@ dates.get('/deleteBlockingHours/:branch', protectRoute, async (req, res) => {
             ]
         })
         if (find) {
-            
-            try {
-                const configBlock = await Configuration.findOne({branch: req.params.branch})
-                if(configBlock){
-                    try {
-                        
-                        var today = new Date().getTime()
-                        if(configBlock.blockedDays){
-                            if(configBlock.blockedDays[0]){
-                                var len = configBlock.blockedDays.length
+            const findDates = await date.deleteMany({
+                $and: [
+                    { createdAt: { $lte: dates + ' 00:00' } },
+                    { branch: req.params.branch },
+                    { isBlocked: true}
+                ]
+            })
+            if(findDates){
+
+                try {
+                    const configBlock = await Configuration.findOne({branch: req.params.branch})
+                    if(configBlock){
+                        try {
+                            
+                            var today = new Date().getTime()
+                            if(configBlock.blockedDays){
+                                if(configBlock.blockedDays[0]){
+                                    var len = configBlock.blockedDays.length
+                                }else{
+                                    var len = 0
+                                }
                             }else{
                                 var len = 0
                             }
-                        }else{
-                            var len = 0
-                        }
-                        
-                        for (var i = 0; i < len; i++) {
-                            for (var index = 0; index < configBlock.blockedDays.length; index++) {
-                                var blocked = configBlock.blockedDays[index]
-                                
-                                var bDate = new Date(blocked.dat).getTime()
-                                if(bDate < today){
-                                    configBlock.blockedDays.splice(index, 1)
-                                    break
+                            
+                            for (var i = 0; i < len; i++) {
+                                for (var index = 0; index < configBlock.blockedDays.length; index++) {
+                                    var blocked = configBlock.blockedDays[index]
+                                    
+                                    var bDate = new Date(blocked.dat).getTime()
+                                    if(bDate < today){
+                                        configBlock.blockedDays.splice(index, 1)
+                                        break
+                                    }
                                 }
+                             }
+                            const deleteLast = await Configuration.findByIdAndUpdate(configBlock._id, {
+                                blockedDays: configBlock.blockedDays
+                            })
+                            if (deleteLast) {
+                                res.json({ status: 'ok', token: req.requestToken })
                             }
-                         }
-                        const deleteLast = await Configuration.findByIdAndUpdate(configBlock._id, {
-                            blockedDays: configBlock.blockedDays
-                        })
-                        if (deleteLast) {
-                            res.json({ status: 'ok', token: req.requestToken })
+                        } catch (err) {
+                            console.log(err)
                         }
-                    } catch (err) {
-                        console.log(err)
                     }
+                } catch (error) {
+                    console.log(error)
                 }
-            } catch (error) {
-                console.log(error)
             }
             
         }
@@ -1030,7 +1040,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
     const employes = req.body.employes
 
 
-    const data = {
+    var data = {
         branch: req.body.branch,
         dateBlocking: splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2],
         dateBlockings: new Date(splitDate[1] + '-' + splitDate[0] + '-' + splitDate[2] + " 12:00"),
@@ -1357,6 +1367,7 @@ dates.post('/createBlockingHour', protectRoute, async (req, res) => {
                                 })
                                 if (createDateBlocking) {
                                     data.dateId = createDateBlocking._id
+                                    
                                     try {
                                         const createHour = await HourBlocking.create(data)
                                         if(createHour){
