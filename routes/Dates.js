@@ -2296,8 +2296,21 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     }
                     index++
                 }
+
                 const thisDate = new Date()
                 const dateSelected = new Date(req.body.date)
+                //ciclo para sacar a angela
+                for (const block of blocksFirst) {
+                    if (block.employes.length > 0) {
+                        for (const key in block.employes) {
+                            const employe = block.employes[key]
+                            if (employe.id == "6116b68328723d461421fde3" && dateSelected.getMonth() == 10 || dateSelected.getMonth() == 11 || dateSelected.getMonth() == 0) {
+                                block.employes.splice(key, 1);
+                            }
+                        }
+                    }
+                }
+
                 if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
                     const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
                     const minutes = thisDate.getMinutes()
