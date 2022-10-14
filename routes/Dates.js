@@ -2315,7 +2315,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     if (block.employes.length > 0) {
                         for (const key in block.employes) {
                             const employe = block.employes[key]
-                            if (employe.id == "6116b68328723d461421fde3" && (dateSelected.getMonth() == 10 || dateSelected.getMonth() == 11 || dateSelected.getMonth() == 0)) {
+                            if ((employe.id == "6116b68328723d461421fde3" || employe.id == "62a39b7d01ead640f5b8b31a") && (dateSelected.getMonth() == 10 || dateSelected.getMonth() == 11 || dateSelected.getMonth() == 0)) {
                                 block.employes.splice(key, 1);
                             }
                         }
