@@ -91,7 +91,7 @@ class Main {
                 branchData.route = branchFind.bussinessRoute
                 branchData.datesPolicies = branchFind.datesPolicies
               }
-              logDates.info(`********* dates length: ${branchData} ***********`);
+              logDates.info(`********* dates length: ${JSON.stringify(datee.client)} ***********`);
               
             if (datee.client.email) {
               const mail = {
