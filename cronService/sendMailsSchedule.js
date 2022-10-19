@@ -93,6 +93,7 @@ class Main {
               }
               logDates.info(`********* dates length: ${branchData} ***********`);
               
+            if (datee.client.email) {
               const mail = {
                   from: branchData.name+' no-reply@syswa.net',
                   to: datee.client.email,
@@ -957,6 +958,7 @@ class Main {
               }catch(err){
                   console.log(err)
               }
+            }
           }
         }catch(err){
           logDates.info(`********* error try for ${err} ***********`);
