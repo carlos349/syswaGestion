@@ -91,9 +91,12 @@ class Main {
                 branchData.route = branchFind.bussinessRoute
                 branchData.datesPolicies = branchFind.datesPolicies
               }
-              logDates.info(`********* dates length: ${JSON.stringify(datee.client)} ***********`);
+            
+            if(datee.client == undefined){
+              logDates.info(`********* dates length: ${JSON.stringify(datee)} ***********`);
+            }
               
-            if (datee.client.email) {
+            if (datee.client) {
               const mail = {
                   from: branchData.name+' no-reply@syswa.net',
                   to: datee.client.email,
