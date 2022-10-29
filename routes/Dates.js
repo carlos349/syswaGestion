@@ -2334,7 +2334,7 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                         var minutesBlock = minutes >= 45 ? 0 : minutes
                         console.log(minutesBlock)
                         const hourBlock = minutes >= 45 ? (hour + 1) : hour
-                        if (element.hour.split(':')[0] == hourBlock && element.hour.split(':')[1] >= minutesBlock) {
+                        if (element.hour.split(':')[0] <= hourBlock && element.hour.split(':')[1] >= minutesBlock) {
                             break
                         }
                         element.validator = 'unavailable'
