@@ -17,7 +17,9 @@ const root = require('../private/user-root')
 const Mails = new email(mailCredentials)
 users.use(cors())
 const connect = require('../mongoConnection/conectionInstances')
+
 //generador de super usuario - super user generator
+
 users.post('/createUserCertificate', async (req, res, next) => {
 	const database = req.headers['x-database-connect'];
     
