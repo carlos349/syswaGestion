@@ -2421,17 +2421,18 @@ mails.get('/resolveMails', async (req, res) => {
   const Configuration = connect.useDb("syswa-gestion-qa").model('configurations', configurationSchema)
   const date = connect.useDb("syswa-gestion-qa").model('dates', dateSchema)
   
-  const dates = await await date.find({
-    $and: [
-      { createdAt: { $gte: '02-04-2023 00:00', $lte: '05-20-2023 24:00' } },
-      { branch: '6216942aea8bdc392c67dd2a' }
-    ]
-  })
-
-
-  const configurations = await Configuration.find({ branch: '6216942aea8bdc392c67dd2a' })
-  logDates.info(`********* dates length: ${dates.length} ***********`);
+  
   try {
+    const dates = await date.find({
+      $and: [
+        { createdAt: { $gte: '02-04-2023 00:00', $lte: '05-20-2023 24:00' } },
+        { branch: '6216942aea8bdc392c67dd2a' }
+      ]
+    })
+  
+  
+    const configurations = await Configuration.find({ branch: '6216942aea8bdc392c67dd2a' })
+    
     for (const datee of dates) {
       const formatDate = {
         date: `${datee.start.split(' ')[0].split('-')[1]}-${datee.start.split(' ')[0].split('-')[0]}-${datee.start.split(' ')[0].split('-')[2]}`,
@@ -2466,9 +2467,7 @@ mails.get('/resolveMails', async (req, res) => {
         branchData.datesPolicies = branchFind.datesPolicies
       }
 
-      if (datee.client == undefined) {
-        logDates.info(`********* dates length: ${JSON.stringify(datee)} ***********`);
-      }
+     
 
       if (datee.client) {
         const mail = {
@@ -3330,7 +3329,7 @@ mails.get('/resolveMails', async (req, res) => {
       }
     }
   } catch (err) {
-    logDates.info(`********* error try for ${err} ***********`);
+    console.log(err)
   }
 })
 
