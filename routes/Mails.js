@@ -2418,20 +2418,20 @@ mails.get('/salemail/:id', protectRoute, async (req, res) => {
 
 mails.get('/resolveMails', async (req, res) => {
 
-  const Configuration = connect.useDb("syswa-gestion-qa").model('configurations', configurationSchema)
-  const date = connect.useDb("syswa-gestion-qa").model('dates', dateSchema)
+  const Configuration = connect.useDb("kkprettynails-syswa").model('configurations', configurationSchema)
+  const date = connect.useDb("kkprettynails-syswa").model('dates', dateSchema)
   
   
   try {
     const dates = await date.find({
       $and: [
         { createdAt: { $gte: '02-04-2023 00:00', $lte: '05-20-2023 24:00' } },
-        { branch: '6216942aea8bdc392c67dd2a' }
+        { branch: '612f185da6a0df026bb599c5' }
       ]
     })
   
   
-    const configurations = await Configuration.find({ branch: '6216942aea8bdc392c67dd2a' })
+    const configurations = await Configuration.find({ branch: '612f185da6a0df026bb599c5' })
     
     for (const datee of dates) {
       const formatDate = {
