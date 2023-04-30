@@ -2322,25 +2322,23 @@ dates.post('/blocksHoursFirst', async (req, res) => {
                     }
                 }
 
-                // if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
-                //     const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
-                //     const minutes = thisDate.getMinutes()
-                //     for (const key in blocksFirst) {
-                //         const element = blocksFirst[key]
-                //         if (blocksFirst[0].hour.split(':')[0] >= hour && blocksFirst[0].hour.split(':')[1] >= minutes) {
-                //             break
-                //         }
-                //         console.log(minutes)
-                //         var minutesBlock = minutes >= 45 ? 0 : minutes
-                //         console.log(minutesBlock)
-                //         const hourBlock = minutes >= 45 ? (hour + 1) : hour
-                //         if (element.hour.split(':')[0] == hourBlock && element.hour.split(':')[1] >= minutesBlock) {
-                //             break
-                //         }
-                //         element.validator = 'unavailable'
-                //         element.sameDay = true
-                //     }
-                // }
+                if (thisDate.getDate() == dateSelected.getDate() && thisDate.getMonth() == dateSelected.getMonth()) {
+                    const hour = thisDate.getHours() + findConfiguration.datesPolitics.minTypeDate
+                    const minutes = thisDate.getMinutes()
+                    for (const key in blocksFirst) {
+                        const element = blocksFirst[key]
+                        if (blocksFirst[0].hour.split(':')[0] >= hour && blocksFirst[0].hour.split(':')[1] >= minutes) {
+                            break
+                        }
+                        var minutesBlock = minutes >= 45 ? 0 : minutes
+                        const hourBlock = minutes >= 45 ? (hour + 1) : hour
+                        if (element.hour.split(':')[0] == hourBlock && element.hour.split(':')[1] >= minutesBlock) {
+                            break
+                        }
+                        element.validator = 'unavailable'
+                        element.sameDay = true
+                    }
+                }
                 res.json({ status: 'ok', data: blocksFirst, id: finddate._id })
             } catch (err) {
                 const Log = new LogService(
